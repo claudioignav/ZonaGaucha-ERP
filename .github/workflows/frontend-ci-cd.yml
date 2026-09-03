@@ -1,0 +1,67 @@
+name: Frontend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # ETAPA INTEGRACIÓN CONTINUA, SOLO SCA
+  ci:
+    name: SCA Scan & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # DevSecOps: Software Composition Analysis (SCA)
+      # Escanea vulnerabilidades en las dependencias de package.json
+      - name: SCA - npm audit
+        run: npm audit --audit-level=high
+
+      - name: Compilar Angular (Producción)
+        run: npm run build -- --configuration production
+
+      # Almacena los archivos compilados para usarlos en el CD
+      - name: Subir artefacto compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: angular-dist
+          path: dist/**/browser/
+          retention-days: 1
+
+
+  # ETAPA DESPLIEGUE CONTINUO
+    name: Deploy to Azure Storage
+    needs: [ci]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar artefacto compilado
+        uses: actions/download-artifact@v4
+        with:
+          name: angular-dist
+          path: ./dist-ready
+
+      - name: Desplegar archivos al contenedor $web
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            az storage blob sync \
+              --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
+              --container '$web' \
+              --source ./dist-ready \
+              --delete-destination true
