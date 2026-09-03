@@ -8,11 +8,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ETAPA INTEGRACIÓN CONTINUA, SOLO SCA
   ci:
     name: SCA Scan & Build
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
@@ -26,15 +24,12 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      # DevSecOps: Software Composition Analysis (SCA)
-      # Escanea vulnerabilidades en las dependencias de package.json
       - name: SCA - npm audit
         run: npm audit --audit-level=high
 
-      - name: Compilar Angular (Producción)
+      - name: Compilar Angular (Produccion)
         run: npm run build -- --configuration production
 
-      # Almacena los archivos compilados para usarlos en el CD
       - name: Subir artefacto compilado
         uses: actions/upload-artifact@v4
         with:
@@ -42,13 +37,11 @@ jobs:
           path: dist/**/browser/
           retention-days: 1
 
-
-  # ETAPA DESPLIEGUE CONTINUO
+  cd:
     name: Deploy to Azure Storage
-    needs: [ci]
+    needs: ci
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
-
     steps:
       - name: Descargar artefacto compilado
         uses: actions/download-artifact@v4
@@ -56,7 +49,7 @@ jobs:
           name: angular-dist
           path: ./dist-ready
 
-      - name: Desplegar archivos al contenedor $web
+      - name: Desplegar archivos al contenedor web
         uses: azure/CLI@v2
         with:
           inlineScript: |
