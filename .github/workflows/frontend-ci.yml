@@ -1,4 +1,4 @@
-name: Frontend CI/CD Pipeline
+name: Frontend CI Pipeline
 
 on:
   push:
@@ -36,25 +36,3 @@ jobs:
           name: angular-dist
           path: dist/erp-frontend/browser/
           retention-days: 1
-
-  cd:
-    name: Deploy to Azure Storage
-    needs: ci
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Descargar artefacto compilado
-        uses: actions/download-artifact@v4
-        with:
-          name: angular-dist
-          path: ./dist-ready
-
-      - name: Desplegar archivos al contenedor web
-        uses: azure/CLI@v2
-        with:
-          inlineScript: |
-            az storage blob sync \
-              --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
-              --container '$web' \
-              --source ./dist-ready \
-              --delete-destination true

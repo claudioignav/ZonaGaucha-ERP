@@ -1,0 +1,35 @@
+name: Frontend CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["Frontend CI Pipeline"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  cd:
+    name: Deploy to Azure Storage
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar artefacto compilado
+        uses: actions/download-artifact@v4
+        with:
+          name: angular-dist
+          path: ./dist-ready
+          # Necesario para descargar artefactos generados en un workflow distinto
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Desplegar archivos al contenedor web
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            az storage blob sync \
+              --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
+              --container '$web' \
+              --source ./dist-ready \
+              --delete-destination true
