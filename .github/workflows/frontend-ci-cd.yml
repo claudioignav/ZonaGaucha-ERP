@@ -1,3 +1,12 @@
+name: Frontend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   ci:
     name: SCA Scan & Build
@@ -25,7 +34,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: angular-dist
-          # Ruta directa a la carpeta browser (o el contenido que genera tu Angular)
           path: dist/erp-frontend/browser/
           retention-days: 1
 
