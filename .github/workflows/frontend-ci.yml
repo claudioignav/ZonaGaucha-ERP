@@ -18,7 +18,7 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Necesario para que GitGuardian analice el historial
+          fetch-depth: 0
 
       - name: Escaneo de secretos (GitGuardian)
         uses: GitGuardian/ggshield-action@v1
@@ -38,8 +38,13 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      - name: SCA - npm audit
-        run: npm audit --audit-level=high
+      # --- INTEGRACIÓN DE SNYK ---
+      - name: Análisis SCA de dependencias (Snyk)
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
 
       - name: Compilar Angular (Produccion)
         run: npm run build -- --configuration production
