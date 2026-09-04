@@ -12,7 +12,7 @@ on:
 
 jobs:
   ci:
-    name: SCA Scan & Build
+    name: DevSecOps Quality & Security Gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del repositorio
@@ -38,14 +38,27 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      # --- INTEGRACIÓN DE SNYK ---
-      - name: Análisis SCA de dependencias (Snyk)
+      # --- ANALISIS SCA (DEPENDENCIAS) ---
+      - name: Analisis SCA de dependencias (Snyk)
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high
 
+      # --- ANALISIS SAST (CODIGO ESTATICO) ---
+      - name: Analisis SAST (SonarQube Cloud)
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=claudioignav
+            -Dsonar.projectKey=claudioignav_erp-frontend
+            -Dsonar.sources=src
+
+      # --- COMPILACION Y EMPAQUETADO ---
       - name: Compilar Angular (Produccion)
         run: npm run build -- --configuration production
 
