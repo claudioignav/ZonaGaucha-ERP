@@ -9,6 +9,10 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  actions: read
+  contents: read
+
 jobs:
   cd:
     name: Deploy to Azure Storage
@@ -20,7 +24,6 @@ jobs:
         with:
           name: angular-dist
           path: ./dist-ready
-          # Necesario para descargar artefactos generados en un workflow distinto
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
