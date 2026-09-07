@@ -48,3 +48,11 @@ jobs:
               --container '$web' \
               --source ./dist-ready \
               --delete-destination true
+
+      - name: Registrar despliegue en Grafana Cloud
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: '${{ secrets.GRAFANA_URL }}/api/annotations'
+          method: 'POST'
+          customHeaders: '{"Authorization": "Bearer ${{ secrets.GRAFANA_API_TOKEN }}"}'
+          data: '{"text": "Despliegue ERP Frontend exitoso (Commit: ${{ github.sha }})", "tags": ["frontend", "produccion", "azure"]}'
