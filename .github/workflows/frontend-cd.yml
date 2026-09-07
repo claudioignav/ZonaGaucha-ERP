@@ -31,7 +31,7 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
 
       - name: Escaneo de Seguridad IaC con Trivy
-        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
           scan-ref: 'infra/'
