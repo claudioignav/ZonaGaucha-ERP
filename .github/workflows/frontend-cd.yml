@@ -40,7 +40,7 @@ jobs:
           format: 'table'
 
       - name: Desplegar archivos al contenedor web
-        uses: azure/CLI@4c03b12384a600649be117c2a71d7c493cf02b9e
+        uses: azure/cli@v2
         with:
           inlineScript: |
             az storage blob sync \
