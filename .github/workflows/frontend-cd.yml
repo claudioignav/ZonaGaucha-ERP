@@ -19,16 +19,28 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
       - name: Descargar artefacto compilado
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
         with:
           name: angular-dist
           path: ./dist-ready
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Escaneo de Seguridad IaC con Trivy
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0
+        with:
+          scan-type: 'config'
+          scan-ref: 'infra/'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+          format: 'table'
+
       - name: Desplegar archivos al contenedor web
-        uses: azure/CLI@4c03b12384a600649be117c2a71d7c493cf02b9e # v2.0.0
+        uses: azure/CLI@4c03b12384a600649be117c2a71d7c493cf02b9e
         with:
           inlineScript: |
             az storage blob sync \
@@ -36,3 +48,11 @@ jobs:
               --container '$web' \
               --source ./dist-ready \
               --delete-destination true
+
+      - name: Registrar despliegue en Grafana Cloud
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: '${{ secrets.GRAFANA_URL }}/api/annotations'
+          method: 'POST'
+          customHeaders: '{"Authorization": "Bearer ${{ secrets.GRAFANA_API_TOKEN }}"}'
+          data: '{"text": "Despliegue ERP Frontend exitoso (Commit: ${{ github.sha }})", "tags": ["frontend", "produccion", "azure"]}'
