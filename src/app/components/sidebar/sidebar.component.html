@@ -1,0 +1,68 @@
+<aside class="sidebar">
+  <div class="seccion-logo">
+    <div class="logo">
+      <img src="assets/img/logo_zg.jpeg" alt="Logo">
+    </div>
+    <div class="titulo-logo">
+      <h1>ZonaGaucha</h1>
+      <span>SISTEMA ERP</span>
+    </div>
+  </div>
+
+  <nav class="navegacion">
+    <ul>
+      <li [class.activo]="pestanaActiva === 'dashboard'" (click)="cambiarPestana('dashboard')">
+        <i class="icono fa-solid fa-house"></i> Dashboard
+      </li>
+      <li [class.activo]="pestanaActiva === 'administrar-cuentas'" (click)="cambiarPestana('administrar-cuentas')">
+        <i class="icono fa-solid fa-user-pen"></i> Administrar Cuentas
+      </li>
+      
+      <!-- Cabecera con fondo -->
+      <li class="cabecera cabecera-destacada">
+        MÓDULOS <i class="fa-solid fa-angle-down"></i>
+      </li>
+      <li [class.activo]="pestanaActiva === 'ventas'" (click)="cambiarPestana('ventas')">
+        <i class="icono fa-solid fa-cart-shopping"></i> Ventas
+      </li>
+      <li [class.activo]="pestanaActiva === 'compras'" (click)="cambiarPestana('compras')">
+        <i class="icono fa-solid fa-bag-shopping"></i> Compras
+      </li>
+      <li [class.activo]="pestanaActiva === 'inventario'" (click)="cambiarPestana('inventario')">
+        <i class="icono fa-solid fa-database"></i> Inventario
+      </li>
+      
+      <!-- Cabecera sin fondo -->
+      <li class="cabecera">
+        CATÁLOGOS <i class="fa-solid fa-angle-down"></i>
+      </li>
+      <li [class.activo]="pestanaActiva === 'productos'" (click)="cambiarPestana('productos')">
+        <i class="icono fa-solid fa-cube"></i> Productos
+      </li>
+      <li [class.activo]="pestanaActiva === 'proveedores'" (click)="cambiarPestana('proveedores')">
+        <i class="icono fa-solid fa-user-group"></i> Proveedores
+      </li>
+      <li [class.activo]="pestanaActiva === 'tipos-pago'" (click)="cambiarPestana('tipos-pago')">
+        <i class="icono fa-regular fa-credit-card"></i> Tipos de Pago
+      </li>
+      <li [class.activo]="pestanaActiva === 'plataformas'" (click)="cambiarPestana('plataformas')">
+        <i class="icono fa-solid fa-globe"></i> Plataformas
+      </li>
+      <li [class.activo]="pestanaActiva === 'tipos-contenido'" (click)="cambiarPestana('tipos-contenido')">
+        <i class="icono fa-solid fa-layer-group"></i> Tipos de Contenido
+      </li>
+      <li [class.activo]="pestanaActiva === 'categoria-producto'" (click)="cambiarPestana('categoria-producto')">
+        <i class="icono fa-solid fa-tag"></i> Categoría de Producto
+      </li>
+    </ul>
+  </nav>
+
+  <div class="perfil-usuario">
+    <div class="avatar">PA</div>
+    <div class="info-perfil">
+      <h3>Perfil Administrador</h3>
+      <p>Administrador</p>
+    </div>
+    <i class="icono-logout fa-solid fa-arrow-right-from-bracket"></i>
+  </div>
+</aside>
