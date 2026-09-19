@@ -12,7 +12,7 @@ on:
 
 jobs:
   ci:
-    name: DevSecOps Quality & Security Gate
+    name: Integración continua
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del repositorio
