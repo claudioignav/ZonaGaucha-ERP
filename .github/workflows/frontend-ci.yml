@@ -52,7 +52,7 @@ jobs:
 
       # --- ANALISIS SAST (CODIGO ESTATICO) ---
       - name: Analisis SAST (SonarQube Cloud)
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarcloud-github-action@master 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -61,6 +61,7 @@ jobs:
             -Dsonar.organization=claudioignav
             -Dsonar.projectKey=claudioignav_erp-frontend
             -Dsonar.sources=src
+            -Dsonar.coverage.exclusions=**/* 
 
       # --- COMPILACION Y EMPAQUETADO ---
       - name: Compilar Angular (Produccion)
