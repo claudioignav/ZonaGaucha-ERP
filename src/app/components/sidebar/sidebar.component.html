@@ -23,7 +23,7 @@
 
 <aside
   id="menu-principal"
-  class="fixed inset-y-0 left-0 z-50 flex h-dvh w-60 flex-col overflow-y-auto bg-[#1e3f20] px-4 py-[clamp(0.75rem,2.2vh,1.5rem)] text-[#d8f3dc] shadow-xl transition-transform duration-300 md:translate-x-0 md:shadow-none"
+  class="fixed inset-y-0 left-0 z-50 box-border flex h-dvh w-60 flex-col overflow-hidden bg-[#1e3f20] px-4 py-3 text-[#d8f3dc] shadow-xl transition-transform duration-300 md:translate-x-0 md:shadow-none"
   [class.-translate-x-full]="!menuMovilAbierto"
   [class.translate-x-0]="menuMovilAbierto"
   aria-label="Navegación principal"
@@ -52,12 +52,12 @@
     </button>
   </div>
 
-  <nav class="mt-[clamp(1rem,3vh,2rem)] flex flex-1 flex-col" aria-label="Opciones del sistema">
-    <ul class="space-y-1.5">
+  <nav class="mt-4 flex min-h-0 flex-1 flex-col" aria-label="Opciones del sistema">
+    <ul class="space-y-1">
       <li *ngFor="let elemento of elementosPrincipales">
         <button
           type="button"
-          class="flex w-full items-center gap-3 rounded-lg px-4 py-[clamp(0.5rem,1.2vh,0.75rem)] text-left [font-family:'Geist-Medium',sans-serif] text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#52b788]"
+          class="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-left [font-family:'Geist-Medium',sans-serif] text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#52b788]"
           [ngClass]="elementoActivo === elemento.id ? 'bg-[#377c39] text-white' : 'hover:bg-white/10'"
           [attr.aria-current]="elementoActivo === elemento.id ? 'page' : null"
           (click)="seleccionarElemento(elemento)"
@@ -68,10 +68,13 @@
       </li>
     </ul>
 
-    <section *ngFor="let seccion of secciones" class="mt-[clamp(0.75rem,2.6vh,1.75rem)]">
+    <section
+      *ngFor="let seccion of secciones; let primera = first"
+      [ngClass]="primera ? 'mt-3' : 'mt-5'"
+    >
       <button
         type="button"
-        class="flex w-full items-center justify-between rounded-lg px-4 py-[clamp(0.375rem,1vh,0.625rem)] text-left [font-family:'Geist-Bold',sans-serif] text-[11px] font-bold tracking-[0.5px] text-white transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#52b788]"
+        class="flex w-full items-center justify-between rounded-lg px-4 py-1.5 text-left [font-family:'Geist-Bold',sans-serif] text-[11px] font-bold tracking-[0.5px] text-white transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#52b788]"
         [attr.aria-expanded]="seccion.expandida"
         [attr.aria-controls]="'seccion-' + seccion.id"
         (click)="alternarSeccion(seccion)"
@@ -90,11 +93,11 @@
         </svg>
       </button>
 
-      <ul *ngIf="seccion.expandida" class="mt-[clamp(0.25rem,0.8vh,0.5rem)] space-y-[clamp(0.125rem,0.6vh,0.375rem)]" [id]="'seccion-' + seccion.id">
+      <ul *ngIf="seccion.expandida" class="mt-1 space-y-0.5" [id]="'seccion-' + seccion.id">
         <li *ngFor="let elemento of seccion.elementos">
           <button
             type="button"
-            class="flex w-full items-center gap-3 rounded-lg px-4 py-[clamp(0.5rem,1.2vh,0.75rem)] text-left [font-family:'Geist-Medium',sans-serif] text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#52b788]"
+            class="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-left [font-family:'Geist-Medium',sans-serif] text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#52b788]"
             [ngClass]="elementoActivo === elemento.id ? 'bg-[#377c39] text-white' : 'hover:bg-white/10'"
             [attr.aria-current]="elementoActivo === elemento.id ? 'page' : null"
             (click)="seleccionarElemento(elemento)"
@@ -107,7 +110,7 @@
     </section>
   </nav>
 
-  <div class="mt-[clamp(0.75rem,2vh,1.5rem)] border-t border-white/10 pt-[clamp(0.625rem,1.5vh,1rem)]">
+  <div class="mt-2 shrink-0 border-t border-white/10 pt-2">
     <div class="flex items-center gap-3">
       <div class="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#2d6a4f] [font-family:'Geist-SemiBold',sans-serif] text-sm font-semibold text-white">
         RN
