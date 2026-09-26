@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   cd:
-    name: Deploy to Azure Storage
+    name: Despliegue continuo
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
@@ -50,6 +50,7 @@ jobs:
               --delete-destination true
 
       - name: Registrar despliegue en Grafana Cloud
+        if: false
         uses: fjogeleit/http-request-action@v1
         with:
           url: '${{ secrets.GRAFANA_URL }}/api/annotations'
