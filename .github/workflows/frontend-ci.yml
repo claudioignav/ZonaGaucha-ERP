@@ -2,7 +2,6 @@ name: Integración continua del frontend
 
 on:
   push:
-    branches: [main]
     paths:
       - "frontend/**"
       - ".github/workflows/frontend-ci.yml"
