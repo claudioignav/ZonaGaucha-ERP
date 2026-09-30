@@ -80,6 +80,7 @@ jobs:
             -Dsonar.tests=src
             -Dsonar.test.inclusions=**/*.spec.ts
             -Dsonar.exclusions=**/*.spec.ts
+            -Dsonar.javascript.lcov.reportPaths=coverage/erp-frontend/lcov.info
 
       - name: Publicar artefacto del frontend
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
