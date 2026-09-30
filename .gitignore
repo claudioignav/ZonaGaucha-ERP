@@ -1,17 +1,34 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+# Frontend Angular
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.angular/
+/frontend/coverage/
+/frontend/out-tsc/
 
-# Compiled output
-/dist
+# Backend Node.js
+/backend/node_modules/
+/backend/dist/
+/backend/coverage/
+/backend/logs/
+
+# Variables de entorno locales
+**/.env
+**/.env.*
+!**/.env.example
+
+# Archivos compilados adicionales
+**/dist/
 /tmp
 /out-tsc
 /bazel-out
 
 # Node
-/node_modules
+**/node_modules/
 npm-debug.log
+npm-debug.log.*
 yarn-error.log
 
-# IDEs and editors
+# Editores y entornos de desarrollo
 .idea/
 .project
 .classpath
@@ -29,16 +46,33 @@ yarn-error.log
 !.vscode/mcp.json
 .history/*
 
-# Miscellaneous
-/.angular/cache
+# Otros archivos temporales
+**/.angular/
 .sass-cache/
 /connect.lock
-/coverage
+**/coverage/
 /libpeerconnection.log
 testem.log
 /typings
 __screenshots__/
 
-# System files
+# Estado local y credenciales de Terraform
+/infra/.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Archivos del sistema
 .DS_Store
 Thumbs.db

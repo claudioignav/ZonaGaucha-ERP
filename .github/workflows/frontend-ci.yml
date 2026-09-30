@@ -1,31 +1,43 @@
-name: Frontend CI Pipeline
+name: Integración continua del frontend
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
   pull_request:
-    branches: [ '**' ]
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: frontend-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   ci:
-    name: Integración continua
+    name: Calidad y seguridad del frontend
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+
     steps:
-      - name: Checkout del repositorio
-        uses: actions/checkout@v4
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Escaneo de secretos (GitGuardian)
-        uses: GitGuardian/ggshield-action@v1
+      - name: Detectar secretos con GitGuardian
+        uses: GitGuardian/ggshield-action@7f66d3be9c59a821dcf4f45ee5d929203a1a0b90 # v1.55.0
         env:
           GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
           GITHUB_PUSH_AFTER_SHA: ${{ github.event.after }}
@@ -34,42 +46,49 @@ jobs:
           GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
-          cache: 'npm'
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Instalar dependencias
+      - name: Instalar dependencias reproducibles
         run: npm ci
 
-      # --- ANALISIS SCA (DEPENDENCIAS) ---
-      - name: Analisis SCA de dependencias (Snyk)
-        uses: snyk/actions/node@master
+      - name: Verificar formato
+        run: npm run format:check
+
+      - name: Ejecutar pruebas unitarias
+        run: npm run test:ci
+
+      - name: Compilar artefacto de producción
+        run: npm run build:production
+
+      - name: Analizar dependencias con Snyk
+        uses: snyk/actions/node@b075801f26076be9bb50521154cafab73f44da0c # master 2026-09-29
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --severity-threshold=high
+          args: --severity-threshold=high --file=frontend/package.json --package-manager=npm
 
-      # --- ANALISIS SAST (CODIGO ESTATICO) ---
-      - name: Analisis SAST (SonarQube Cloud)
-        uses: SonarSource/sonarcloud-github-action@master 
+      - name: Analizar código con SonarCloud
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          args: >
+          projectBaseDir: frontend
+          args: >-
             -Dsonar.organization=claudioignav
             -Dsonar.projectKey=claudioignav_erp-frontend
             -Dsonar.sources=src
-            -Dsonar.coverage.exclusions=**/* 
+            -Dsonar.tests=src
+            -Dsonar.test.inclusions=**/*.spec.ts
+            -Dsonar.exclusions=**/*.spec.ts
 
-      # --- COMPILACION Y EMPAQUETADO ---
-      - name: Compilar Angular (Produccion)
-        run: npm run build -- --configuration production
-
-      - name: Subir artefacto compilado
-        uses: actions/upload-artifact@v4
+      - name: Publicar artefacto del frontend
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: angular-dist
-          path: dist/erp-frontend/browser/
-          retention-days: 1
+          name: frontend-dist
+          path: frontend/dist/erp-frontend/browser/
+          if-no-files-found: error
+          retention-days: 7
