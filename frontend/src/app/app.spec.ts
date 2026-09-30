@@ -1,30 +1,27 @@
 import { TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
 import { App } from './app';
+import { AppModule } from './app-module';
 
-describe('App', () => {
+describe('Aplicación principal', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        RouterModule.forRoot([])
-      ],
-      declarations: [
-        App
-      ],
-    })
-      .compileComponents();
+      imports: [AppModule],
+    }).compileComponents();
   });
 
-  it('should create the app', () => {
+  it('debería crear la aplicación', () => {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('debería mostrar la estructura principal', async () => {
     const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, erp-frontend');
+
+    const contenido = fixture.nativeElement as HTMLElement;
+
+    expect(contenido.querySelector('app-sidebar')).toBeTruthy();
+    expect(contenido.querySelector('router-outlet')).toBeTruthy();
   });
 });
