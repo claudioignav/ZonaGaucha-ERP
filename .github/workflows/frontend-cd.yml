@@ -1,59 +1,132 @@
-name: Frontend CD Pipeline
+name: Despliegue continuo del frontend
 
 on:
   workflow_run:
-    workflows: ["Frontend CI Pipeline"]
-    types:
-      - completed
-    branches:
-      - main
+    workflows: [Integración continua del frontend]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: ID de una ejecución exitosa del CI del frontend
+        required: true
+        type: string
 
 permissions:
   actions: read
   contents: read
 
+concurrency:
+  group: frontend-cd-production
+  cancel-in-progress: false
+
 jobs:
-  cd:
-    name: Despliegue continuo
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+  artifact-security:
+    name: Verificar artefacto
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-      - name: Checkout del repositorio
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-
-      - name: Descargar artefacto compilado
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+      - name: Descargar artefacto aprobado por CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: angular-dist
-          path: ./dist-ready
+          name: frontend-dist
+          path: dist-ready
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ github.event.workflow_run.id || inputs.ci_run_id }}
 
-      - name: Escaneo de Seguridad IaC con Trivy
-        uses: aquasecurity/trivy-action@master
+      - name: Analizar artefacto con Trivy
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
-          scan-type: 'config'
-          scan-ref: 'infra/'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
-          format: 'table'
+          scan-type: fs
+          scan-ref: dist-ready
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          format: table
 
-      - name: Desplegar archivos al contenedor web
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az storage blob sync \
-              --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" \
-              --container '$web' \
-              --source ./dist-ready \
-              --delete-destination true
+  deploy-staging:
+    name: Desplegar frontend en staging
+    needs: artifact-security
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: frontend-staging
 
-      - name: Registrar despliegue en Grafana Cloud
-        if: false
-        uses: fjogeleit/http-request-action@v1
+    steps:
+      - name: Descargar artefacto aprobado por CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          url: '${{ secrets.GRAFANA_URL }}/api/annotations'
-          method: 'POST'
-          customHeaders: '{"Authorization": "Bearer ${{ secrets.GRAFANA_API_TOKEN }}"}'
-          data: '{"text": "Despliegue ERP Frontend exitoso (Commit: ${{ github.sha }})", "tags": ["frontend", "produccion", "azure"]}'
+          name: frontend-dist
+          path: dist-ready
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id || inputs.ci_run_id }}
+
+      - name: Sincronizar Storage de staging
+        shell: bash
+        env:
+          AZURE_FRONTEND_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
+        run: >-
+          az storage blob sync
+          --connection-string "$AZURE_FRONTEND_STORAGE_CONNECTION_STRING"
+          --container '$web'
+          --source dist-ready
+          --delete-destination true
+
+      - name: Verificar disponibilidad de staging
+        env:
+          AZURE_FRONTEND_URL: ${{ vars.AZURE_FRONTEND_URL }}
+        run: curl --fail --silent --show-error --retry 5 --retry-delay 10 "$AZURE_FRONTEND_URL"
+
+  dast:
+    name: DAST del frontend en staging
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: frontend-staging
+    continue-on-error: true
+
+    steps:
+      - name: Ejecutar OWASP ZAP Baseline
+        uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874 # v0.15.0
+        with:
+          target: ${{ vars.AZURE_FRONTEND_URL }}
+          allow_issue_writing: false
+          fail_action: false
+          artifact_name: frontend-zap-${{ github.run_id }}
+          cmd_options: -a
+
+  deploy-production:
+    name: Desplegar frontend en producción
+    needs: [deploy-staging, dast]
+    if: ${{ always() && needs.deploy-staging.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: frontend-production
+
+    steps:
+      - name: Descargar artefacto aprobado por CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: frontend-dist
+          path: dist-ready
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id || inputs.ci_run_id }}
+
+      - name: Sincronizar Storage de producción
+        shell: bash
+        env:
+          AZURE_FRONTEND_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
+        run: >-
+          az storage blob sync
+          --connection-string "$AZURE_FRONTEND_STORAGE_CONNECTION_STRING"
+          --container '$web'
+          --source dist-ready
+          --delete-destination true
+
+      - name: Verificar disponibilidad de producción
+        env:
+          AZURE_FRONTEND_URL: ${{ vars.AZURE_FRONTEND_URL }}
+        run: curl --fail --silent --show-error --retry 5 --retry-delay 10 "$AZURE_FRONTEND_URL"
