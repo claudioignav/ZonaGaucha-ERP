@@ -1,0 +1,5 @@
+azure_subscription_id                 = "00000000-0000-0000-0000-000000000000"
+resource_group_name                   = "zg-erp"
+frontend_location                     = "brazilsouth"
+frontend_production_storage_account_name = "zgerpfrontapp"
+frontend_staging_storage_account_name    = "zgerpfrontstg"

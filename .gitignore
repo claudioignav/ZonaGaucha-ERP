@@ -1,44 +1,59 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+# Frontend Angular
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.angular/
+/frontend/coverage/
+/frontend/out-tsc/
 
-# Compiled output
-/dist
-/tmp
-/out-tsc
-/bazel-out
+# Backend Node.js
+/backend/node_modules/
+/backend/dist/
+/backend/coverage/
+/backend/logs/
 
-# Node
-/node_modules
+# Variables de entorno locales
+**/.env
+**/.env.*
+!**/.env.example
+
+# Archivos compilados adicionales
+**/dist/
+/out-tsc/
+/bazel-out/
+
+# Registros de los gestores de paquetes
 npm-debug.log
+npm-debug.log.*
 yarn-error.log
 
-# IDEs and editors
+# Editores y archivos temporales
 .idea/
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-
-# Visual Studio Code
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/mcp.json
-.history/*
+.history/
+/tmp/
 
-# Miscellaneous
-/.angular/cache
-.sass-cache/
-/connect.lock
-/coverage
-/libpeerconnection.log
-testem.log
-/typings
-__screenshots__/
+# Estado local y credenciales de Terraform
+/infra/.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
-# System files
+# Archivos del sistema
 .DS_Store
 Thumbs.db
