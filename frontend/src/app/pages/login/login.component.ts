@@ -6,6 +6,7 @@ import { Credenciales, credencialesIniciales } from '../../models/credenciales';
   selector: 'app-login',
   standalone: false,
   templateUrl: './login.component.html',
+  styleUrl: './login.component.scss',
 })
 export class LoginComponent {
   credenciales: Credenciales = { ...credencialesIniciales };
