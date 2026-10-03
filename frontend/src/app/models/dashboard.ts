@@ -13,6 +13,17 @@ export interface EstadisticaEmpresa {
   detalle?: string;
 }
 
+export interface VentaMensual {
+  mes: string;
+  cantidad: number;
+}
+
+export interface VentaPlataforma {
+  plataforma: string;
+  porcentaje: number;
+  color: string;
+}
+
 export const resumenFinanciero: TarjetaResumen[] = [
   { titulo: 'Total Vendido', monto: 0, variacion: '', tendencia: '', color: '#4ade80' },
   { titulo: 'Utilidades', monto: 0, variacion: '', tendencia: '', color: '#15803d' },
@@ -25,3 +36,7 @@ export const estadisticasEmpresa: EstadisticaEmpresa[] = [
   { etiqueta: 'Proveedores Activos', icono: 'assets/icons/suppliers-green.svg', total: 0 },
   { etiqueta: 'Categorías de Productos', icono: 'assets/icons/category-green.svg', total: 0 },
 ];
+
+export const ventasPorMes: VentaMensual[] = [];
+
+export const ventasPorPlataforma: VentaPlataforma[] = [];
