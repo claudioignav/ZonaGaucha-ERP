@@ -21,4 +21,10 @@ describe('LayoutComponent', () => {
   it('se crea correctamente', () => {
     expect(component).toBeTruthy();
   });
+
+  it('muestra el menú lateral y el espacio donde se cargan las páginas', () => {
+    const pantalla: HTMLElement = fixture.nativeElement;
+    expect(pantalla.querySelector('app-sidebar')).toBeTruthy();
+    expect(pantalla.querySelector('main router-outlet')).toBeTruthy();
+  });
 });
