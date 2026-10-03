@@ -57,3 +57,5 @@ override.tf.json
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+/-
+/FETCH_HEAD
