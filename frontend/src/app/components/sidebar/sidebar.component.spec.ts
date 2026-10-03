@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterModule } from '@angular/router';
 import { SidebarComponent } from './sidebar.component';
 
 describe('SidebarComponent', () => {
@@ -7,6 +8,7 @@ describe('SidebarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [RouterModule.forRoot([])],
       declarations: [SidebarComponent],
     }).compileComponents();
 
@@ -15,7 +17,7 @@ describe('SidebarComponent', () => {
     await fixture.whenStable();
   });
 
-  it('should create', () => {
+  it('se crea correctamente', () => {
     expect(component).toBeTruthy();
   });
 });
