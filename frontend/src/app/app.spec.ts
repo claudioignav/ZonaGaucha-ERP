@@ -20,4 +20,14 @@ describe('App', () => {
 
     expect(TestBed.inject(Router).url).toBe('/login');
   });
+
+  it.each([
+    { ruta: '/dashboard', texto: 'Panel de control y métricas generales' },
+  ])('la ruta $ruta muestra su página junto al menú', async ({ ruta, texto }) => {
+    const harness = await RouterTestingHarness.create(ruta);
+
+    const pantalla = harness.routeNativeElement?.textContent;
+    expect(pantalla).toContain(texto);
+    expect(pantalla).toContain('MÓDULOS');
+  });
 });
