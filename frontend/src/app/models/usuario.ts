@@ -5,6 +5,7 @@ export interface Usuario {
   correo: string;
   telefono?: string;
   rol: 'Administrador' | 'Usuario';
+  estado: 'Activo' | 'Eliminado';
 }
 
 export const usuariosRegistrados: Usuario[] = [];
