@@ -8,6 +8,7 @@ import { App } from './app';
 
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { LayoutComponent } from './components/layout/layout.component';
+import { TablaContenidoComponent } from './components/tabla-contenido/tabla-contenido.component';
 
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
@@ -17,9 +18,10 @@ registerLocaleData(localeEsCl);
 @NgModule({
   declarations: [
     App,
-    LoginComponent,
     SidebarComponent,
     LayoutComponent,
+    TablaContenidoComponent,
+    LoginComponent,
     DashboardComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
