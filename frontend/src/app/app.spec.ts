@@ -1,27 +1,23 @@
 import { TestBed } from '@angular/core/testing';
-import { App } from './app';
+import { Router } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { AppModule } from './app-module';
 
-describe('Aplicación principal', () => {
+describe('App', () => {
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AppModule],
-    }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [AppModule] }).compileComponents();
   });
 
-  it('debería crear la aplicación', () => {
-    const fixture = TestBed.createComponent(App);
-    expect(fixture.componentInstance).toBeTruthy();
+  it('abre el login al entrar sin una ruta', async () => {
+    const harness = await RouterTestingHarness.create('/');
+
+    expect(TestBed.inject(Router).url).toBe('/login');
+    expect(harness.routeNativeElement?.textContent).toContain('ZonaGaucha ERP');
   });
 
-  it('debería mostrar la estructura principal', async () => {
-    const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
-    await fixture.whenStable();
+  it('manda al login cuando la ruta no existe', async () => {
+    await RouterTestingHarness.create('/pagina-que-no-existe');
 
-    const contenido = fixture.nativeElement as HTMLElement;
-
-    expect(contenido.querySelector('app-sidebar')).toBeTruthy();
-    expect(contenido.querySelector('router-outlet')).toBeTruthy();
+    expect(TestBed.inject(Router).url).toBe('/login');
   });
 });
