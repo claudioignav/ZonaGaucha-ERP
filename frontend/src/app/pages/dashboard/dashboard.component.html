@@ -1,0 +1,43 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-5">
+  <header>
+    <p class="migas">Dashboard</p>
+    <h1 class="titulo-pagina mt-3 text-3xl">Dashboard</h1>
+    <p class="subtitulo-pagina">Panel de control y métricas generales</p>
+  </header>
+
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    @for (tarjeta of resumen; track tarjeta.titulo) {
+      <article class="tarjeta flex items-center gap-4 p-5">
+        <div class="min-w-0 flex-1">
+          <h2 class="font-semibold text-slate-600">{{ tarjeta.titulo }}</h2>
+          <p class="mt-2 font-titulo text-xl font-extrabold">{{ tarjeta.monto | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</p>
+          <p class="mt-2 text-sm text-green-700">{{ tarjeta.variacion }}</p>
+        </div>
+        <svg class="h-10 w-24 shrink-0" viewBox="0 0 96 40">
+          <polyline fill="none" [attr.stroke]="tarjeta.color" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [attr.points]="tarjeta.tendencia" />
+        </svg>
+      </article>
+    }
+  </section>
+
+  <section class="tarjeta p-5">
+    <h2 class="text-xs font-bold text-slate-600 uppercase">Estadísticas empresariales</h2>
+
+    <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      @for (estadistica of estadisticas; track estadistica.etiqueta) {
+        <div class="flex items-start gap-3">
+          <div class="flex size-8 shrink-0 items-center justify-center rounded-md bg-verde-claro">
+            <img class="size-4" [src]="estadistica.icono" alt="" />
+          </div>
+          <div>
+            <p class="text-[13px] text-slate-600">{{ estadistica.etiqueta }}</p>
+            <p class="font-titulo text-lg font-extrabold">{{ estadistica.total }}</p>
+            @if (estadistica.detalle) {
+              <p class="text-xs font-medium text-green-700">{{ estadistica.detalle }}</p>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+</div>
