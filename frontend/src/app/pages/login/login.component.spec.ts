@@ -68,4 +68,17 @@ describe('LoginComponent', () => {
     expect(TestBed.inject(Router).url).toBe('/dashboard');
     expect(mensajeError()).toBeUndefined();
   });
+
+  it('muestra la contraseña con el ojito y la vuelve a ocultar', async () => {
+    const campo: HTMLInputElement = fixture.nativeElement.querySelector('#contrasena');
+    const ojito: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="button"]');
+
+    ojito.click();
+    await fixture.whenStable();
+    expect(campo.type).toBe('text');
+
+    ojito.click();
+    await fixture.whenStable();
+    expect(campo.type).toBe('password');
+  });
 });
