@@ -1,0 +1,55 @@
+<div class="flex min-h-dvh items-center justify-center bg-verde-oscuro px-4 py-8">
+  <form
+    class="w-full max-w-[420px] rounded-2xl bg-white p-8 shadow-[0_10px_30px_rgba(0,0,0,0.25)] sm:p-10"
+    (ngSubmit)="iniciarSesion()"
+    novalidate
+  >
+    <div class="text-center">
+      <img class="mx-auto size-[60px] rounded-xl" src="assets/icons/logo.svg" alt="Logo ZonaGaucha" />
+      <h1 class="mt-5 font-titulo text-2xl font-bold text-zinc-900">ZonaGaucha ERP</h1>
+      <p class="mt-3 text-sm text-slate-600">Ingresa tus credenciales para acceder</p>
+    </div>
+
+    <div class="mt-7">
+      <label for="correo" class="mb-2 block text-[13px] font-semibold text-zinc-900">Correo Electrónico</label>
+      <input
+        id="correo"
+        name="correo"
+        type="email"
+        class="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm focus:border-verde-acento focus:ring-2 focus:ring-verde-acento/30 focus:outline-none"
+        placeholder="ejemplo@gmail.com"
+        [(ngModel)]="credenciales.correo"
+      />
+    </div>
+
+    <div class="mt-5">
+      <label for="contrasena" class="mb-2 block text-[13px] font-semibold text-zinc-900">Contraseña</label>
+      <div class="relative">
+        <input
+          id="contrasena"
+          name="contrasena"
+          [type]="mostrarContrasena ? 'text' : 'password'"
+          class="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm focus:border-verde-acento focus:ring-2 focus:ring-verde-acento/30 focus:outline-none pr-10"
+          placeholder="••••••••"
+          [(ngModel)]="credenciales.contrasena"
+        />
+        <button
+          type="button"
+          class="absolute inset-y-0 right-0 flex w-10 items-center justify-center"
+          [title]="mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          (click)="mostrarContrasena = !mostrarContrasena"
+        >
+          <img class="w-4" [class.opacity-50]="mostrarContrasena" src="assets/icons/eye.svg" alt="" />
+        </button>
+      </div>
+    </div>
+
+    @if (mensajeError) {
+      <p class="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeError }}</p>
+    }
+
+    <button type="submit" class="mt-7 w-full rounded-md bg-[#2e7d32] py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#276b2b]">
+      Iniciar Sesión
+    </button>
+  </form>
+</div>
