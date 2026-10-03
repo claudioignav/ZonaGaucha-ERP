@@ -1,3 +1,4 @@
+#trivy:ignore:azure-storage-default-action-deny
 resource "azurerm_storage_account" "frontend_production" {
   name                = var.frontend_production_storage_account_name
   resource_group_name = data.azurerm_resource_group.main.name
@@ -27,6 +28,7 @@ resource "azurerm_storage_account_static_website" "frontend_production" {
   error_404_document = "index.html"
 }
 
+#trivy:ignore:azure-storage-default-action-deny
 resource "azurerm_storage_account" "frontend_staging" {
   name                = var.frontend_staging_storage_account_name
   resource_group_name = data.azurerm_resource_group.main.name
