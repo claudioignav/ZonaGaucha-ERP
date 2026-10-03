@@ -28,6 +28,8 @@ export class LoginComponent {
     }
 
     this.mensajeError = '';
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/dashboard']).catch(() => {
+      this.mensajeError = 'No se pudo abrir el dashboard. Inténtalo nuevamente.';
+    });
   }
 }

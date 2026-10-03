@@ -69,6 +69,17 @@ describe('LoginComponent', () => {
     expect(mensajeError()).toBeUndefined();
   });
 
+  it('avisa cuando falla la navegación al dashboard', async () => {
+    vi.spyOn(TestBed.inject(Router), 'navigate').mockRejectedValue(new Error('Error de navegación'));
+    escribir('#correo', 'usuario.prueba@correo.cl');
+    escribir('#contrasena', 'clave123');
+
+    enviarFormulario();
+    await fixture.whenStable();
+
+    expect(mensajeError()).toBe('No se pudo abrir el dashboard. Inténtalo nuevamente.');
+  });
+
   it('muestra la contraseña con el ojito y la vuelve a ocultar', async () => {
     const campo: HTMLInputElement = fixture.nativeElement.querySelector('#contrasena');
     const ojito: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="button"]');
