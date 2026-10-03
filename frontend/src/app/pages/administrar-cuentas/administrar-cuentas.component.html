@@ -1,0 +1,105 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Gestión Cuentas</p>
+    <h1 class="titulo-pagina mt-3">Gestión de Cuentas</h1>
+    <p class="subtitulo-pagina">Administración de cuentas de usuario y control de accesos</p>
+  </header>
+
+  <section class="tarjeta p-5">
+    <h2 class="text-sm font-semibold">Registrar Nuevo Usuario</h2>
+
+    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div>
+        <label class="etiqueta" for="nombre">Nombre <span class="obligatorio">*</span></label>
+        <input id="nombre" type="text" class="campo" placeholder="Ej: Usuario" />
+      </div>
+      <div>
+        <label class="etiqueta" for="apellidos">Apellidos <span class="obligatorio">*</span></label>
+        <input id="apellidos" type="text" class="campo" placeholder="Ej: De Prueba" />
+      </div>
+      <div>
+        <label class="etiqueta" for="correo">Correo Electrónico <span class="obligatorio">*</span></label>
+        <input id="correo" type="email" class="campo" placeholder="Ej: usuario.prueba@correo.cl" />
+      </div>
+    </div>
+
+    <div class="mt-4 grid grid-cols-1 items-end gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_auto]">
+      <div>
+        <label class="etiqueta" for="contrasena">Contraseña <span class="obligatorio">*</span></label>
+        <div class="relative">
+          <input id="contrasena" [type]="mostrarContrasena ? 'text' : 'password'" class="campo pr-10" placeholder="••••••••" />
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 flex w-10 items-center justify-center"
+            [title]="mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            (click)="mostrarContrasena = !mostrarContrasena"
+          >
+            <img class="w-4" [class.opacity-50]="mostrarContrasena" src="assets/icons/eye.svg" alt="" />
+          </button>
+        </div>
+      </div>
+      <div>
+        <label class="etiqueta" for="telefono">Número de Teléfono</label>
+        <input id="telefono" type="tel" class="campo" placeholder="Ej: +56 9 1111 2222" />
+      </div>
+      <div>
+        <label class="etiqueta" for="rol">Rol</label>
+        <select id="rol" class="campo">
+          <option selected>Usuario</option>
+          <option>Administrador</option>
+        </select>
+      </div>
+      <button type="button" class="boton-oscuro">+ Agregar Usuario</button>
+    </div>
+  </section>
+
+  <app-tabla-contenido [totalRegistros]="usuarios.length">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Apellidos</th>
+        <th>Correo</th>
+        <th>Teléfono</th>
+        <th>Rol</th>
+        <th>Estado</th>
+        <th class="acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (usuario of usuarios; track usuario.id) {
+        <tr>
+          <td class="font-semibold">{{ usuario.nombre }}</td>
+          <td>{{ usuario.apellidos }}</td>
+          <td>{{ usuario.correo }}</td>
+          <td class="sin-salto">{{ usuario.telefono }}</td>
+          <td>{{ usuario.rol }}</td>
+          <td>
+            <span class="insignia" [class.bg-red-100]="usuario.estado === 'Eliminado'" [class.text-red-700]="usuario.estado === 'Eliminado'">
+              {{ usuario.estado }}
+            </span>
+          </td>
+          <td class="acciones">
+            <div class="flex items-center justify-center gap-1.5">
+              <button type="button" class="boton-icono" title="Editar"><img class="size-3.5" src="assets/icons/edit.svg" alt="Editar" /></button>
+              @if (usuario.estado === 'Activo') {
+                <button
+                  type="button"
+                  class="inline-flex h-7 w-[84px] items-center justify-center rounded-full bg-red-50 text-xs font-semibold text-red-600 hover:bg-red-100"
+                >
+                  Eliminar
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  class="inline-flex h-7 w-[84px] items-center justify-center rounded-full bg-sky-50 text-xs font-semibold text-sky-700 hover:bg-sky-100"
+                >
+                  Restaurar
+                </button>
+              }
+            </div>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </app-tabla-contenido>
+</div>

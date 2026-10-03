@@ -12,6 +12,7 @@ import { TablaContenidoComponent } from './components/tabla-contenido/tabla-cont
 
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { AdministrarCuentasComponent } from './pages/administrar-cuentas/administrar-cuentas.component';
 
 registerLocaleData(localeEsCl);
 
@@ -23,6 +24,7 @@ registerLocaleData(localeEsCl);
     TablaContenidoComponent,
     LoginComponent,
     DashboardComponent,
+    AdministrarCuentasComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],
