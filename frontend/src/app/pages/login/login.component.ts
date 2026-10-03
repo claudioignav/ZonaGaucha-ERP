@@ -11,6 +11,7 @@ import { Credenciales, credencialesIniciales } from '../../models/credenciales';
 export class LoginComponent {
   credenciales: Credenciales = { ...credencialesIniciales };
   mensajeError = '';
+  mostrarContrasena = false;
 
   constructor(private readonly router: Router) {}
 

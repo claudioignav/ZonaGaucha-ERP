@@ -24,14 +24,24 @@
 
     <div class="mt-5">
       <label for="contrasena" class="mb-2 block text-[13px] font-semibold text-zinc-900">Contraseña</label>
-      <input
-        id="contrasena"
-        name="contrasena"
-        type="password"
-        class="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm focus:border-verde-acento focus:ring-2 focus:ring-verde-acento/30 focus:outline-none"
-        placeholder="••••••••"
-        [(ngModel)]="credenciales.contrasena"
-      />
+      <div class="relative">
+        <input
+          id="contrasena"
+          name="contrasena"
+          [type]="mostrarContrasena ? 'text' : 'password'"
+          class="w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm focus:border-verde-acento focus:ring-2 focus:ring-verde-acento/30 focus:outline-none pr-10"
+          placeholder="••••••••"
+          [(ngModel)]="credenciales.contrasena"
+        />
+        <button
+          type="button"
+          class="absolute inset-y-0 right-0 flex w-10 items-center justify-center"
+          [title]="mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          (click)="mostrarContrasena = !mostrarContrasena"
+        >
+          <img class="w-4" [class.opacity-50]="mostrarContrasena" src="assets/icons/eye.svg" alt="" />
+        </button>
+      </div>
     </div>
 
     @if (mensajeError) {
