@@ -69,7 +69,7 @@ describe('SidebarComponent', () => {
 
     expect(menu().classList).not.toContain('-translate-x-full');
 
-    fixture.nativeElement.querySelector('div.fixed.inset-0').click();
+    fixture.nativeElement.querySelector('button.fixed.inset-0').click();
     await fixture.whenStable();
 
     expect(menu().classList).toContain('-translate-x-full');

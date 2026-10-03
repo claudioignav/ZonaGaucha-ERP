@@ -10,7 +10,7 @@
 </button>
 
 @if (menuMovilAbierto) {
-  <div class="fixed inset-0 z-40 bg-black/50 md:hidden" (click)="cerrarMenuMovil()"></div>
+  <button type="button" class="fixed inset-0 z-40 bg-black/50 md:hidden" aria-label="Cerrar menú" (click)="cerrarMenuMovil()"></button>
 }
 
 <aside
@@ -25,10 +25,10 @@
     </div>
   </a>
 
-  <nav class="mt-6 min-h-0 flex-1 overflow-y-auto [scrollbar-width:none]" (click)="cerrarMenuMovil()">
+  <nav class="mt-6 min-h-0 flex-1 overflow-y-auto [scrollbar-width:none]">
     <div class="space-y-1">
         @for (enlace of enlacesPrincipales; track enlace.ruta) {
-          <a [routerLink]="enlace.ruta" routerLinkActive="activo" class="enlace-menu">
+          <a [routerLink]="enlace.ruta" routerLinkActive="activo" class="enlace-menu" (click)="cerrarMenuMovil()">
             <img class="size-[18px]" [src]="enlace.icono" alt="" />
             {{ enlace.etiqueta }}
           </a>
@@ -48,7 +48,7 @@
     @if (modulosAbierto) {
       <div class="mt-1 space-y-1">
         @for (enlace of enlacesModulos; track enlace.ruta) {
-          <a [routerLink]="enlace.ruta" routerLinkActive="activo" class="enlace-menu">
+          <a [routerLink]="enlace.ruta" routerLinkActive="activo" class="enlace-menu" (click)="cerrarMenuMovil()">
             <img class="size-[18px]" [src]="enlace.icono" alt="" />
             {{ enlace.etiqueta }}
           </a>
@@ -69,7 +69,7 @@
     @if (catalogosAbierto) {
       <div class="mt-1 space-y-1">
         @for (enlace of enlacesCatalogos; track enlace.ruta) {
-          <a [routerLink]="enlace.ruta" routerLinkActive="activo" class="enlace-menu">
+          <a [routerLink]="enlace.ruta" routerLinkActive="activo" class="enlace-menu" (click)="cerrarMenuMovil()">
             <img class="size-[18px]" [src]="enlace.icono" alt="" />
             {{ enlace.etiqueta }}
           </a>
