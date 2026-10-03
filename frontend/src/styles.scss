@@ -1,2 +1,83 @@
-/* You can add global styles to this file, and also import other style files */
 @use "tailwindcss";
+
+// Fuentes y colores sacados del diseño de Figma
+@theme {
+  --font-sans: "Geist", sans-serif;
+  --font-titulo: "Gabarito", sans-serif;
+  --font-inter: "Inter", sans-serif;
+
+  --color-verde-oscuro: #1e3f20;
+  --color-verde-activo: #377c39;
+  --color-verde-boton: #2d6a4f;
+  --color-verde-acento: #52b788;
+  --color-verde-claro: #d8f3dc;
+  --color-fondo: #f4f6f4;
+}
+
+@layer base {
+  body {
+    @apply bg-fondo font-sans text-slate-800 antialiased;
+  }
+
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  .migas {
+    @apply font-inter text-xs text-slate-600;
+  }
+
+  .titulo-pagina {
+    @apply font-titulo text-2xl font-bold text-slate-800;
+  }
+
+  .subtitulo-pagina {
+    @apply mt-1 text-sm text-slate-600;
+  }
+
+  .tarjeta {
+    @apply rounded-xl border border-slate-200 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.05)];
+  }
+
+  .etiqueta {
+    @apply mb-1.5 block text-xs font-semibold text-slate-600;
+  }
+
+  .campo {
+    @apply w-full rounded-md border border-slate-200 bg-zinc-100 px-3 py-2 text-[13px] text-slate-800 placeholder:text-slate-500 focus:border-verde-acento focus:outline-none focus:ring-2 focus:ring-verde-acento/30;
+  }
+
+  .obligatorio {
+    @apply ml-0.5 text-red-600;
+  }
+
+  .boton-oscuro {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-verde-oscuro px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#28552b];
+  }
+
+  .boton-verde {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-verde-boton px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#245a42];
+  }
+
+  .boton-gris {
+    @apply inline-flex items-center justify-center rounded-lg bg-slate-200 px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-slate-800 transition-colors hover:bg-slate-300;
+  }
+
+  .insignia {
+    @apply inline-block rounded-md bg-verde-claro px-2 py-1 text-xs font-semibold whitespace-nowrap text-verde-oscuro;
+  }
+
+  .enlace-menu {
+    @apply flex w-full items-center gap-3 rounded-lg px-4 py-2 text-sm font-medium text-verde-claro transition-colors hover:bg-white/10;
+
+    &.activo {
+      @apply bg-verde-activo text-white hover:bg-verde-activo;
+    }
+  }
+
+  .boton-icono {
+    @apply inline-flex size-7 items-center justify-center rounded-md border align-middle border-slate-200 bg-white transition-colors hover:bg-slate-50;
+  }
+}
