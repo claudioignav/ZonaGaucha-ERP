@@ -23,6 +23,7 @@ describe('App', () => {
 
   it.each([
     { ruta: '/dashboard', texto: 'Panel de control y métricas generales' },
+    { ruta: '/cuentas', texto: 'Administración de cuentas de usuario y control de accesos' },
   ])('la ruta $ruta muestra su página junto al menú', async ({ ruta, texto }) => {
     const harness = await RouterTestingHarness.create(ruta);
 

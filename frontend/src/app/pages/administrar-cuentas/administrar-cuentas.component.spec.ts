@@ -53,4 +53,24 @@ describe('AdministrarCuentasComponent', () => {
 
     expect(campo.type).toBe('text');
   });
+
+  it('elimina al usuario y deja el botón para restaurarlo', async () => {
+    boton('Eliminar').click();
+    await fixture.whenStable();
+
+    expect(pantalla()).toContain('Eliminado');
+    expect(boton('Restaurar')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.insignia').classList).toContain('bg-red-100');
+  });
+
+  it('restaura al usuario eliminado', async () => {
+    boton('Eliminar').click();
+    await fixture.whenStable();
+
+    boton('Restaurar').click();
+    await fixture.whenStable();
+
+    expect(pantalla()).toContain('Activo');
+    expect(boton('Eliminar')).toBeTruthy();
+  });
 });

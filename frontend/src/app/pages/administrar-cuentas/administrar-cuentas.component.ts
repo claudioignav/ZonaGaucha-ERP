@@ -8,7 +8,11 @@ import { Usuario, usuariosRegistrados } from '../../models/usuario';
   styleUrl: './administrar-cuentas.component.scss',
 })
 export class AdministrarCuentasComponent {
-  usuarios: Usuario[] = usuariosRegistrados;
+  usuarios: Usuario[] = usuariosRegistrados.map((usuario) => ({ ...usuario }));
 
   mostrarContrasena = false;
+
+  cambiarEstado(usuario: Usuario): void {
+    usuario.estado = usuario.estado === 'Activo' ? 'Eliminado' : 'Activo';
+  }
 }
