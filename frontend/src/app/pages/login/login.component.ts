@@ -12,13 +12,17 @@ export class LoginComponent {
   credenciales: Credenciales = { ...credencialesIniciales };
   mensajeError = '';
 
-  constructor(private router: Router) {}
+  constructor(private readonly router: Router) {}
 
-  // Todavía no hay backend: solo revisa que el usuario haya escrito sus datos y lo deja entrar
   iniciarSesion(): void {
     const { correo, contrasena } = this.credenciales;
     if (!correo.trim() || !contrasena.trim()) {
       this.mensajeError = 'Ingresa tu correo y contraseña.';
+      return;
+    }
+
+    if (!correo.includes('@')) {
+      this.mensajeError = 'El correo electrónico no es válido.';
       return;
     }
 
