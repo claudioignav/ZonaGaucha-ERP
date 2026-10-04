@@ -54,52 +54,54 @@
   </section>
 
   <app-tabla-contenido [totalRegistros]="usuarios.length">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Apellidos</th>
-        <th>Correo</th>
-        <th>Teléfono</th>
-        <th>Rol</th>
-        <th>Estado</th>
-        <th class="acciones">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (usuario of usuarios; track usuario.id) {
+    <table>
+      <thead>
         <tr>
-          <td class="font-semibold">{{ usuario.nombre }}</td>
-          <td>{{ usuario.apellidos }}</td>
-          <td>{{ usuario.correo }}</td>
-          <td class="sin-salto">{{ usuario.telefono }}</td>
-          <td>{{ usuario.rol }}</td>
-          <td>
-            <span class="insignia" [class.bg-red-100]="usuario.estado === 'Eliminado'" [class.text-red-700]="usuario.estado === 'Eliminado'">
-              {{ usuario.estado }}
-            </span>
-          </td>
-          <td class="acciones">
-            <div class="flex items-center justify-center gap-1.5">
-              <button type="button" class="boton-icono" title="Editar"><img class="size-3.5" src="assets/icons/edit.svg" alt="Editar" /></button>
-              @if (usuario.estado === 'Activo') {
-                <button
-                  type="button"
-                  class="inline-flex h-7 w-[84px] items-center justify-center rounded-full bg-red-50 text-xs font-semibold text-red-600 hover:bg-red-100" (click)="cambiarEstado(usuario)"
-                >
-                  Eliminar
-                </button>
-              } @else {
-                <button
-                  type="button"
-                  class="inline-flex h-7 w-[84px] items-center justify-center rounded-full bg-sky-50 text-xs font-semibold text-sky-700 hover:bg-sky-100" (click)="cambiarEstado(usuario)"
-                >
-                  Restaurar
-                </button>
-              }
-            </div>
-          </td>
+          <th scope="col">Nombre</th>
+          <th scope="col">Apellidos</th>
+          <th scope="col">Correo</th>
+          <th scope="col">Teléfono</th>
+          <th scope="col">Rol</th>
+          <th scope="col">Estado</th>
+          <th scope="col" class="acciones">Acciones</th>
         </tr>
-      }
-    </tbody>
+      </thead>
+      <tbody>
+        @for (usuario of usuarios; track usuario.id) {
+          <tr>
+            <td class="font-semibold">{{ usuario.nombre }}</td>
+            <td>{{ usuario.apellidos }}</td>
+            <td>{{ usuario.correo }}</td>
+            <td class="sin-salto">{{ usuario.telefono }}</td>
+            <td>{{ usuario.rol }}</td>
+            <td>
+              <span class="insignia" [class.bg-red-100]="usuario.estado === 'Eliminado'" [class.text-red-700]="usuario.estado === 'Eliminado'">
+                {{ usuario.estado }}
+              </span>
+            </td>
+            <td class="acciones">
+              <div class="flex items-center justify-center gap-1.5">
+                <button type="button" class="boton-icono" title="Editar"><img class="size-3.5" src="assets/icons/edit.svg" alt="Editar" /></button>
+                @if (usuario.estado === 'Activo') {
+                  <button
+                    type="button"
+                    class="inline-flex h-7 w-[84px] items-center justify-center rounded-full bg-red-50 text-xs font-semibold text-red-600 hover:bg-red-100" (click)="cambiarEstado(usuario)"
+                  >
+                    Eliminar
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="inline-flex h-7 w-[84px] items-center justify-center rounded-full bg-sky-50 text-xs font-semibold text-sky-700 hover:bg-sky-100" (click)="cambiarEstado(usuario)"
+                  >
+                    Restaurar
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </app-tabla-contenido>
 </div>
