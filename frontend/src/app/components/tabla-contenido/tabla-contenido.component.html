@@ -1,0 +1,42 @@
+<div class="tabla-contenido tarjeta overflow-hidden" [class.compacta]="compacta">
+  <div class="overflow-x-auto">
+    <ng-content></ng-content>
+  </div>
+
+  @if (paginado) {
+    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-6 py-4">
+      <p class="text-xs text-slate-600">
+        Mostrando <strong class="text-slate-800">{{ primerRegistro }}-{{ ultimoRegistro }}</strong>
+        de <strong class="text-slate-800">{{ totalRegistros }}</strong> registros
+      </p>
+
+      <div class="flex flex-wrap items-center gap-1.5">
+        @for (pagina of paginasVisibles; track pagina) {
+          <button
+            type="button"
+            class="size-7 rounded-md border text-xs font-semibold"
+            [class]="pagina === paginaActual ? 'border-verde-boton bg-verde-boton text-white' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'"
+            (click)="cambiarPagina(pagina)"
+          >
+            {{ pagina }}
+          </button>
+        }
+        @if (totalPaginas > 10) {
+          <span class="px-1 text-xs text-slate-600">...</span>
+        }
+        <button
+          type="button"
+          class="h-7 rounded-md border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+          [disabled]="paginaActual === totalPaginas"
+          (click)="cambiarPagina(paginaActual + 1)"
+        >
+          Siguiente
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+@if (!paginado) {
+  <p class="mt-4 px-4 text-xs text-slate-600">Mostrando {{ totalRegistros }} registros</p>
+}

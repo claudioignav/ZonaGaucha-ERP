@@ -8,19 +8,23 @@ import { App } from './app';
 
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { LayoutComponent } from './components/layout/layout.component';
+import { TablaContenidoComponent } from './components/tabla-contenido/tabla-contenido.component';
 
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { AdministrarCuentasComponent } from './pages/administrar-cuentas/administrar-cuentas.component';
 
 registerLocaleData(localeEsCl);
 
 @NgModule({
   declarations: [
     App,
-    LoginComponent,
     SidebarComponent,
     LayoutComponent,
+    TablaContenidoComponent,
+    LoginComponent,
     DashboardComponent,
+    AdministrarCuentasComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],
