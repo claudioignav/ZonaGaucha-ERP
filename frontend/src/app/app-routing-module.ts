@@ -6,6 +6,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { AdministrarCuentasComponent } from './pages/administrar-cuentas/administrar-cuentas.component';
 import { VentasComponent } from './pages/ventas/ventas.component';
 import { NuevaVentaComponent } from './pages/nueva-venta/nueva-venta.component';
+import { ComprasComponent } from './pages/compras/compras.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -21,6 +22,12 @@ const routes: Routes = [
         children: [
           { path: '', component: VentasComponent },
           { path: 'nueva', component: NuevaVentaComponent },
+        ],
+      },
+      {
+        path: 'compras',
+        children: [
+          { path: '', component: ComprasComponent },
         ],
       },
     ],
