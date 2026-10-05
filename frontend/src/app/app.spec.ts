@@ -26,6 +26,8 @@ describe('App', () => {
     { ruta: '/cuentas', texto: 'Administración de cuentas de usuario y control de accesos' },
     { ruta: '/ventas', texto: 'Seguimiento de salida de productos' },
     { ruta: '/ventas/nueva', texto: 'Registrar Información de Venta' },
+    { ruta: '/compras', texto: 'Gestión de órdenes de entrada y proveedores' },
+    { ruta: '/compras/nueva', texto: 'Registrar Información de Compra' },
   ])('la ruta $ruta muestra su página junto al menú', async ({ ruta, texto }) => {
     const harness = await RouterTestingHarness.create(ruta);
 

@@ -14,6 +14,10 @@ export class NuevaCompraComponent {
 
   constructor(private readonly router: Router) {}
 
+  get compraNeta(): number {
+    return (Number(this.compra.compraBruta) || 0) + (Number(this.compra.impuesto) || 0);
+  }
+
   guardarCompra(): void {
     this.router.navigate(['/compras']);
   }

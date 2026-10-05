@@ -66,6 +66,11 @@
         <label class="etiqueta" for="impuesto">Impuesto (Porcentaje o Total)</label>
         <input id="impuesto" name="impuesto" type="number" class="campo" placeholder="0" [(ngModel)]="compra.impuesto" />
       </div>
+
+      <div>
+        <label class="etiqueta" for="compra-neta">Compra Neta</label>
+        <input id="compra-neta" type="text" class="campo" [value]="compraNeta | currency: 'CLP' : 'symbol-narrow' : '1.0-0'" readonly />
+      </div>
     </div>
 
     <app-tabla-productos [productos]="compra.productos" [opciones]="opciones.productos" textoBoton="Agregar Otro Producto" />
