@@ -1,0 +1,82 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Compras</p>
+    <h1 class="titulo-pagina mt-3">Módulo de Compras</h1>
+    <p class="subtitulo-pagina">Gestión de órdenes de entrada y proveedores</p>
+  </header>
+
+  <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg">{{ resumen.fechaActual }}</app-tarjeta-resumen>
+
+    <app-tarjeta-resumen titulo="Compra Bruta" icono="car.svg">{{ resumen.compraBruta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+
+    <app-tarjeta-resumen titulo="Compra Neta" icono="money.svg">{{ resumen.compraNeta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+
+    <app-tarjeta-resumen titulo="Impuestos Totales" icono="security.svg">{{ resumen.impuestosTotales | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+  </section>
+
+  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+    <div class="min-w-32 flex-1">
+      <label class="etiqueta" for="filtro-factura">Número de Factura</label>
+      <input id="filtro-factura" type="text" class="campo" placeholder="Ej: 2000001" />
+    </div>
+    <div class="min-w-32 flex-1">
+      <label class="etiqueta" for="filtro-fecha">Fecha de Compra</label>
+      <input id="filtro-fecha" type="date" class="campo" />
+    </div>
+    <div class="min-w-32 flex-1">
+      <label class="etiqueta" for="filtro-proveedor">Proveedor</label>
+      <select id="filtro-proveedor" class="campo">
+        <option value="">Seleccionar proveedor...</option>
+      </select>
+    </div>
+    <div class="min-w-32 flex-1">
+      <label class="etiqueta" for="filtro-pago">Tipo de Pago</label>
+      <select id="filtro-pago" class="campo">
+        <option value="">Seleccionar pago...</option>
+      </select>
+    </div>
+    <div class="flex gap-3">
+      <button type="button" class="boton-oscuro">
+        <img class="size-3.5" src="assets/icons/search.svg" alt="" />
+        Aplicar Filtros
+      </button>
+      <a routerLink="/compras/nueva" class="boton-verde">+ Agregar Compra</a>
+    </div>
+  </section>
+
+  <app-tabla-contenido [totalRegistros]="compras.length" [paginado]="true" [compacta]="true">
+    <thead>
+      <tr>
+        <th scope="col">N° Factura</th>
+        <th scope="col">Proveedor</th>
+        <th scope="col">Fecha Compra</th>
+        <th scope="col" class="centro">Tipo de Pago</th>
+        <th scope="col">Nombre Producto</th>
+        <th scope="col" class="centro">Cantidad</th>
+        <th scope="col">Compra Bruta</th>
+        <th scope="col">Impuesto</th>
+        <th scope="col">Compra Neto</th>
+        <th scope="col" class="acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (compra of compras; track compra.id) {
+        <tr>
+          <td class="font-semibold">{{ compra.numeroFactura }}</td>
+          <td>{{ compra.proveedor }}</td>
+          <td class="sin-salto">{{ compra.fechaCompra }}</td>
+          <td class="centro"><span class="insignia">{{ compra.tipoPago }}</span></td>
+          <td>{{ compra.productos[0].producto }}</td>
+          <td class="centro">{{ compra.productos[0].cantidad }}</td>
+          <td>{{ compra.compraBruta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td>{{ compra.impuesto | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td class="font-semibold text-verde-boton">{{ compra.compraNeta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td class="acciones">
+            <app-botones-acciones />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </app-tabla-contenido>
+</div>

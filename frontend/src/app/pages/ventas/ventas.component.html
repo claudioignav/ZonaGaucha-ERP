@@ -1,0 +1,80 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Ventas</p>
+    <h1 class="titulo-pagina mt-3">Módulo de Ventas</h1>
+    <p class="subtitulo-pagina">Seguimiento de salida de productos</p>
+  </header>
+
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg" claseValor="xl:text-3xl">{{ resumen.fechaActual }}</app-tarjeta-resumen>
+
+    <app-tarjeta-resumen titulo="Venta Neta" icono="up.svg" claseValor="xl:text-3xl">{{ resumen.ventaNeta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+
+    <app-tarjeta-resumen titulo="Total Adicional" icono="total.png" claseValor="xl:text-3xl">{{ resumen.totalAdicional | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+  </section>
+
+  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+    <div class="min-w-32 flex-1">
+      <label class="etiqueta" for="filtro-factura">Número de Factura o Boleta</label>
+      <input id="filtro-factura" type="text" class="campo" placeholder="Ej: 1000001" />
+    </div>
+    <div class="min-w-32 flex-1">
+      <label class="etiqueta" for="filtro-fecha">Fecha de Venta</label>
+      <input id="filtro-fecha" type="date" class="campo" />
+    </div>
+    <div class="min-w-32 flex-1">
+      <label class="etiqueta" for="filtro-plataforma">Plataforma</label>
+      <select id="filtro-plataforma" class="campo">
+        <option value="">Seleccionar plataforma...</option>
+      </select>
+    </div>
+    <div class="min-w-32 flex-1">
+      <label class="etiqueta" for="filtro-pago">Tipo de Pago</label>
+      <select id="filtro-pago" class="campo">
+        <option value="">Seleccionar tipo...</option>
+      </select>
+    </div>
+    <div class="flex gap-3">
+      <button type="button" class="boton-oscuro">
+        <img class="size-3.5" src="assets/icons/search.svg" alt="" />
+        Aplicar Filtros
+      </button>
+      <a routerLink="/ventas/nueva" class="boton-verde">+ Agregar Venta</a>
+    </div>
+  </section>
+
+  <app-tabla-contenido [totalRegistros]="ventas.length" [paginado]="true" [compacta]="true">
+    <thead>
+      <tr>
+        <th scope="col">N° Factura</th>
+        <th scope="col">Cliente</th>
+        <th scope="col">Fecha de Venta</th>
+        <th scope="col" class="centro">Tipo de Pago</th>
+        <th scope="col" class="centro">Plataforma</th>
+        <th scope="col">Nombre Producto</th>
+        <th scope="col" class="centro">Cantidad</th>
+        <th scope="col">Valor Neto</th>
+        <th scope="col">Adicional</th>
+        <th scope="col" class="acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (venta of ventas; track venta.id) {
+        <tr>
+          <td class="font-semibold">{{ venta.numeroFactura }}</td>
+          <td>{{ venta.cliente }}</td>
+          <td class="sin-salto">{{ venta.fechaVenta }}</td>
+          <td class="centro"><span class="insignia">{{ venta.tipoPago }}</span></td>
+          <td class="centro"><span class="insignia">{{ venta.plataforma }}</span></td>
+          <td>{{ venta.productos[0].producto }}</td>
+          <td class="centro">{{ venta.productos[0].cantidad }}</td>
+          <td>{{ venta.valorNeto | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td class="font-semibold text-verde-boton">{{ venta.valorAdicional | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td class="acciones">
+            <app-botones-acciones />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </app-tabla-contenido>
+</div>

@@ -1,0 +1,83 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-5">
+  <header>
+    <p class="migas">
+      <a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt;
+      <a routerLink="/compras" class="hover:underline">Compras</a> &gt; Nueva Compra
+    </p>
+    <h1 class="titulo-pagina mt-3">Nueva Compra</h1>
+    <p class="subtitulo-pagina">Registrar información de compra (entrada de stock)</p>
+  </header>
+
+  <form class="tarjeta p-6" (ngSubmit)="guardarCompra()">
+    <h2 class="border-b border-slate-200 pb-2 font-semibold">Registrar Información de Compra (Entrada de Stock)</h2>
+
+    <div class="mt-5 space-y-4">
+      <div>
+        <label class="etiqueta" for="numero-lote">Número de Lote <span class="obligatorio">*</span></label>
+        <input id="numero-lote" name="numeroLote" type="text" class="campo" placeholder="Ej: 1" [(ngModel)]="compra.numeroLote" />
+      </div>
+
+      <div>
+        <label class="etiqueta" for="numero-factura">Número de Factura <span class="obligatorio">*</span></label>
+        <input id="numero-factura" name="numeroFactura" type="text" class="campo" placeholder="Ej: 2000001" [(ngModel)]="compra.numeroFactura" />
+      </div>
+
+      <div>
+        <label class="etiqueta" for="proveedor">Proveedor <span class="obligatorio">*</span></label>
+        <select id="proveedor" name="proveedor" class="campo" [(ngModel)]="compra.proveedor">
+          <option value="">Seleccionar proveedor...</option>
+          @for (opcion of opciones.proveedores; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="etiqueta" for="fecha-compra">Fecha de Compra <span class="obligatorio">*</span></label>
+        <input id="fecha-compra" name="fechaCompra" type="datetime-local" step="1" class="campo" [(ngModel)]="compra.fechaCompra" />
+      </div>
+
+      <div>
+        <label class="etiqueta" for="tipo-pago">Tipo de Pago <span class="obligatorio">*</span></label>
+        <select id="tipo-pago" name="tipoPago" class="campo" [(ngModel)]="compra.tipoPago">
+          <option value="">Seleccionar tipo de pago...</option>
+          @for (opcion of opciones.tiposPago; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="etiqueta" for="tipo-contenido">Tipo de Contenido <span class="obligatorio">*</span></label>
+        <select id="tipo-contenido" name="tipoContenido" class="campo" [(ngModel)]="compra.tipoContenido">
+          <option value="">Seleccionar tipo de contenido...</option>
+          @for (opcion of opciones.tiposContenido; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="etiqueta" for="compra-bruta">Compra Bruta <span class="obligatorio">*</span></label>
+        <input id="compra-bruta" name="compraBruta" type="number" class="campo" placeholder="0" [(ngModel)]="compra.compraBruta" />
+      </div>
+
+      <div>
+        <label class="etiqueta" for="impuesto">Impuesto (Porcentaje o Total)</label>
+        <input id="impuesto" name="impuesto" type="number" class="campo" placeholder="0" [(ngModel)]="compra.impuesto" />
+      </div>
+
+      <div>
+        <label class="etiqueta" for="compra-neta">Compra Neta</label>
+        <input id="compra-neta" type="text" class="campo" [value]="compraNeta | currency: 'CLP' : 'symbol-narrow' : '1.0-0'" readonly />
+      </div>
+    </div>
+
+    <app-tabla-productos [productos]="compra.productos" [opciones]="opciones.productos" textoBoton="Agregar Otro Producto" />
+
+    <div class="mt-6 flex justify-end gap-3">
+      <a routerLink="/compras" class="boton-oscuro">Cancelar</a>
+      <button type="submit" class="boton-verde">Guardar Compra</button>
+    </div>
+  </form>
+</div>

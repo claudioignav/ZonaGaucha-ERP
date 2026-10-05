@@ -9,10 +9,17 @@ import { App } from './app';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { LayoutComponent } from './components/layout/layout.component';
 import { TablaContenidoComponent } from './components/tabla-contenido/tabla-contenido.component';
+import { BotonesAccionesComponent } from './components/botones-acciones/botones-acciones.component';
+import { TarjetaResumenComponent } from './components/tarjeta-resumen/tarjeta-resumen.component';
+import { TablaProductosComponent } from './components/tabla-productos/tabla-productos.component';
 
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { AdministrarCuentasComponent } from './pages/administrar-cuentas/administrar-cuentas.component';
+import { VentasComponent } from './pages/ventas/ventas.component';
+import { NuevaVentaComponent } from './pages/nueva-venta/nueva-venta.component';
+import { ComprasComponent } from './pages/compras/compras.component';
+import { NuevaCompraComponent } from './pages/nueva-compra/nueva-compra.component';
 
 registerLocaleData(localeEsCl);
 
@@ -22,9 +29,16 @@ registerLocaleData(localeEsCl);
     SidebarComponent,
     LayoutComponent,
     TablaContenidoComponent,
+    BotonesAccionesComponent,
+    TarjetaResumenComponent,
+    TablaProductosComponent,
     LoginComponent,
     DashboardComponent,
     AdministrarCuentasComponent,
+    VentasComponent,
+    NuevaVentaComponent,
+    ComprasComponent,
+    NuevaCompraComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],
