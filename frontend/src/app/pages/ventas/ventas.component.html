@@ -69,7 +69,7 @@
           <td>{{ venta.productos[0].producto }}</td>
           <td class="centro">{{ venta.productos[0].cantidad }}</td>
           <td>{{ venta.valorNeto | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
-          <td class="font-semibold text-verde-boton">{{ venta.valorAdicinal | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td class="font-semibold text-verde-boton">{{ venta.valorAdicional | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
           <td class="acciones">
             <app-botones-acciones />
           </td>
