@@ -1,0 +1,9 @@
+<article class="tarjeta h-full p-6">
+  <div class="flex items-center justify-between">
+    <h2 class="font-semibold text-slate-600">{{ titulo }}</h2>
+    <span class="flex size-9 items-center justify-center rounded-lg bg-zinc-100">
+      <img class="size-4" [src]="'assets/icons/' + icono" alt="" />
+    </span>
+  </div>
+  <p class="mt-4 font-titulo text-2xl font-bold {{ claseValor }}"><ng-content /></p>
+</article>
