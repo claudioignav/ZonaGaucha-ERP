@@ -1,0 +1,74 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-5">
+  <header>
+    <p class="migas">
+      <a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt;
+      <a routerLink="/ventas" class="hover:underline">Ventas</a> &gt; Nueva Venta
+    </p>
+    <h1 class="titulo-pagina mt-3">Nueva Venta</h1>
+    <p class="subtitulo-pagina">Registrar información de venta</p>
+  </header>
+
+  <form class="tarjeta p-6" (ngSubmit)="guardarVenta()">
+    <h2 class="border-b border-slate-200 pb-2 font-semibold">Registrar Información de Venta</h2>
+
+    <div class="mt-5 space-y-4">
+      <div>
+        <label class="etiqueta" for="cliente">Nombre del Cliente <span class="obligatorio">*</span></label>
+        <input id="cliente" name="cliente" type="text" class="campo" placeholder="Ej: Cliente de Prueba" [(ngModel)]="venta.cliente" />
+      </div>
+
+      <div>
+        <label class="etiqueta" for="tipo-pago">Tipo de Pago <span class="obligatorio">*</span></label>
+        <select id="tipo-pago" name="tipoPago" class="campo" [(ngModel)]="venta.tipoPago">
+          <option value="">Seleccionar tipo de pago...</option>
+          @for (opcion of opciones.tiposPago; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="etiqueta" for="fecha-venta">Fecha de Venta <span class="obligatorio">*</span></label>
+        <input id="fecha-venta" name="fechaVenta" type="datetime-local" step="1" class="campo" [(ngModel)]="venta.fechaVenta" />
+      </div>
+
+      <div>
+        <label class="etiqueta" for="plataforma">Plataforma <span class="obligatorio">*</span></label>
+        <select id="plataforma" name="plataforma" class="campo" [(ngModel)]="venta.plataforma">
+          <option value="">Seleccionar plataforma...</option>
+          @for (opcion of opciones.plataformas; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="etiqueta" for="lote">Lote <span class="obligatorio">*</span></label>
+        <select id="lote" name="lote" class="campo" [(ngModel)]="venta.lote">
+          <option value="">Seleccionar lote...</option>
+          @for (opcion of opciones.lotes; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <app-tabla-productos [productos]="venta.productos" [opciones]="opciones.productos" [filaAlterna]="true" />
+
+    <div class="mt-5 space-y-4">
+      <div>
+        <label class="etiqueta" for="valor-bruto">Valor Bruto <span class="obligatorio">*</span></label>
+        <input id="valor-bruto" name="valorNeto" type="number" class="campo" placeholder="0" [(ngModel)]="venta.valorNeto" />
+      </div>
+      <div>
+        <label class="etiqueta" for="valor-adicional">Valor Adicional</label>
+        <input id="valor-adicional" name="valorAdicional" type="number" class="campo" placeholder="0" [(ngModel)]="venta.valorAdicional" />
+      </div>
+    </div>
+
+    <div class="mt-6 flex justify-end gap-3">
+      <a routerLink="/ventas" class="boton-gris">Cancelar</a>
+      <button type="submit" class="boton-verde">Guardar Venta</button>
+    </div>
+  </form>
+</div>

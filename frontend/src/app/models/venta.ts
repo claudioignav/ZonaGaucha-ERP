@@ -22,6 +22,13 @@ export interface ResumenVentas {
   totalAdicional: number;
 }
 
+export interface OpcionesVenta {
+  tiposPago: string[];
+  plataformas: string[];
+  lotes: string[];
+  productos: string[];
+}
+
 export const ventasRegistradas: Venta[] = [];
 
 export const resumenVentas: ResumenVentas = {
@@ -29,3 +36,24 @@ export const resumenVentas: ResumenVentas = {
   ventaNeta: 0,
   totalAdicional: 0,
 };
+
+export const opcionesVenta: OpcionesVenta = {
+  tiposPago: [],
+  plataformas: [],
+  lotes: [],
+  productos: [],
+};
+
+export function nuevaVentaVacia(): Omit<Venta, 'id'> {
+  return {
+    numeroFactura: '',
+    cliente: '',
+    fechaVenta: '',
+    tipoPago: '',
+    plataforma: '',
+    lote: '',
+    productos: [{ producto: '', cantidad: 1 }],
+    valorNeto: 0,
+    valorAdicional: 0,
+  };
+}
