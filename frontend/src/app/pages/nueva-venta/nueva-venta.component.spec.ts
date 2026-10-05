@@ -53,7 +53,7 @@ describe('NuevaVentaComponent', () => {
     escribir('#fecha-venta', '2026-09-01T10:00');
     elegir('#plataforma', 'Tienda de Prueba');
     elegir('#lote', 'LOTE #1');
-    elegir('select[aria-label="Producto"]', 'Producto de Prueba');
+    elegir('select[aria-label="Seleccionar producto..."]', 'Producto de Prueba');
     escribir('input[aria-label="Cantidad"]', '2');
     escribir('#valor-bruto', '25000');
     escribir('#valor-adicional', '1500');

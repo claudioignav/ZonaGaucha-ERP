@@ -15,6 +15,6 @@ export class NuevaVentaComponent {
   constructor(private readonly router: Router) {}
 
   guardarVenta(): void {
-    this.router.navigate(['/ventas']);
+    void this.router.navigate(['/ventas']);
   }
 }

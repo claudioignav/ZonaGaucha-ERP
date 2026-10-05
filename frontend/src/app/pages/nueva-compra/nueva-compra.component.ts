@@ -19,6 +19,6 @@ export class NuevaCompraComponent {
   }
 
   guardarCompra(): void {
-    this.router.navigate(['/compras']);
+    void this.router.navigate(['/compras']);
   }
 }

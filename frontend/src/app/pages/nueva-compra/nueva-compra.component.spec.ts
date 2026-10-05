@@ -50,7 +50,7 @@ describe('NuevaCompraComponent', () => {
       '#tipo-contenido': 'Surtido',
       '#compra-bruta': '100000',
       '#impuesto': '19000',
-      'select[aria-label="Producto"]': 'Producto de Prueba',
+      'select[aria-label="Seleccionar producto..."]': 'Producto de Prueba',
       'input[aria-label="Cantidad"]': '10',
     });
 

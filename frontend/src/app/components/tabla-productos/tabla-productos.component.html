@@ -13,7 +13,7 @@
       @for (detalle of productos; track $index; let i = $index) {
         <tr class="border-slate-200" [class.border-b]="!$last" [class.bg-fondo]="filaAlterna && $odd">
           <td class="px-6 py-3">
-            <select class="campo bg-white" aria-label="Producto" [name]="'producto-' + i" [(ngModel)]="detalle.producto">
+            <select class="campo bg-white" aria-label="Seleccionar producto..." [name]="'producto-' + i" [(ngModel)]="detalle.producto">
               <option value="">Seleccionar producto...</option>
               @for (producto of opciones; track producto) {
                 <option [value]="producto">{{ producto }}</option>
