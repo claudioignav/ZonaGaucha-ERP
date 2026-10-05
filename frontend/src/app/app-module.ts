@@ -19,6 +19,7 @@ import { AdministrarCuentasComponent } from './pages/administrar-cuentas/adminis
 import { VentasComponent } from './pages/ventas/ventas.component';
 import { NuevaVentaComponent } from './pages/nueva-venta/nueva-venta.component';
 import { ComprasComponent } from './pages/compras/compras.component';
+import { NuevaCompraComponent } from './pages/nueva-compra/nueva-compra.component';
 
 registerLocaleData(localeEsCl);
 
@@ -37,6 +38,7 @@ registerLocaleData(localeEsCl);
     VentasComponent,
     NuevaVentaComponent,
     ComprasComponent,
+    NuevaCompraComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],
