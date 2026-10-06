@@ -28,6 +28,7 @@ describe('App', () => {
     { ruta: '/ventas/nueva', texto: 'Registrar Información de Venta' },
     { ruta: '/compras', texto: 'Gestión de órdenes de entrada y proveedores' },
     { ruta: '/compras/nueva', texto: 'Registrar Información de Compra' },
+    { ruta: '/inventario', texto: 'Control de lotes y existencias' },
   ])('la ruta $ruta muestra su página junto al menú', async ({ ruta, texto }) => {
     const harness = await RouterTestingHarness.create(ruta);
 
