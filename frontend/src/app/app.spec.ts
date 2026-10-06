@@ -29,11 +29,23 @@ describe('App', () => {
     { ruta: '/compras', texto: 'Gestión de órdenes de entrada y proveedores' },
     { ruta: '/compras/nueva', texto: 'Registrar Información de Compra' },
     { ruta: '/inventario', texto: 'Control de lotes y existencias' },
+    { ruta: '/catalogos/productos', texto: 'Gestión de Productos' },
+    { ruta: '/catalogos/categorias-producto', texto: 'Gestión de Categorías de Producto' },
+    { ruta: '/catalogos/proveedores', texto: 'Gestión de Proveedores' },
+    { ruta: '/catalogos/plataformas', texto: 'Gestión de Plataformas' },
+    { ruta: '/catalogos/tipos-pago', texto: 'Gestión de Tipos de Pago' },
+    { ruta: '/catalogos/tipos-contenido', texto: 'Gestión de Tipos de Contenido de Lotes' },
   ])('la ruta $ruta muestra su página junto al menú', async ({ ruta, texto }) => {
     const harness = await RouterTestingHarness.create(ruta);
 
     const pantalla = harness.routeNativeElement?.textContent;
     expect(pantalla).toContain(texto);
     expect(pantalla).toContain('MÓDULOS');
+  });
+
+  it('abre productos al entrar a catálogos sin elegir una opción', async () => {
+    await RouterTestingHarness.create('/catalogos');
+
+    expect(TestBed.inject(Router).url).toBe('/catalogos/productos');
   });
 });

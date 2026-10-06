@@ -16,10 +16,19 @@ describe('CategoriasProductoComponent', () => {
 
     fixture = TestBed.createComponent(CategoriasProductoComponent);
     component = fixture.componentInstance;
+    component.categorias = [{ id: 1, nombre: 'Categoría de Prueba' }];
     await fixture.whenStable();
   });
 
   it('se crea correctamente', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('muestra la categoría registrada con sus botones', () => {
+    const fila: HTMLElement = fixture.nativeElement.querySelector('tbody tr');
+
+    expect(fila.textContent).toContain('Categoría de Prueba');
+    expect(fila.querySelector('button[title="Editar"]')).toBeTruthy();
+    expect(fila.querySelector('button[title="Eliminar"]')).toBeTruthy();
   });
 });

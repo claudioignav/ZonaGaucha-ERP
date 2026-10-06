@@ -16,10 +16,19 @@ describe('TiposPagoComponent', () => {
 
     fixture = TestBed.createComponent(TiposPagoComponent);
     component = fixture.componentInstance;
+    component.tiposPago = [{ id: 1, nombre: 'Transferencia' }];
     await fixture.whenStable();
   });
 
   it('se crea correctamente', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('muestra el tipo de pago registrado con sus botones', () => {
+    const fila: HTMLElement = fixture.nativeElement.querySelector('tbody tr');
+
+    expect(fila.textContent).toContain('Transferencia');
+    expect(fila.querySelector('button[title="Editar"]')).toBeTruthy();
+    expect(fila.querySelector('button[title="Eliminar"]')).toBeTruthy();
   });
 });

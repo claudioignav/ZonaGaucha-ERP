@@ -16,10 +16,19 @@ describe('TiposContenidoComponent', () => {
 
     fixture = TestBed.createComponent(TiposContenidoComponent);
     component = fixture.componentInstance;
+    component.tiposContenido = [{ id: 1, nombre: 'Surtido' }];
     await fixture.whenStable();
   });
 
   it('se crea correctamente', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('muestra el tipo de contenido registrado con sus botones', () => {
+    const fila: HTMLElement = fixture.nativeElement.querySelector('tbody tr');
+
+    expect(fila.textContent).toContain('Surtido');
+    expect(fila.querySelector('button[title="Editar"]')).toBeTruthy();
+    expect(fila.querySelector('button[title="Eliminar"]')).toBeTruthy();
   });
 });

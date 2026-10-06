@@ -16,10 +16,20 @@ describe('PlataformasComponent', () => {
 
     fixture = TestBed.createComponent(PlataformasComponent);
     component = fixture.componentInstance;
+    component.plataformas = [{ id: 1, nombre: 'Tienda de Prueba', tiposPago: ['Transferencia', 'Efectivo'] }];
     await fixture.whenStable();
   });
 
   it('se crea correctamente', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('muestra la plataforma con sus formas de pago separadas por guion', () => {
+    const fila: HTMLElement = fixture.nativeElement.querySelector('tbody tr');
+
+    expect(fila.textContent).toContain('Tienda de Prueba');
+    expect(fila.textContent).toContain('Transferencia - Efectivo');
+    expect(fila.querySelector('button[title="Editar"]')).toBeTruthy();
+    expect(fila.querySelector('button[title="Eliminar"]')).toBeTruthy();
   });
 });
