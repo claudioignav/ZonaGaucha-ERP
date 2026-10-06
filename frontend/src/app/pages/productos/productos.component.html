@@ -1,0 +1,42 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Productos</p>
+    <h1 class="titulo-pagina mt-3">Gestión de Productos</h1>
+    <p class="subtitulo-pagina">Administración de productos y sus categorías asociadas</p>
+  </header>
+
+  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+    <div class="min-w-60 flex-[2]">
+      <label class="etiqueta" for="nuevo-producto">Nuevo Producto</label>
+      <input id="nuevo-producto" type="text" class="campo" placeholder="Ej: Producto de Prueba" />
+    </div>
+    <div class="min-w-48 flex-1">
+      <label class="etiqueta" for="categoria">Categoría de Producto</label>
+      <select id="categoria" class="campo">
+        <option value="">Seleccionar categoría...</option>
+      </select>
+    </div>
+    <button type="button" class="boton-oscuro">+ Agregar Producto</button>
+  </section>
+
+  <app-tabla-contenido [totalRegistros]="productos.length">
+    <thead>
+      <tr>
+        <th scope="col">Producto</th>
+        <th scope="col" class="centro">Categoría</th>
+        <th scope="col" class="acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (producto of productos; track producto.id) {
+        <tr>
+          <td class="font-semibold">{{ producto.nombre }}</td>
+          <td class="centro"><span class="insignia">{{ producto.categoria }}</span></td>
+          <td class="acciones">
+            <app-botones-acciones />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </app-tabla-contenido>
+</div>

@@ -1,0 +1,34 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Tipos de Pago</p>
+    <h1 class="titulo-pagina mt-3">Gestión de Tipos de Pago</h1>
+    <p class="subtitulo-pagina">Métodos de pago habilitados para clientes en la pasarela</p>
+  </header>
+
+  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+    <div class="min-w-60 flex-1">
+      <label class="etiqueta" for="nuevo-tipo-pago">Nuevo Tipo de Pago <span class="obligatorio">*</span></label>
+      <input id="nuevo-tipo-pago" type="text" class="campo" placeholder="Ej: Transferencia" />
+    </div>
+    <button type="button" class="boton-oscuro">+ Agregar Tipo de Pago</button>
+  </section>
+
+  <app-tabla-contenido [totalRegistros]="tiposPago.length">
+    <thead>
+      <tr>
+        <th scope="col">Tipo de Pago</th>
+        <th scope="col" class="acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (tipoPago of tiposPago; track tipoPago.id) {
+        <tr>
+          <td class="font-semibold">{{ tipoPago.nombre }}</td>
+          <td class="acciones">
+            <app-botones-acciones />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </app-tabla-contenido>
+</div>

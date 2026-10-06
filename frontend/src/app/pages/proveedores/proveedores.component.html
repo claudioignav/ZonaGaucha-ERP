@@ -1,0 +1,52 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Proveedores</p>
+    <h1 class="titulo-pagina mt-3">Gestión de Proveedores</h1>
+    <p class="subtitulo-pagina">Registro y contacto de los proveedores oficiales de materias primas y productos</p>
+  </header>
+
+  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+    <div class="min-w-44 flex-1">
+      <label class="etiqueta" for="razon-social">Razón Social</label>
+      <input id="razon-social" type="text" class="campo" placeholder="Ej: Proveedor de Prueba SpA" />
+    </div>
+    <div class="min-w-36 flex-1">
+      <label class="etiqueta" for="rut">RUT</label>
+      <input id="rut" type="text" class="campo" placeholder="Ej: 11.111.111-1" />
+    </div>
+    <div class="min-w-40 flex-1">
+      <label class="etiqueta" for="telefono">Teléfono</label>
+      <input id="telefono" type="tel" class="campo" placeholder="Ej: +56 9 1111 2222" />
+    </div>
+    <div class="min-w-44 flex-1">
+      <label class="etiqueta" for="correo">Correo Electrónico</label>
+      <input id="correo" type="email" class="campo" placeholder="Ej: contacto@proveedorprueba.cl" />
+    </div>
+    <button type="button" class="boton-oscuro">+ Agregar Proveedor</button>
+  </section>
+
+  <app-tabla-contenido [totalRegistros]="proveedores.length">
+    <thead>
+      <tr>
+        <th scope="col">Razón Social</th>
+        <th scope="col">RUT</th>
+        <th scope="col">Teléfono</th>
+        <th scope="col">Correo</th>
+        <th scope="col" class="acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (proveedor of proveedores; track proveedor.id) {
+        <tr>
+          <td class="font-semibold">{{ proveedor.razonSocial }}</td>
+          <td class="sin-salto">{{ proveedor.rut }}</td>
+          <td class="sin-salto">{{ proveedor.telefono }}</td>
+          <td class="sin-salto">{{ proveedor.correo }}</td>
+          <td class="acciones">
+            <app-botones-acciones />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </app-tabla-contenido>
+</div>

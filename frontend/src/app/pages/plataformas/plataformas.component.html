@@ -1,0 +1,42 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Plataformas</p>
+    <h1 class="titulo-pagina mt-3">Gestión de Plataformas</h1>
+    <p class="subtitulo-pagina">Canales y plataformas de venta integradas con el ERP</p>
+  </header>
+
+  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+    <div class="min-w-48 flex-1">
+      <label class="etiqueta" for="nueva-plataforma">Nueva Plataforma</label>
+      <input id="nueva-plataforma" type="text" class="campo" placeholder="Ej: Tienda de Prueba" />
+    </div>
+    <div class="min-w-48 flex-1">
+      <label class="etiqueta" for="tipos-pago">Tipos de Pago</label>
+      <select id="tipos-pago" class="campo">
+        <option value="">Seleccionar tipos de pago...</option>
+      </select>
+    </div>
+    <button type="button" class="boton-oscuro">+ Agregar Plataforma</button>
+  </section>
+
+  <app-tabla-contenido [totalRegistros]="plataformas.length">
+    <thead>
+      <tr>
+        <th scope="col">Plataforma</th>
+        <th scope="col">Tipos de Pago</th>
+        <th scope="col" class="acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (plataforma of plataformas; track plataforma.id) {
+        <tr>
+          <td class="font-semibold">{{ plataforma.nombre }}</td>
+          <td>{{ plataforma.tiposPago.join(' - ') }}</td>
+          <td class="acciones">
+            <app-botones-acciones />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </app-tabla-contenido>
+</div>

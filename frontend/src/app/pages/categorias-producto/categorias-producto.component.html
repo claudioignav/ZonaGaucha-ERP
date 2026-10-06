@@ -1,0 +1,34 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Categoría de Producto</p>
+    <h1 class="titulo-pagina mt-3">Gestión de Categorías de Producto</h1>
+    <p class="subtitulo-pagina">Clasificación de categorías de productos y accesorios</p>
+  </header>
+
+  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+    <div class="min-w-60 flex-1">
+      <label class="etiqueta" for="nueva-categoria">Nueva Categoría</label>
+      <input id="nueva-categoria" type="text" class="campo" placeholder="Ej: Categoría de Prueba" />
+    </div>
+    <button type="button" class="boton-oscuro">+ Agregar Categoría</button>
+  </section>
+
+  <app-tabla-contenido [totalRegistros]="categorias.length">
+    <thead>
+      <tr>
+        <th scope="col">Categoría</th>
+        <th scope="col" class="acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (categoria of categorias; track categoria.id) {
+        <tr>
+          <td class="font-semibold">{{ categoria.nombre }}</td>
+          <td class="acciones">
+            <app-botones-acciones />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </app-tabla-contenido>
+</div>
