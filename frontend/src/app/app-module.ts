@@ -25,6 +25,8 @@ import { ProductosComponent } from './pages/productos/productos.component';
 import { CategoriasProductoComponent } from './pages/categorias-producto/categorias-producto.component';
 import { ProveedoresComponent } from './pages/proveedores/proveedores.component';
 import { PlataformasComponent } from './pages/plataformas/plataformas.component';
+import { TiposContenidoComponent } from './pages/tipos-contenido/tipos-contenido.component';
+import { TiposPagoComponent } from './pages/tipos-pago/tipos-pago.component';
 
 registerLocaleData(localeEsCl);
 
@@ -49,6 +51,8 @@ registerLocaleData(localeEsCl);
     CategoriasProductoComponent,
     ProveedoresComponent,
     PlataformasComponent,
+    TiposContenidoComponent,
+    TiposPagoComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],

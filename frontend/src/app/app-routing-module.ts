@@ -13,6 +13,8 @@ import { ProductosComponent } from './pages/productos/productos.component';
 import { CategoriasProductoComponent } from './pages/categorias-producto/categorias-producto.component';
 import { ProveedoresComponent } from './pages/proveedores/proveedores.component';
 import { PlataformasComponent } from './pages/plataformas/plataformas.component';
+import { TiposContenidoComponent } from './pages/tipos-contenido/tipos-contenido.component';
+import { TiposPagoComponent } from './pages/tipos-pago/tipos-pago.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -46,6 +48,8 @@ const routes: Routes = [
           { path: 'categorias-producto', component: CategoriasProductoComponent },
           { path: 'proveedores', component: ProveedoresComponent },
           { path: 'plataformas', component: PlataformasComponent },
+          { path: 'tipos-contenido', component: TiposContenidoComponent },
+          { path: 'tipos-pago', component: TiposPagoComponent },
         ],
       },
     ],

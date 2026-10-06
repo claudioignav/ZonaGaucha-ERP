@@ -1,0 +1,34 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Tipos de Contenido</p>
+    <h1 class="titulo-pagina mt-3">Gestión de Tipos de Contenido de Lotes</h1>
+    <p class="subtitulo-pagina">Categorización de lotes de productos y accesorios</p>
+  </header>
+
+  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+    <div class="min-w-60 flex-1">
+      <label class="etiqueta" for="nuevo-tipo-contenido">Nuevo Tipo de Contenido</label>
+      <input id="nuevo-tipo-contenido" type="text" class="campo" placeholder="Ej: Surtido" />
+    </div>
+    <button type="button" class="boton-oscuro">+ Agregar Tipo de Contenido</button>
+  </section>
+
+  <app-tabla-contenido [totalRegistros]="tiposContenido.length">
+    <thead>
+      <tr>
+        <th>Tipo de Contenido</th>
+        <th class="acciones">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (tipoContenido of tiposContenido; track tipoContenido.id) {
+        <tr>
+          <td class="font-semibold">{{ tipoContenido.nombre }}</td>
+          <td class="acciones">
+            <app-botones-acciones />
+          </td>
+        </tr>
+      }
+    </tbody>
+  </app-tabla-contenido>
+</div>
