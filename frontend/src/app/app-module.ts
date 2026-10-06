@@ -21,6 +21,8 @@ import { NuevaVentaComponent } from './pages/nueva-venta/nueva-venta.component';
 import { ComprasComponent } from './pages/compras/compras.component';
 import { NuevaCompraComponent } from './pages/nueva-compra/nueva-compra.component';
 import { InventarioComponent } from './pages/inventario/inventario.component';
+import { ProductosComponent } from './pages/productos/productos.component';
+import { CategoriasProductoComponent } from './pages/categorias-producto/categorias-producto.component';
 
 registerLocaleData(localeEsCl);
 
@@ -41,6 +43,8 @@ registerLocaleData(localeEsCl);
     ComprasComponent,
     NuevaCompraComponent,
     InventarioComponent,
+    ProductosComponent,
+    CategoriasProductoComponent,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],

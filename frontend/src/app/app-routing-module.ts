@@ -9,6 +9,8 @@ import { NuevaVentaComponent } from './pages/nueva-venta/nueva-venta.component';
 import { ComprasComponent } from './pages/compras/compras.component';
 import { NuevaCompraComponent } from './pages/nueva-compra/nueva-compra.component';
 import { InventarioComponent } from './pages/inventario/inventario.component';
+import { ProductosComponent } from './pages/productos/productos.component';
+import { CategoriasProductoComponent } from './pages/categorias-producto/categorias-producto.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -34,6 +36,14 @@ const routes: Routes = [
         ],
       },
       { path: 'inventario', component: InventarioComponent },
+      {
+        path: 'catalogos',
+        children: [
+          { path: '', redirectTo: 'productos', pathMatch: 'full' },
+          { path: 'productos', component: ProductosComponent },
+          { path: 'categorias-producto', component: CategoriasProductoComponent },
+        ],
+      },
     ],
   },
   { path: '**', redirectTo: 'login' },
