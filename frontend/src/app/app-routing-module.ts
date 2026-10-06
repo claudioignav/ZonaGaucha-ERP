@@ -11,6 +11,8 @@ import { NuevaCompraComponent } from './pages/nueva-compra/nueva-compra.componen
 import { InventarioComponent } from './pages/inventario/inventario.component';
 import { ProductosComponent } from './pages/productos/productos.component';
 import { CategoriasProductoComponent } from './pages/categorias-producto/categorias-producto.component';
+import { ProveedoresComponent } from './pages/proveedores/proveedores.component';
+import { PlataformasComponent } from './pages/plataformas/plataformas.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -42,6 +44,8 @@ const routes: Routes = [
           { path: '', redirectTo: 'productos', pathMatch: 'full' },
           { path: 'productos', component: ProductosComponent },
           { path: 'categorias-producto', component: CategoriasProductoComponent },
+          { path: 'proveedores', component: ProveedoresComponent },
+          { path: 'plataformas', component: PlataformasComponent },
         ],
       },
     ],
