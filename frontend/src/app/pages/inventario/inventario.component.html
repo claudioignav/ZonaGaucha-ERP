@@ -16,11 +16,11 @@
   <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
     <div class="min-w-36 flex-1">
       <label class="etiqueta" for="filtro-lote">Número de Lote</label>
-      <input id="filtro-lote" type="text" class="campo" placeholder="Ej: 1" />
+      <input id="filtro-lote" type="text" class="campo" placeholder="Ej: 1" [(ngModel)]="filtroLote" />
     </div>
     <div class="min-w-40 flex-1">
       <label class="etiqueta" for="filtro-proveedor">Proveedor</label>
-      <input id="filtro-proveedor" type="text" class="campo" placeholder="Ej: Proveedor de Prueba SpA" />
+      <input id="filtro-proveedor" type="text" class="campo" placeholder="Ej: Proveedor de Prueba SpA" [(ngModel)]="filtroProveedor" />
     </div>
     <div class="min-w-40 flex-1">
       <label class="etiqueta" for="filtro-contenido">Tipo de Contenido</label>
@@ -39,7 +39,7 @@
   </section>
 
   <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-    @for (lote of lotes; track lote.numero) {
+    @for (lote of lotesFiltrados; track lote.numero) {
       <article class="tarjeta p-6">
         <div class="flex items-start justify-between gap-3">
           <div>

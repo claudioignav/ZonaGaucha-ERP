@@ -26,6 +26,12 @@ describe('InventarioComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  function escribir(selector: string, valor: string): void {
+    const campo: HTMLInputElement = fixture.nativeElement.querySelector(selector);
+    campo.value = valor;
+    campo.dispatchEvent(new Event('input'));
+  }
+
   async function refrescar(): Promise<void> {
     fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
     await fixture.whenStable();
@@ -61,5 +67,33 @@ describe('InventarioComponent', () => {
     await refrescar();
 
     expect(barra().style.width).toBe('0%');
+  });
+
+  describe('filtros', () => {
+    beforeEach(async () => {
+      component.lotes = [lotePrueba, { ...lotePrueba, numero: 2, proveedor: 'Otro Proveedor Ltda' }];
+      await refrescar();
+    });
+
+    it('deja solo el lote con el número escrito', async () => {
+      escribir('#filtro-lote', '2');
+      await fixture.whenStable();
+
+      expect(tarjetas().map((t) => t.textContent)).toEqual(['LOTE #2']);
+    });
+
+    it('busca por proveedor sin importar mayúsculas', async () => {
+      escribir('#filtro-proveedor', 'OTRO');
+      await fixture.whenStable();
+
+      expect(tarjetas().map((t) => t.textContent)).toEqual(['LOTE #2']);
+    });
+
+    it('no muestra lotes cuando ninguno coincide', async () => {
+      escribir('#filtro-lote', '99');
+      await fixture.whenStable();
+
+      expect(tarjetas().length).toBe(0);
+    });
   });
 });
