@@ -1,0 +1,74 @@
+<div class="mx-auto flex max-w-[1400px] flex-col gap-4">
+  <header>
+    <p class="migas"><a routerLink="/dashboard" class="hover:underline">Dashboard</a> &gt; Inventario</p>
+    <h1 class="titulo-pagina mt-3">Módulo de Inventario</h1>
+    <p class="subtitulo-pagina">Control de lotes y existencias</p>
+  </header>
+
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg" claseValor="xl:text-3xl">{{ resumen.fechaActual }}</app-tarjeta-resumen>
+
+    <app-tarjeta-resumen titulo="Promedio de Venta" icono="up.svg" claseValor="xl:text-3xl">{{ resumen.promedioVenta }}%</app-tarjeta-resumen>
+
+    <app-tarjeta-resumen titulo="Productos Disponibles" icono="package-gray.svg" claseValor="xl:text-3xl">{{ resumen.productosDisponibles }}</app-tarjeta-resumen>
+  </section>
+
+  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+    <div class="min-w-36 flex-1">
+      <label class="etiqueta" for="filtro-lote">Número de Lote</label>
+      <input id="filtro-lote" type="text" class="campo" placeholder="Ej: 1" />
+    </div>
+    <div class="min-w-40 flex-1">
+      <label class="etiqueta" for="filtro-proveedor">Proveedor</label>
+      <input id="filtro-proveedor" type="text" class="campo" placeholder="Ej: Proveedor de Prueba SpA" />
+    </div>
+    <div class="min-w-40 flex-1">
+      <label class="etiqueta" for="filtro-contenido">Tipo de Contenido</label>
+      <select id="filtro-contenido" class="campo">
+        <option value="">Seleccionar tipo...</option>
+      </select>
+    </div>
+    <div class="min-w-40 flex-1">
+      <label class="etiqueta" for="filtro-fecha">Fecha de Creación</label>
+      <input id="filtro-fecha" type="date" class="campo" />
+    </div>
+    <button type="button" class="boton-oscuro">
+      <img class="size-3.5" src="assets/icons/search.svg" alt="" />
+      Aplicar Filtros
+    </button>
+  </section>
+
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+    @for (lote of lotes; track lote.numero) {
+      <article class="tarjeta p-6">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="font-titulo text-xl font-bold">LOTE #{{ lote.numero }}</h2>
+            <p class="mt-1 text-[13px] text-slate-600">{{ lote.proveedor }}</p>
+          </div>
+          <span class="insignia text-[11px]">{{ lote.tipoContenido }}</span>
+        </div>
+        <dl class="mt-4 space-y-3 border-t border-slate-200 pt-4 text-[13px]">
+          <div class="flex justify-between">
+            <dt class="text-slate-600">Factura Asociada:</dt>
+            <dd class="font-semibold">{{ lote.facturaAsociada }}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-slate-600">Disponibilidad:</dt>
+            <dd>
+              <span class="font-semibold">{{ lote.unidadesDisponibles }}</span>
+              <span class="text-slate-400">/ {{ lote.unidadesTotales }} uds</span>
+            </dd>
+          </div>
+          <div class="flex justify-between">
+            <dt class="text-slate-600">Fecha Creación:</dt>
+            <dd class="font-semibold">{{ lote.fechaCreacion }}</dd>
+          </div>
+        </dl>
+        <div class="mt-3 h-2 rounded-full bg-slate-100">
+          <div class="h-2 rounded-full bg-verde-boton" [style.width.%]="porcentajeDisponible(lote)"></div>
+        </div>
+      </article>
+    }
+  </section>
+</div>
