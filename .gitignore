@@ -37,12 +37,15 @@ yarn-error.log
 .history/
 /tmp/
 
-# Estado local y credenciales de Terraform
-/infra/.terraform/
+# Estado local y credenciales de Terraform del frontend
+/infra/frontend/.terraform/
 **/.terraform/
 *.tfstate
 *.tfstate.*
 *.tfplan
+/infra/frontend/**/*.tfplan.*
+/infra/frontend/**/plan.json
+/infra/frontend/**/*.plan.json
 tfplan
 crash.log
 crash.*.log
@@ -53,6 +56,14 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+# Configuración y respaldos locales de Terraform del frontend
+/infra/frontend/.local-backups/
+/infra/frontend/.terraformrc
+/infra/frontend/terraform.rc
+/infra/frontend/.terraform.d/
+
+# Los archivos .terraform.lock.hcl y *.tfvars.example sí se suben.
 
 # Archivos del sistema
 .DS_Store
