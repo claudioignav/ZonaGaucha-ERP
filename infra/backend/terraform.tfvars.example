@@ -1,0 +1,20 @@
+azure_subscription_id = "22dd601b-b175-4c49-b871-8198030f96c3"
+resource_group_name   = "zg-erp"
+
+backend_production_location  = "brazilsouth"
+backend_staging_location     = "brazilsouth"
+backend_production_plan_name = "service-zg"
+backend_staging_plan_name    = "service-zg-stg"
+backend_production_app_name  = "zgerpbacktapp"
+backend_staging_app_name     = "zgerpbackstg"
+
+# Confirma la versión con el código del backend y los runtimes de Azure.
+backend_node_version = "22-lts"
+
+# Reutilizamos el servidor, pero creamos una base diferente a producción.
+existing_sql_server_name       = "zg-dbserver"
+backend_staging_database_name = "sqldb-zonagaucha-stg"
+
+# Reemplaza estos orígenes si las URLs de tus Storage son distintas.
+frontend_production_origins = ["https://zgerpfrontapp.z15.web.core.windows.net"]
+frontend_staging_origins    = ["https://zgerpfrontstg.z15.web.core.windows.net"]
