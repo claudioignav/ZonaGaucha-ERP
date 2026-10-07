@@ -4,12 +4,18 @@ on:
   push:
     paths:
       - "frontend/**"
+      - "infra/frontend/**"
+      - ".gitignore"
       - ".github/workflows/frontend-ci.yml"
+      - ".github/workflows/frontend-cd.yml"
   pull_request:
     branches: [main]
     paths:
       - "frontend/**"
+      - "infra/frontend/**"
+      - ".gitignore"
       - ".github/workflows/frontend-ci.yml"
+      - ".github/workflows/frontend-cd.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,23 +26,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ci:
-    name: Calidad y seguridad del frontend
+  secretos:
+    name: Detección de secretos
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: frontend
+    timeout-minutes: 10
 
     steps:
       - name: Descargar repositorio
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Detectar secretos con GitGuardian
-        uses: GitGuardian/ggshield-action@7f66d3be9c59a821dcf4f45ee5d929203a1a0b90 # v1.55.0
+        uses: GitGuardian/ggshield-action@7f66d3be9c59a821dcf4f45ee5d929203a1a0b90
         env:
           GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
           GITHUB_PUSH_AFTER_SHA: ${{ github.event.after }}
@@ -44,8 +47,23 @@ jobs:
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
 
+  dependencias:
+    name: Análisis de dependencias (SCA)
+    needs: secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
       - name: Configurar Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: "24"
           cache: npm
@@ -55,21 +73,92 @@ jobs:
         run: npm ci
 
       - name: Analizar dependencias con Snyk
-        uses: snyk/actions/node@b075801f26076be9bb50521154cafab73f44da0c # master 2026-09-29
+        uses: snyk/actions/node@b075801f26076be9bb50521154cafab73f44da0c
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high --file=frontend/package.json --package-manager=npm
 
+  pruebas:
+    name: Pruebas unitarias y cobertura
+    needs: dependencias
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci
+
       - name: Ejecutar pruebas unitarias
         run: npm run test:ci
+
+      - name: Verificar reporte de cobertura
+        run: test -s coverage/erp-frontend/lcov.info
+
+      - name: Compartir cobertura con el análisis de calidad
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/erp-frontend/lcov.info
+          if-no-files-found: error
+          retention-days: 7
+
+  compilacion-calidad:
+    name: Compilación y análisis estático (SAST)
+    needs: pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci
+
+      - name: Recuperar reporte de cobertura
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/erp-frontend
+
+      - name: Verificar reporte de cobertura
+        run: test -s coverage/erp-frontend/lcov.info
 
       - name: Compilar artefacto de producción
         run: npm run build:production
 
-      - name: Analizar código con SonarCloud
-        if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+      - name: Analizar código y comprobar Quality Gate con SonarCloud
+        if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
@@ -82,9 +171,11 @@ jobs:
             -Dsonar.test.inclusions=**/*.spec.ts
             -Dsonar.exclusions=**/*.spec.ts
             -Dsonar.javascript.lcov.reportPaths=coverage/erp-frontend/lcov.info
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
 
       - name: Publicar artefacto del frontend
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: frontend-dist
           path: frontend/dist/erp-frontend/browser/

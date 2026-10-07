@@ -1,3 +1,4 @@
+# El sitio estático necesita acceso público; esta excepción ya existía en el repo.
 #trivy:ignore:azure-storage-default-action-deny
 resource "azurerm_storage_account" "frontend_production" {
   name                = var.frontend_production_storage_account_name
@@ -28,6 +29,7 @@ resource "azurerm_storage_account_static_website" "frontend_production" {
   error_404_document = "index.html"
 }
 
+# El sitio estático necesita acceso público; esta excepción ya existía en el repo.
 #trivy:ignore:azure-storage-default-action-deny
 resource "azurerm_storage_account" "frontend_staging" {
   name                = var.frontend_staging_storage_account_name
