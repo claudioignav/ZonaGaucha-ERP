@@ -48,7 +48,8 @@ jobs:
           GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
 
   dependencias:
-    name: Análisis de dependencias
+    name: Análisis de dependencias (SCA)
+    needs: secretos
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -80,6 +81,7 @@ jobs:
 
   pruebas:
     name: Pruebas unitarias y cobertura
+    needs: dependencias
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -117,8 +119,8 @@ jobs:
           retention-days: 7
 
   compilacion-calidad:
-    name: Compilación y verificación de calidad
-    needs: [secretos, dependencias, pruebas]
+    name: Compilación y análisis estático (SAST)
+    needs: pruebas
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:

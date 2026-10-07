@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   analisis-iac:
-    name: Análisis de IaC
+    name: Análisis de infraestructura (IaC)
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
@@ -131,7 +131,7 @@ jobs:
         run: curl --fail --silent --show-error --retry 5 --retry-delay 10 "$AZURE_FRONTEND_URL"
 
   dast-preproduccion:
-    name: Análisis DAST del frontend en preproducción
+    name: Análisis dinámico (DAST)
     needs: despliegue-preproduccion
     runs-on: ubuntu-latest
     timeout-minutes: 20
