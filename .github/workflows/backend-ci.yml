@@ -1,0 +1,210 @@
+name: Integración continua del backend
+
+on:
+  push:
+    paths:
+      - "backend/**"
+      - "infra/backend/**"
+      - ".gitignore"
+      - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/backend-cd.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "infra/backend/**"
+      - ".gitignore"
+      - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/backend-cd.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  secretos:
+    name: Detección de secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Detectar secretos con GitGuardian
+        uses: GitGuardian/ggshield-action@7f66d3be9c59a821dcf4f45ee5d929203a1a0b90
+        env:
+          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_AFTER_SHA: ${{ github.event.after }}
+          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+  dependencias:
+    name: Análisis de dependencias (SCA)
+    needs: secretos
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci
+
+      - name: Analizar dependencias con Snyk
+        uses: snyk/actions/node@b075801f26076be9bb50521154cafab73f44da0c
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --file=backend/package.json --package-manager=npm
+
+  pruebas:
+    name: Pruebas unitarias y cobertura
+    needs: dependencias
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci
+
+      - name: Ejecutar pruebas unitarias
+        run: npm run test:ci
+
+      - name: Verificar reporte de cobertura
+        run: test -s coverage/lcov.info
+
+      - name: Compartir cobertura con el análisis de calidad
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: backend-coverage
+          path: backend/coverage/lcov.info
+          if-no-files-found: error
+          retention-days: 7
+
+  compilacion-calidad:
+    name: Empaquetado y análisis estático (SAST)
+    needs: pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci
+
+      - name: Recuperar reporte de cobertura
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: backend-coverage
+          path: backend/coverage
+
+      - name: Verificar reporte de cobertura
+        run: test -s coverage/lcov.info
+
+      - name: Comprobar sintaxis del backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check index.js
+          find . \( -path ./node_modules -o -path ./coverage \) -prune -o -type f -name '*.js' -print0 |
+            xargs -0 -r -n 1 node --check
+
+      - name: Analizar código y comprobar Quality Gate con SonarCloud
+        if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: backend
+          args: >-
+            -Dsonar.organization=claudioignav
+            -Dsonar.projectKey=claudioignav_erp-backend
+            -Dsonar.sources=.
+            -Dsonar.tests=.
+            -Dsonar.test.inclusions=**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
+            -Dsonar.exclusions=node_modules/**,coverage/**,**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
+
+      - name: Empaquetar aplicación y dependencias de producción
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/backend-package"
+          rsync -a \
+            --exclude='node_modules/' \
+            --exclude='coverage/' \
+            --exclude='tests/' \
+            --exclude='__tests__/' \
+            --exclude='*.spec.*' \
+            --exclude='*.test.*' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='.git*' \
+            --exclude='*.log' \
+            --exclude='vitest.config.*' \
+            ./ "$RUNNER_TEMP/backend-package/"
+          npm ci --omit=dev --prefix "$RUNNER_TEMP/backend-package"
+          cd "$RUNNER_TEMP/backend-package"
+          zip -qr "$GITHUB_WORKSPACE/backend.zip" .
+
+      - name: Publicar artefacto
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: backend-dist
+          path: backend.zip
+          if-no-files-found: error
+          retention-days: 7
