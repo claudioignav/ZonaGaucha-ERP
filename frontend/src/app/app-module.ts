@@ -35,6 +35,8 @@ import { NombreValidatorDirective } from './validators/nombre.validator';
 import { ContrasenaValidatorDirective } from './validators/contrasena.validator';
 import { FechaPipe } from './pipes/fecha.pipe';
 import { PesosPipe } from './pipes/pesos.pipe';
+import { RutPipe } from './pipes/rut.pipe';
+import { TelefonoPipe } from './pipes/telefono.pipe';
 
 registerLocaleData(localeEsCl);
 
@@ -68,6 +70,8 @@ registerLocaleData(localeEsCl);
     ContrasenaValidatorDirective,
     FechaPipe,
     PesosPipe,
+    RutPipe,
+    TelefonoPipe,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],
