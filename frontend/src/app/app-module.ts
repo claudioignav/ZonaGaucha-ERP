@@ -33,6 +33,8 @@ import { TelefonoValidatorDirective } from './validators/telefono.validator';
 import { CorreoValidatorDirective } from './validators/correo.validator';
 import { NombreValidatorDirective } from './validators/nombre.validator';
 import { ContrasenaValidatorDirective } from './validators/contrasena.validator';
+import { FechaPipe } from './pipes/fecha.pipe';
+import { PesosPipe } from './pipes/pesos.pipe';
 
 registerLocaleData(localeEsCl);
 
@@ -64,6 +66,8 @@ registerLocaleData(localeEsCl);
     CorreoValidatorDirective,
     NombreValidatorDirective,
     ContrasenaValidatorDirective,
+    FechaPipe,
+    PesosPipe,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],
