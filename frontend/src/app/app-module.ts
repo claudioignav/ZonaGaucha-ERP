@@ -37,6 +37,8 @@ import { FechaPipe } from './pipes/fecha.pipe';
 import { PesosPipe } from './pipes/pesos.pipe';
 import { RutPipe } from './pipes/rut.pipe';
 import { TelefonoPipe } from './pipes/telefono.pipe';
+import { InicialesPipe } from './pipes/iniciales.pipe';
+import { NombrePropioPipe } from './pipes/nombre-propio.pipe';
 
 registerLocaleData(localeEsCl);
 
@@ -72,6 +74,8 @@ registerLocaleData(localeEsCl);
     PesosPipe,
     RutPipe,
     TelefonoPipe,
+    InicialesPipe,
+    NombrePropioPipe,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],
