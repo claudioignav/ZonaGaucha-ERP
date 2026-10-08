@@ -22,6 +22,7 @@ describe('Rutas de la aplicación', () => {
 
     assert.equal(respuesta.status, 200);
     assert.match(respuesta.headers.get('content-type'), /application\/json/);
+    assert.equal(respuesta.headers.get('x-powered-by'), null);
     assert.deepEqual(await respuesta.json(), {
       mensaje: 'api del erp zonagaucha funcionando',
     });
