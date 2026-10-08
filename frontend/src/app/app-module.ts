@@ -28,6 +28,12 @@ import { PlataformasComponent } from './pages/plataformas/plataformas.component'
 import { TiposContenidoComponent } from './pages/tipos-contenido/tipos-contenido.component';
 import { TiposPagoComponent } from './pages/tipos-pago/tipos-pago.component';
 
+import { RutValidatorDirective } from './validators/rut.validator';
+import { TelefonoValidatorDirective } from './validators/telefono.validator';
+import { CorreoValidatorDirective } from './validators/correo.validator';
+import { NombreValidatorDirective } from './validators/nombre.validator';
+import { ContrasenaValidatorDirective } from './validators/contrasena.validator';
+
 registerLocaleData(localeEsCl);
 
 @NgModule({
@@ -53,6 +59,11 @@ registerLocaleData(localeEsCl);
     PlataformasComponent,
     TiposContenidoComponent,
     TiposPagoComponent,
+    RutValidatorDirective,
+    TelefonoValidatorDirective,
+    CorreoValidatorDirective,
+    NombreValidatorDirective,
+    ContrasenaValidatorDirective,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],
