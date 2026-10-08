@@ -38,8 +38,9 @@ yarn-error.log
 .history/
 /tmp/
 
-# Estado local y credenciales de Terraform del frontend
+# Estado local y credenciales de Terraform del frontend y backend
 /infra/frontend/.terraform/
+/infra/backend/.terraform/
 **/.terraform/
 *.tfstate
 *.tfstate.*
@@ -47,6 +48,9 @@ yarn-error.log
 /infra/frontend/**/*.tfplan.*
 /infra/frontend/**/plan.json
 /infra/frontend/**/*.plan.json
+/infra/backend/**/*.tfplan.*
+/infra/backend/**/plan.json
+/infra/backend/**/*.plan.json
 tfplan
 crash.log
 crash.*.log
@@ -58,11 +62,15 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Configuración y respaldos locales de Terraform del frontend
+# Configuración y respaldos locales de Terraform del frontend y backend
 /infra/frontend/.local-backups/
 /infra/frontend/.terraformrc
 /infra/frontend/terraform.rc
 /infra/frontend/.terraform.d/
+/infra/backend/.local-backups/
+/infra/backend/.terraformrc
+/infra/backend/terraform.rc
+/infra/backend/.terraform.d/
 
 # Los archivos .terraform.lock.hcl y *.tfvars.example sí se suben.
 

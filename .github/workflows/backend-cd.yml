@@ -1,0 +1,272 @@
+name: Despliegue continuo del backend
+
+on:
+  workflow_run:
+    workflows: [Integración continua del backend]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: ID de una ejecución exitosa del CI del backend en main
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: backend-cd-production
+  cancel-in-progress: false
+
+jobs:
+  analisis-iac:
+    name: Análisis de infraestructura (IaC)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      ci_run_id: ${{ steps.validar-ci.outputs.ci_run_id }}
+      head_sha: ${{ steps.validar-ci.outputs.head_sha }}
+
+    steps:
+      - name: Verificar origen y resultado del CI
+        id: validar-ci
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORIO: ${{ github.repository }}
+          CI_RUN_ID: ${{ github.event.workflow_run.id || inputs.ci_run_id }}
+          CD_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$CD_REF" != "refs/heads/main" ]]; then
+            echo "::error::El CD solo puede ejecutarse desde main."
+            exit 1
+          fi
+
+          if [[ ! "$CI_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::El ID del CI debe ser numérico."
+            exit 1
+          fi
+
+          workflow_id=$(gh api "repos/$REPOSITORIO/actions/workflows/backend-ci.yml" --jq '.id')
+          ejecucion=$(gh api "repos/$REPOSITORIO/actions/runs/$CI_RUN_ID")
+
+          if ! jq -e --arg repositorio "$REPOSITORIO" --argjson workflow_id "$workflow_id" '
+            .workflow_id == $workflow_id and
+            .repository.full_name == $repositorio and
+            .head_repository.full_name == $repositorio and
+            .head_branch == "main" and
+            .status == "completed" and
+            .conclusion == "success" and
+            (.event == "push" or .event == "workflow_dispatch") and
+            (.head_sha | test("^[0-9a-f]{40}$"))
+          ' <<< "$ejecucion" > /dev/null; then
+            echo "::error::Se requiere un CI del backend exitoso, terminado y ejecutado en main de este repositorio."
+            exit 1
+          fi
+
+          head_sha=$(jq -r '.head_sha' <<< "$ejecucion")
+          printf 'ci_run_id=%s\n' "$CI_RUN_ID" >> "$GITHUB_OUTPUT"
+          printf 'head_sha=%s\n' "$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Descargar configuración Terraform del commit aprobado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ steps.validar-ci.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Descargar artefacto aprobado por CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: backend-dist
+          path: dist-ready
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.validar-ci.outputs.ci_run_id }}
+
+      - name: Analizar Terraform con Trivy
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
+        with:
+          scan-type: config
+          scan-ref: infra/backend
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          format: table
+
+  despliegue-preproduccion:
+    name: Despliegue del backend en preproducción
+    needs: analisis-iac
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: backend-staging
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Descargar artefacto aprobado por CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: backend-dist
+          path: dist-ready
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
+
+      - name: Verificar configuración del despliegue
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          AZURE_BACKEND_APP_NAME: ${{ vars.AZURE_BACKEND_APP_NAME }}
+          AZURE_BACKEND_URL: ${{ vars.AZURE_BACKEND_URL }}
+        run: |
+          set -euo pipefail
+          for nombre in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID AZURE_RESOURCE_GROUP AZURE_BACKEND_APP_NAME AZURE_BACKEND_URL; do
+            if [[ -z "${!nombre}" ]]; then
+              echo "::error::Falta configurar $nombre en el entorno."
+              exit 1
+            fi
+          done
+          if [[ "$AZURE_BACKEND_URL" != https://* ]]; then
+            echo "::error::La URL del backend debe usar HTTPS."
+            exit 1
+          fi
+          test -s dist-ready/backend.zip
+
+      - name: Iniciar sesión en Azure con OIDC
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Desplegar App Service de preproducción
+        shell: bash
+        env:
+          AZURE_CORE_OUTPUT: none
+          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          AZURE_BACKEND_APP_NAME: ${{ vars.AZURE_BACKEND_APP_NAME }}
+        run: >-
+          az webapp deploy
+          --resource-group "$AZURE_RESOURCE_GROUP"
+          --name "$AZURE_BACKEND_APP_NAME"
+          --src-path dist-ready/backend.zip
+          --type zip
+          --clean true
+          --restart true
+          --track-status true
+          --timeout 600000
+          --only-show-errors
+
+      - name: Verificar disponibilidad de preproducción
+        env:
+          AZURE_BACKEND_URL: ${{ vars.AZURE_BACKEND_URL }}
+        run: >-
+          curl --fail --silent --show-error
+          --connect-timeout 10 --max-time 30
+          --retry 10 --retry-delay 10 --retry-all-errors
+          "${AZURE_BACKEND_URL%/}/"
+
+  dast-preproduccion:
+    name: Análisis dinámico del backend (DAST)
+    needs: despliegue-preproduccion
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: backend-staging
+    continue-on-error: true
+
+    steps:
+      - name: Ejecutar OWASP ZAP Baseline
+        uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874
+        with:
+          target: ${{ vars.AZURE_BACKEND_URL }}
+          allow_issue_writing: false
+          fail_action: false
+          artifact_name: backend-zap-${{ github.run_id }}
+          cmd_options: -a
+
+  despliegue-produccion:
+    name: Despliegue del backend en producción
+    needs: [analisis-iac, despliegue-preproduccion, dast-preproduccion]
+    if: ${{ always() && needs.analisis-iac.result == 'success' && needs.despliegue-preproduccion.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: backend-production
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Descargar artefacto aprobado por CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: backend-dist
+          path: dist-ready
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
+
+      - name: Verificar configuración del despliegue
+        shell: bash
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          AZURE_BACKEND_APP_NAME: ${{ vars.AZURE_BACKEND_APP_NAME }}
+          AZURE_BACKEND_URL: ${{ vars.AZURE_BACKEND_URL }}
+        run: |
+          set -euo pipefail
+          for nombre in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID AZURE_RESOURCE_GROUP AZURE_BACKEND_APP_NAME AZURE_BACKEND_URL; do
+            if [[ -z "${!nombre}" ]]; then
+              echo "::error::Falta configurar $nombre en el entorno."
+              exit 1
+            fi
+          done
+          if [[ "$AZURE_BACKEND_URL" != https://* ]]; then
+            echo "::error::La URL del backend debe usar HTTPS."
+            exit 1
+          fi
+          test -s dist-ready/backend.zip
+
+      - name: Iniciar sesión en Azure con OIDC
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Desplegar App Service de producción
+        shell: bash
+        env:
+          AZURE_CORE_OUTPUT: none
+          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          AZURE_BACKEND_APP_NAME: ${{ vars.AZURE_BACKEND_APP_NAME }}
+        run: >-
+          az webapp deploy
+          --resource-group "$AZURE_RESOURCE_GROUP"
+          --name "$AZURE_BACKEND_APP_NAME"
+          --src-path dist-ready/backend.zip
+          --type zip
+          --clean true
+          --restart true
+          --track-status true
+          --timeout 600000
+          --only-show-errors
+
+      - name: Verificar disponibilidad de producción
+        env:
+          AZURE_BACKEND_URL: ${{ vars.AZURE_BACKEND_URL }}
+        run: >-
+          curl --fail --silent --show-error
+          --connect-timeout 10 --max-time 30
+          --retry 10 --retry-delay 10 --retry-all-errors
+          "${AZURE_BACKEND_URL%/}/"
