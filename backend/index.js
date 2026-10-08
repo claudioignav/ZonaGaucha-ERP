@@ -1,7 +1,10 @@
-const express = require('express');
+const app = require('./app');
 
-const app = express();
+const iniciar = async () => {
+  app.listen(Number(process.env.PORT) || 3000, '127.0.0.1');
+};
 
-app.get('/', (req, res) => res.json({ mensaje: 'api del erp zonagaucha funcionando' }));
-
-app.listen(Number(process.env.PORT) || 3000, '127.0.0.1');
+iniciar().catch((error) => {
+  console.error('No se pudo iniciar el servidor:', error.name);
+  process.exitCode = 1;
+});
