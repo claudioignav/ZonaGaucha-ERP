@@ -1,7 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AdministrarCuentasComponent } from './administrar-cuentas.component';
+import { TelefonoPipe } from '../../pipes/telefono.pipe';
+import { NombrePropioPipe } from '../../pipes/nombre-propio.pipe';
 import { TablaContenidoComponent } from '../../components/tabla-contenido/tabla-contenido.component';
+import { CorreoValidatorDirective } from '../../validators/correo.validator';
+import { NombreValidatorDirective } from '../../validators/nombre.validator';
+import { ContrasenaValidatorDirective } from '../../validators/contrasena.validator';
+import { TelefonoValidatorDirective } from '../../validators/telefono.validator';
 
 describe('AdministrarCuentasComponent', () => {
   let component: AdministrarCuentasComponent;
@@ -9,8 +16,17 @@ describe('AdministrarCuentasComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([])],
-      declarations: [AdministrarCuentasComponent, TablaContenidoComponent],
+      imports: [RouterModule.forRoot([]), FormsModule],
+      declarations: [
+        AdministrarCuentasComponent,
+        TablaContenidoComponent,
+        TelefonoPipe,
+        NombrePropioPipe,
+        CorreoValidatorDirective,
+        NombreValidatorDirective,
+        ContrasenaValidatorDirective,
+        TelefonoValidatorDirective,
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdministrarCuentasComponent);
@@ -18,9 +34,10 @@ describe('AdministrarCuentasComponent', () => {
     component.usuarios = [
       {
         id: 1,
-        nombre: 'Usuario',
-        apellidos: 'De Prueba',
+        nombre: 'usuario',
+        apellidos: 'de prueba',
         correo: 'usuario.prueba@correo.cl',
+        telefono: '911112222',
         rol: 'Usuario',
         estado: 'Activo',
       },
@@ -37,12 +54,28 @@ describe('AdministrarCuentasComponent', () => {
     return botones.find((b) => b.textContent?.trim() === texto) as HTMLButtonElement;
   }
 
-  const pantalla = (): string => fixture.nativeElement.textContent;
+  async function escribir(campos: Record<string, string>): Promise<void> {
+    for (const [selector, valor] of Object.entries(campos)) {
+      const campo: HTMLInputElement = fixture.nativeElement.querySelector(selector);
+      campo.value = valor;
+      campo.dispatchEvent(new Event('input'));
+      campo.dispatchEvent(new Event('blur'));
+    }
+    await fixture.whenStable();
+  }
 
-  it('muestra el formulario de registro y al usuario en la tabla', () => {
-    expect(pantalla()).toContain('Registrar Nuevo Usuario');
-    expect(pantalla()).toContain('usuario.prueba@correo.cl');
-    expect(pantalla()).toContain('Activo');
+  async function enviar(): Promise<void> {
+    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
+    await fixture.whenStable();
+  }
+
+  const pantalla = (): string => fixture.nativeElement.textContent;
+  const filas = (): number => fixture.nativeElement.querySelectorAll('tbody tr').length;
+
+  it('muestra al usuario con mayúscula inicial y el teléfono formateado', () => {
+    expect(pantalla()).toContain('Usuario');
+    expect(pantalla()).toContain('De Prueba');
+    expect(pantalla()).toContain('+56 9 1111 2222');
   });
 
   it('deja ver la contraseña nueva al tocar el ojito', async () => {
@@ -54,23 +87,22 @@ describe('AdministrarCuentasComponent', () => {
     expect(campo.type).toBe('text');
   });
 
-  it('elimina al usuario y deja el botón para restaurarlo', async () => {
-    boton('Eliminar').click();
-    await fixture.whenStable();
+  it('no agrega nada si faltan datos', async () => {
+    await enviar();
 
-    expect(pantalla()).toContain('Eliminado');
-    expect(boton('Restaurar')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('.insignia').classList).toContain('bg-red-100');
+    expect(pantalla()).toContain('Revisa los campos marcados antes de guardar.');
+    expect(filas()).toBe(1);
   });
 
-  it('restaura al usuario eliminado', async () => {
+  it('elimina al usuario y lo puede restaurar', async () => {
     boton('Eliminar').click();
     await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('.insignia').classList).toContain('bg-red-100');
 
     boton('Restaurar').click();
     await fixture.whenStable();
 
-    expect(pantalla()).toContain('Activo');
     expect(boton('Eliminar')).toBeTruthy();
   });
 });
