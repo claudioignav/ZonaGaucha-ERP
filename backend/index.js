@@ -1,7 +1,9 @@
 const app = require('./app');
 
 const iniciar = async () => {
-  app.listen(Number(process.env.PORT) || 3000, '127.0.0.1');
+  const host = ['staging', 'production'].includes(process.env.APP_ENV) ? '0.0.0.0' : '127.0.0.1';
+
+  app.listen(Number(process.env.PORT) || 3000, host);
 };
 
 iniciar().catch((error) => {
