@@ -3,6 +3,8 @@ const { manejarErrores, rutaNoEncontrada } = require('./middleware/manejarErrore
 
 const app = express();
 
+app.disable('x-powered-by');
+
 app.use(express.json({ limit: '100kb' }));
 
 app.use('/', require('./routes/estado'));
