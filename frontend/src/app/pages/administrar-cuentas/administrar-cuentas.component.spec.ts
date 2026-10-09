@@ -87,6 +87,25 @@ describe('AdministrarCuentasComponent', () => {
     expect(campo.type).toBe('text');
   });
 
+  it('agrega el usuario a la tabla cuando el formulario está bien', async () => {
+    await escribir({ '#nombre': 'José', '#apellidos': 'Muñoz', '#correo': 'jose@correo.cl', '#contrasena': 'gaucho' });
+
+    await enviar();
+
+    expect(filas()).toBe(2);
+    expect(pantalla()).toContain('jose@correo.cl');
+  });
+
+  it('marca y explica los campos con errores', async () => {
+    await escribir({ '#nombre': 'Ana2', '#correo': 'ana@correo', '#contrasena': 'abc', '#telefono': '123' });
+
+    expect(pantalla()).toContain('Solo se permiten letras y espacios.');
+    expect(pantalla()).toContain('El correo debe tener @ y punto.');
+    expect(pantalla()).toContain('La contraseña debe tener al menos 6 caracteres.');
+    expect(pantalla()).toContain('El teléfono no es válido.');
+    expect(fixture.nativeElement.querySelector('#nombre').classList).toContain('border-red-500');
+  });
+
   it('no agrega nada si faltan datos', async () => {
     await enviar();
 

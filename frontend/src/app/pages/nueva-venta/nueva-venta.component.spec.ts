@@ -73,6 +73,14 @@ describe('NuevaVentaComponent', () => {
     });
   });
 
+  it('no deja guardar si el cliente tiene números', async () => {
+    escribir('#cliente', 'Cliente 123');
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('El nombre del cliente solo puede tener letras.');
+    expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
+  });
+
   it('vuelve al listado de ventas al guardar', async () => {
     fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
     await fixture.whenStable();
