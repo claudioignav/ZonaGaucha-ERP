@@ -1,9 +1,9 @@
 import { Directive } from '@angular/core';
 import { AbstractControl, NG_VALIDATORS, ValidationErrors, Validator, ValidatorFn } from '@angular/forms';
 
-// solo letras y espacios, sin numeros ni simbolos
+// solo letras y espacios, sin numeros ni simbolos (las tildes y la ñ si valen)
 export function esNombreValido(nombre: string): boolean {
-  return /^[A-Za-z\s]+$/.test(nombre.trim());
+  return /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$/.test(nombre.trim());
 }
 
 export const nombreValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
