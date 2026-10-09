@@ -6,13 +6,13 @@
   </header>
 
   <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg">{{ resumen.fechaActual }}</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg">{{ resumen.fechaActual | fecha }}</app-tarjeta-resumen>
 
-    <app-tarjeta-resumen titulo="Compra Bruta" icono="car.svg">{{ resumen.compraBruta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Compra Bruta" icono="car.svg">{{ resumen.compraBruta | pesos }}</app-tarjeta-resumen>
 
-    <app-tarjeta-resumen titulo="Compra Neta" icono="money.svg">{{ resumen.compraNeta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Compra Neta" icono="money.svg">{{ resumen.compraNeta | pesos }}</app-tarjeta-resumen>
 
-    <app-tarjeta-resumen titulo="Impuestos Totales" icono="security.svg">{{ resumen.impuestosTotales | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Impuestos Totales" icono="security.svg">{{ resumen.impuestosTotales | pesos }}</app-tarjeta-resumen>
   </section>
 
   <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
@@ -48,16 +48,16 @@
   <app-tabla-contenido [totalRegistros]="compras.length" [paginado]="true" [compacta]="true">
     <thead>
       <tr>
-        <th scope="col">N° Factura</th>
-        <th scope="col">Proveedor</th>
-        <th scope="col">Fecha Compra</th>
-        <th scope="col" class="centro">Tipo de Pago</th>
-        <th scope="col">Nombre Producto</th>
-        <th scope="col" class="centro">Cantidad</th>
-        <th scope="col">Compra Bruta</th>
-        <th scope="col">Impuesto</th>
-        <th scope="col">Compra Neto</th>
-        <th scope="col" class="acciones">Acciones</th>
+        <th>N° Factura</th>
+        <th>Proveedor</th>
+        <th>Fecha Compra</th>
+        <th class="centro">Tipo de Pago</th>
+        <th>Nombre Producto</th>
+        <th class="centro">Cantidad</th>
+        <th>Compra Bruta</th>
+        <th>Impuesto</th>
+        <th>Compra Neto</th>
+        <th class="acciones">Acciones</th>
       </tr>
     </thead>
     <tbody>
@@ -65,13 +65,13 @@
         <tr>
           <td class="font-semibold">{{ compra.numeroFactura }}</td>
           <td>{{ compra.proveedor }}</td>
-          <td class="sin-salto">{{ compra.fechaCompra }}</td>
+          <td class="sin-salto">{{ compra.fechaCompra | fecha: 'tabla' }}</td>
           <td class="centro"><span class="insignia">{{ compra.tipoPago }}</span></td>
           <td>{{ compra.productos[0].producto }}</td>
           <td class="centro">{{ compra.productos[0].cantidad }}</td>
-          <td>{{ compra.compraBruta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
-          <td>{{ compra.impuesto | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
-          <td class="font-semibold text-verde-boton">{{ compra.compraNeta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td>{{ compra.compraBruta | pesos }}</td>
+          <td>{{ compra.impuesto | pesos }}</td>
+          <td class="font-semibold text-verde-boton">{{ compra.compraNeta | pesos }}</td>
           <td class="acciones">
             <app-botones-acciones />
           </td>

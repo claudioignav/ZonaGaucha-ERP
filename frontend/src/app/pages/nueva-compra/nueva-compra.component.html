@@ -69,7 +69,7 @@
 
       <div>
         <label class="etiqueta" for="compra-neta">Compra Neta</label>
-        <input id="compra-neta" type="text" class="campo" [value]="compraNeta | currency: 'CLP' : 'symbol-narrow' : '1.0-0'" readonly />
+        <input id="compra-neta" type="text" class="campo" [value]="compraNeta | pesos" readonly />
       </div>
     </div>
 

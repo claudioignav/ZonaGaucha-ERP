@@ -6,7 +6,7 @@
   </header>
 
   <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
-    <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg" claseValor="xl:text-3xl">{{ resumen.fechaActual }}</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg" claseValor="xl:text-3xl">{{ resumen.fechaActual | fecha }}</app-tarjeta-resumen>
 
     <app-tarjeta-resumen titulo="Promedio de Venta" icono="up.svg" claseValor="xl:text-3xl">{{ resumen.promedioVenta }}%</app-tarjeta-resumen>
 

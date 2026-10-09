@@ -1,6 +1,7 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DashboardComponent } from './dashboard.component';
+import { PesosPipe } from '../../pipes/pesos.pipe';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -8,7 +9,7 @@ describe('DashboardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DashboardComponent],
+      declarations: [DashboardComponent, PesosPipe],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardComponent);
@@ -31,6 +32,7 @@ describe('DashboardComponent', () => {
     expect(pantalla()).toContain('Total Vendido');
     expect(pantalla()).toContain('Utilidades');
     expect(pantalla()).toContain('Total Comprado');
+    expect(pantalla()).toContain('$0');
     expect(pantalla()).toContain('Estadísticas empresariales');
     expect(pantalla()).toContain('Proveedores Activos');
   });
