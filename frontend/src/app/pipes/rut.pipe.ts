@@ -10,6 +10,10 @@ export class RutPipe implements PipeTransform {
     if (!rut) return valor;
 
     const [cuerpo, dv] = rut.split('-');
-    return `${cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${dv}`;
+    const grupos: string[] = [];
+    for (let fin = cuerpo.length; fin > 0; fin -= 3) {
+      grupos.unshift(cuerpo.slice(Math.max(0, fin - 3), fin));
+    }
+    return `${grupos.join('.')}-${dv}`;
   }
 }
