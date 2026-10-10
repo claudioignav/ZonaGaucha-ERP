@@ -28,6 +28,18 @@ import { PlataformasComponent } from './pages/plataformas/plataformas.component'
 import { TiposContenidoComponent } from './pages/tipos-contenido/tipos-contenido.component';
 import { TiposPagoComponent } from './pages/tipos-pago/tipos-pago.component';
 
+import { RutValidatorDirective } from './validators/rut.validator';
+import { TelefonoValidatorDirective } from './validators/telefono.validator';
+import { CorreoValidatorDirective } from './validators/correo.validator';
+import { NombreValidatorDirective } from './validators/nombre.validator';
+import { ContrasenaValidatorDirective } from './validators/contrasena.validator';
+import { FechaPipe } from './pipes/fecha.pipe';
+import { PesosPipe } from './pipes/pesos.pipe';
+import { RutPipe } from './pipes/rut.pipe';
+import { TelefonoPipe } from './pipes/telefono.pipe';
+import { InicialesPipe } from './pipes/iniciales.pipe';
+import { NombrePropioPipe } from './pipes/nombre-propio.pipe';
+
 registerLocaleData(localeEsCl);
 
 @NgModule({
@@ -53,6 +65,17 @@ registerLocaleData(localeEsCl);
     PlataformasComponent,
     TiposContenidoComponent,
     TiposPagoComponent,
+    RutValidatorDirective,
+    TelefonoValidatorDirective,
+    CorreoValidatorDirective,
+    NombreValidatorDirective,
+    ContrasenaValidatorDirective,
+    FechaPipe,
+    PesosPipe,
+    RutPipe,
+    TelefonoPipe,
+    InicialesPipe,
+    NombrePropioPipe,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
   providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],

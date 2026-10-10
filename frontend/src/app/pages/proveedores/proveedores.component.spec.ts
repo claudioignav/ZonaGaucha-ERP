@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { ProveedoresComponent } from './proveedores.component';
+import { RutPipe } from '../../pipes/rut.pipe';
+import { TelefonoPipe } from '../../pipes/telefono.pipe';
 import { TablaContenidoComponent } from '../../components/tabla-contenido/tabla-contenido.component';
 import { BotonesAccionesComponent } from '../../components/botones-acciones/botones-acciones.component';
 
@@ -11,7 +13,7 @@ describe('ProveedoresComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([])],
-      declarations: [ProveedoresComponent, TablaContenidoComponent, BotonesAccionesComponent],
+      declarations: [ProveedoresComponent, TablaContenidoComponent, BotonesAccionesComponent, RutPipe, TelefonoPipe],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ProveedoresComponent);
@@ -20,8 +22,8 @@ describe('ProveedoresComponent', () => {
       {
         id: 1,
         razonSocial: 'Proveedor de Prueba SpA',
-        rut: '11.111.111-1',
-        telefono: '+56 9 1111 2222',
+        rut: '11111111-1',
+        telefono: '+56911112222',
         correo: 'contacto@proveedorprueba.cl',
       },
     ];
@@ -32,7 +34,7 @@ describe('ProveedoresComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('muestra el proveedor con su RUT, teléfono y correo', () => {
+  it('muestra el proveedor con el RUT y el teléfono formateados', () => {
     const fila: HTMLElement = fixture.nativeElement.querySelector('tbody tr');
 
     expect(fila.textContent).toContain('Proveedor de Prueba SpA');

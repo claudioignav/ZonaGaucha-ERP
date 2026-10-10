@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { InventarioComponent } from './inventario.component';
+import { FechaPipe } from '../../pipes/fecha.pipe';
 import { TarjetaResumenComponent } from '../../components/tarjeta-resumen/tarjeta-resumen.component';
 import { Lote } from '../../models/lote';
 
@@ -13,7 +14,7 @@ describe('InventarioComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([]), FormsModule],
-      declarations: [InventarioComponent, TarjetaResumenComponent],
+      declarations: [InventarioComponent, TarjetaResumenComponent, FechaPipe],
     }).compileComponents();
 
     fixture = TestBed.createComponent(InventarioComponent);
@@ -55,6 +56,7 @@ describe('InventarioComponent', () => {
     expect(pantalla).toContain('LOTE #1');
     expect(pantalla).toContain('Proveedor de Prueba SpA');
     expect(pantalla).toContain('/ 10 uds');
+    expect(pantalla).toContain('2026-09-01');
   });
 
   it('llena la barra según lo que queda del lote', () => {

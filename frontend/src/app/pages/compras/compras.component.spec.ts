@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { ComprasComponent } from './compras.component';
+import { PesosPipe } from '../../pipes/pesos.pipe';
+import { FechaPipe } from '../../pipes/fecha.pipe';
 import { TablaContenidoComponent } from '../../components/tabla-contenido/tabla-contenido.component';
 import { BotonesAccionesComponent } from '../../components/botones-acciones/botones-acciones.component';
 import { TarjetaResumenComponent } from '../../components/tarjeta-resumen/tarjeta-resumen.component';
@@ -12,7 +14,7 @@ describe('ComprasComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([])],
-      declarations: [ComprasComponent, TablaContenidoComponent, BotonesAccionesComponent, TarjetaResumenComponent],
+      declarations: [ComprasComponent, TablaContenidoComponent, BotonesAccionesComponent, TarjetaResumenComponent, PesosPipe, FechaPipe],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ComprasComponent);

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { Credenciales, credencialesIniciales } from '../../models/credenciales';
+import { esCorreoValido } from '../../validators/correo.validator';
 
 @Component({
   selector: 'app-login',
@@ -22,7 +23,7 @@ export class LoginComponent {
       return;
     }
 
-    if (!correo.includes('@')) {
+    if (!esCorreoValido(correo)) {
       this.mensajeError = 'El correo electrónico no es válido.';
       return;
     }

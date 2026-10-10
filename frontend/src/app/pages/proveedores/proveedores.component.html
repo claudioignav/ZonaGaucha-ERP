@@ -39,8 +39,8 @@
       @for (proveedor of proveedores; track proveedor.id) {
         <tr>
           <td class="font-semibold">{{ proveedor.razonSocial }}</td>
-          <td class="sin-salto">{{ proveedor.rut }}</td>
-          <td class="sin-salto">{{ proveedor.telefono }}</td>
+          <td class="sin-salto">{{ proveedor.rut | rut }}</td>
+          <td class="sin-salto">{{ proveedor.telefono | telefono }}</td>
           <td class="sin-salto">{{ proveedor.correo }}</td>
           <td class="acciones">
             <app-botones-acciones />

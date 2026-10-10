@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { VentasComponent } from './ventas.component';
+import { PesosPipe } from '../../pipes/pesos.pipe';
+import { FechaPipe } from '../../pipes/fecha.pipe';
+import { NombrePropioPipe } from '../../pipes/nombre-propio.pipe';
 import { TablaContenidoComponent } from '../../components/tabla-contenido/tabla-contenido.component';
 import { BotonesAccionesComponent } from '../../components/botones-acciones/botones-acciones.component';
 import { TarjetaResumenComponent } from '../../components/tarjeta-resumen/tarjeta-resumen.component';
@@ -12,7 +15,7 @@ describe('VentasComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([])],
-      declarations: [VentasComponent, TablaContenidoComponent, BotonesAccionesComponent, TarjetaResumenComponent],
+      declarations: [VentasComponent, TablaContenidoComponent, BotonesAccionesComponent, TarjetaResumenComponent, PesosPipe, FechaPipe, NombrePropioPipe],
     }).compileComponents();
 
     fixture = TestBed.createComponent(VentasComponent);
@@ -21,8 +24,8 @@ describe('VentasComponent', () => {
       {
         id: 1,
         numeroFactura: '1000001',
-        cliente: 'Cliente de Prueba',
-        fechaVenta: '01-09-2026 10:00',
+        cliente: 'maría gonzález',
+        fechaVenta: '2026-09-01T10:00',
         tipoPago: 'Transferencia',
         plataforma: 'Tienda de Prueba',
         lote: 'LOTE #1',
@@ -43,8 +46,13 @@ describe('VentasComponent', () => {
   it('muestra el resumen del día y la venta registrada en la tabla', () => {
     expect(pantalla()).toContain('Venta Neta');
     expect(pantalla()).toContain('1000001');
-    expect(pantalla()).toContain('Cliente de Prueba');
+    expect(pantalla()).toContain('María González');
     expect(pantalla()).toContain('Producto de Prueba');
+  });
+
+  it('muestra la fecha como en el mockup, el cliente con mayúscula y los montos en pesos', () => {
+    expect(pantalla()).toContain('01-09-2026 10:00');
+    expect(pantalla()).toContain('$25.000');
   });
 
   it('tiene el botón para agregar una venta nueva', () => {

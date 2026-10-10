@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { NuevaVentaComponent } from './nueva-venta.component';
+import { NombreValidatorDirective } from '../../validators/nombre.validator';
 import { TablaProductosComponent } from '../../components/tabla-productos/tabla-productos.component';
 
 describe('NuevaVentaComponent', () => {
@@ -11,7 +12,7 @@ describe('NuevaVentaComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([{ path: 'ventas', children: [] }]), FormsModule],
-      declarations: [NuevaVentaComponent, TablaProductosComponent],
+      declarations: [NuevaVentaComponent, TablaProductosComponent, NombreValidatorDirective],
     }).compileComponents();
 
     fixture = TestBed.createComponent(NuevaVentaComponent);
@@ -53,7 +54,7 @@ describe('NuevaVentaComponent', () => {
     escribir('#fecha-venta', '2026-09-01T10:00');
     elegir('#plataforma', 'Tienda de Prueba');
     elegir('#lote', 'LOTE #1');
-    elegir('select[aria-label="Seleccionar producto..."]', 'Producto de Prueba');
+    elegir('app-tabla-productos select', 'Producto de Prueba');
     escribir('input[aria-label="Cantidad"]', '2');
     escribir('#valor-bruto', '25000');
     escribir('#valor-adicional', '1500');
@@ -70,6 +71,14 @@ describe('NuevaVentaComponent', () => {
       valorNeto: 25000,
       valorAdicional: 1500,
     });
+  });
+
+  it('no deja guardar si el cliente tiene números', async () => {
+    escribir('#cliente', 'Cliente 123');
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('El nombre del cliente solo puede tener letras.');
+    expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
   });
 
   it('vuelve al listado de ventas al guardar', async () => {

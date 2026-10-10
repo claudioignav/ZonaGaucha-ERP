@@ -6,11 +6,11 @@
   </header>
 
   <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
-    <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg" claseValor="xl:text-3xl">{{ resumen.fechaActual }}</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg" claseValor="xl:text-3xl">{{ resumen.fechaActual | fecha }}</app-tarjeta-resumen>
 
-    <app-tarjeta-resumen titulo="Venta Neta" icono="up.svg" claseValor="xl:text-3xl">{{ resumen.ventaNeta | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Venta Neta" icono="up.svg" claseValor="xl:text-3xl">{{ resumen.ventaNeta | pesos }}</app-tarjeta-resumen>
 
-    <app-tarjeta-resumen titulo="Total Adicional" icono="total.png" claseValor="xl:text-3xl">{{ resumen.totalAdicional | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Total Adicional" icono="total.png" claseValor="xl:text-3xl">{{ resumen.totalAdicional | pesos }}</app-tarjeta-resumen>
   </section>
 
   <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
@@ -62,14 +62,14 @@
       @for (venta of ventas; track venta.id) {
         <tr>
           <td class="font-semibold">{{ venta.numeroFactura }}</td>
-          <td>{{ venta.cliente }}</td>
-          <td class="sin-salto">{{ venta.fechaVenta }}</td>
+          <td>{{ venta.cliente | nombrePropio }}</td>
+          <td class="sin-salto">{{ venta.fechaVenta | fecha: 'tabla' }}</td>
           <td class="centro"><span class="insignia">{{ venta.tipoPago }}</span></td>
           <td class="centro"><span class="insignia">{{ venta.plataforma }}</span></td>
           <td>{{ venta.productos[0].producto }}</td>
           <td class="centro">{{ venta.productos[0].cantidad }}</td>
-          <td>{{ venta.valorNeto | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
-          <td class="font-semibold text-verde-boton">{{ venta.valorAdicional | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+          <td>{{ venta.valorNeto | pesos }}</td>
+          <td class="font-semibold text-verde-boton">{{ venta.valorAdicional | pesos }}</td>
           <td class="acciones">
             <app-botones-acciones />
           </td>

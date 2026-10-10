@@ -8,13 +8,16 @@
     <p class="subtitulo-pagina">Registrar información de venta</p>
   </header>
 
-  <form class="tarjeta p-6" (ngSubmit)="guardarVenta()">
+  <form class="tarjeta p-6" #formulario="ngForm" (ngSubmit)="guardarVenta()">
     <h2 class="border-b border-slate-200 pb-2 font-semibold">Registrar Información de Venta</h2>
 
     <div class="mt-5 space-y-4">
       <div>
         <label class="etiqueta" for="cliente">Nombre del Cliente <span class="obligatorio">*</span></label>
-        <input id="cliente" name="cliente" type="text" class="campo" placeholder="Ej: Cliente de Prueba" [(ngModel)]="venta.cliente" />
+        <input id="cliente" name="cliente" type="text" class="campo" placeholder="Ej: Cliente de Prueba" [(ngModel)]="venta.cliente" #cliente="ngModel" appNombre />
+        @if (cliente.errors?.['nombre']) {
+          <p class="mt-1 text-xs text-red-600">El nombre del cliente solo puede tener letras.</p>
+        }
       </div>
 
       <div>
@@ -68,7 +71,7 @@
 
     <div class="mt-6 flex justify-end gap-3">
       <a routerLink="/ventas" class="boton-gris">Cancelar</a>
-      <button type="submit" class="boton-verde">Guardar Venta</button>
+      <button type="submit" class="boton-verde" [disabled]="formulario.invalid">Guardar Venta</button>
     </div>
   </form>
 </div>

@@ -48,8 +48,8 @@ describe('LoginComponent', () => {
     expect(mensajeError()).toBe('Ingresa tu correo y contraseña.');
   });
 
-  it('avisa cuando el correo no tiene @', async () => {
-    escribir('#correo', 'usuario.prueba');
+  it.each(['usuario.prueba', 'usuario@prueba'])('avisa cuando el correo %s no tiene @ o punto', async (correo) => {
+    escribir('#correo', correo);
     escribir('#contrasena', 'clave123');
 
     enviarFormulario();
