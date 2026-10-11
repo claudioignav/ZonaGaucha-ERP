@@ -22,6 +22,7 @@
       "<rootDir>/tests/setup.js"
     ],
     "collectCoverageFrom": [
+      "index.js",
       "app.js",
       "controllers/**/*.js",
       "middleware/**/*.js",
