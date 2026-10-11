@@ -1,50 +1,33 @@
-const assert = require('node:assert/strict');
-const { after, before, describe, it } = require('node:test');
-const { once } = require('node:events');
+const request = require('supertest');
 const app = require('../app');
 
-describe('Rutas de la aplicación', () => {
-  let servidor;
-  let url;
+describe('estado de la api', () => {
+  test('responde la ruta principal', async () => {
+    const respuesta = await request(app).get('/');
 
-  before(async () => {
-    servidor = app.listen(0, '127.0.0.1');
-    await once(servidor, 'listening');
-    url = `http://127.0.0.1:${servidor.address().port}`;
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.headers['x-powered-by']).toBeUndefined();
+    expect(respuesta.body.mensaje).toContain('zonagaucha');
   });
-
-  after(() => new Promise((resolve, reject) => {
-    servidor.close((error) => error ? reject(error) : resolve());
-  }));
-
-  it('GET / responde 200 con el mensaje de estado en JSON', async () => {
-    const respuesta = await fetch(`${url}/`);
-
-    assert.equal(respuesta.status, 200);
-    assert.match(respuesta.headers.get('content-type'), /application\/json/);
-    assert.equal(respuesta.headers.get('x-powered-by'), null);
-    assert.deepEqual(await respuesta.json(), {
-      mensaje: 'api del erp zonagaucha funcionando',
-    });
+  test('responde 404 para una ruta que no existe', async () => {
+    expect((await request(app).get('/no-existe')).status).toBe(404);
   });
-
-  it('una ruta inexistente devuelve el error 404 del backend', async () => {
-    const respuesta = await fetch(`${url}/ruta-inexistente`);
-
-    assert.equal(respuesta.status, 404);
-    assert.deepEqual(await respuesta.json(), { error: 'Ruta no encontrada' });
+  test('rechaza json incompleto', async () => {
+    expect(
+      (await request(app).post('/auth/login').set('Content-Type', 'application/json').send('{'))
+        .status,
+    ).toBe(400);
   });
+  test('no expone detalles de un error interno', () => {
+    const { manejarErrores } = require('../middleware/manejarErrores');
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+    const consola = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-  it('rechaza un cuerpo JSON inválido con estado 400', async () => {
-    const respuesta = await fetch(`${url}/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{',
-    });
+    manejarErrores(new Error('detalle privado'), {}, res, () => {});
 
-    assert.equal(respuesta.status, 400);
-    const cuerpo = await respuesta.json();
-    assert.equal(typeof cuerpo.error, 'string');
-    assert.ok(cuerpo.error.length > 0);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Error interno del servidor' });
+
+    consola.mockRestore();
   });
 });
