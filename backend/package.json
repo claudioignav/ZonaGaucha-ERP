@@ -5,24 +5,43 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "node --test",
-    "test:ci": "c8 node --test"
+    "test:ci": "jest --runInBand --coverage",
+    "test": "jest --runInBand"
   },
   "dependencies": {
     "express": "^5.2.1"
   },
   "devDependencies": {
-    "c8": "^12.0.0"
+    "jest": "^30.5.2",
+    "supertest": "^7.3.1"
   },
-  "c8": {
-    "all": true,
-    "extension": [".js"],
-    "exclude": ["node_modules/**", "coverage/**", "tests/**"],
-    "reporter": ["text", "lcov"],
-    "check-coverage": true,
-    "lines": 80,
-    "statements": 80,
-    "functions": 80,
-    "branches": 80
+  "jest": {
+    "testEnvironment": "node",
+    "restoreMocks": true,
+    "setupFiles": [
+      "<rootDir>/tests/setup.js"
+    ],
+    "collectCoverageFrom": [
+      "app.js",
+      "controllers/**/*.js",
+      "middleware/**/*.js",
+      "routes/**/*.js",
+      "utils/**/*.js",
+      "config/**/*.js",
+      "models/**/*.js"
+    ],
+    "coverageReporters": [
+      "text-summary",
+      "lcov",
+      "json-summary"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 80,
+        "statements": 80,
+        "functions": 80,
+        "branches": 80
+      }
+    }
   }
 }
