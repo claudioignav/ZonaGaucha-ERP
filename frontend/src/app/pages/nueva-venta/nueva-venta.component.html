@@ -14,9 +14,9 @@
     <div class="mt-5 space-y-4">
       <div>
         <label class="etiqueta" for="cliente">Nombre del Cliente <span class="obligatorio">*</span></label>
-        <input id="cliente" name="cliente" type="text" class="campo" placeholder="Ej: Cliente de Prueba" [(ngModel)]="venta.cliente" #cliente="ngModel" appNombre />
-        @if (cliente.errors?.['nombre']) {
-          <p class="mt-1 text-xs text-red-600">El nombre del cliente solo puede tener letras.</p>
+        <input id="cliente" name="cliente" type="text" class="campo" placeholder="Ej: Distribuidora del Norte S.A." [(ngModel)]="venta.cliente" #cliente="ngModel" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .&amp;]+" />
+        @if (cliente.errors?.['pattern']) {
+          <p class="mt-1 text-xs text-red-600">Ingresa un nombre o razón social válidos.</p>
         }
       </div>
 
@@ -61,11 +61,11 @@
     <div class="mt-5 space-y-4">
       <div>
         <label class="etiqueta" for="valor-bruto">Valor Bruto <span class="obligatorio">*</span></label>
-        <input id="valor-bruto" name="valorNeto" type="number" class="campo" placeholder="0" [(ngModel)]="venta.valorNeto" />
+        <input id="valor-bruto" name="valorNeto" type="number" class="campo" placeholder="$4.620" [(ngModel)]="venta.valorNeto" />
       </div>
       <div>
         <label class="etiqueta" for="valor-adicional">Valor Adicional</label>
-        <input id="valor-adicional" name="valorAdicional" type="number" class="campo" placeholder="0" [(ngModel)]="venta.valorAdicional" />
+        <input id="valor-adicional" name="valorAdicional" type="number" class="campo" placeholder="$3.800" [(ngModel)]="venta.valorAdicional" />
       </div>
     </div>
 

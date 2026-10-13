@@ -11,17 +11,17 @@
     <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
       <div>
         <label class="etiqueta" for="nombre">Nombre <span class="obligatorio">*</span></label>
-        <input id="nombre" name="nombre" type="text" class="campo" placeholder="Ej: Usuario" [(ngModel)]="nuevoUsuario.nombre" #nombre="ngModel" required appNombre [class.border-red-500]="nombre.invalid && nombre.touched" />
+        <input id="nombre" name="nombre" type="text" class="campo" placeholder="Ej: Juan" [(ngModel)]="nuevoUsuario.nombre" #nombre="ngModel" required appNombre [class.border-red-500]="nombre.invalid && nombre.touched" />
         <p *ngIf="nombre.errors?.['nombre'] && nombre.touched" class="mt-1 text-xs text-red-600">Solo se permiten letras y espacios.</p>
       </div>
       <div>
         <label class="etiqueta" for="apellidos">Apellidos <span class="obligatorio">*</span></label>
-        <input id="apellidos" name="apellidos" type="text" class="campo" placeholder="Ej: De Prueba" [(ngModel)]="nuevoUsuario.apellidos" #apellidos="ngModel" required appNombre [class.border-red-500]="apellidos.invalid && apellidos.touched" />
+        <input id="apellidos" name="apellidos" type="text" class="campo" placeholder="Ej: Pérez García" [(ngModel)]="nuevoUsuario.apellidos" #apellidos="ngModel" required appNombre [class.border-red-500]="apellidos.invalid && apellidos.touched" />
         <p *ngIf="apellidos.errors?.['nombre'] && apellidos.touched" class="mt-1 text-xs text-red-600">Solo se permiten letras y espacios.</p>
       </div>
       <div>
         <label class="etiqueta" for="correo">Correo Electrónico <span class="obligatorio">*</span></label>
-        <input id="correo" name="correo" type="email" class="campo" placeholder="Ej: usuario.prueba@correo.cl" [(ngModel)]="nuevoUsuario.correo" #correo="ngModel" required appCorreo [class.border-red-500]="correo.invalid && correo.touched" />
+        <input id="correo" name="correo" type="email" class="campo" placeholder="Ej: usuario@gmail.com" [(ngModel)]="nuevoUsuario.correo" #correo="ngModel" required appCorreo [class.border-red-500]="correo.invalid && correo.touched" />
         <p *ngIf="correo.errors?.['correo'] && correo.touched" class="mt-1 text-xs text-red-600">El correo debe tener @ y punto.</p>
       </div>
     </div>
@@ -44,7 +44,7 @@
       </div>
       <div>
         <label class="etiqueta" for="telefono">Número de Teléfono</label>
-        <input id="telefono" name="telefono" type="tel" class="campo" placeholder="Ej: +56 9 1111 2222" [(ngModel)]="nuevoUsuario.telefono" #telefono="ngModel" appTelefono [class.border-red-500]="telefono.invalid && telefono.touched" />
+        <input id="telefono" name="telefono" type="tel" class="campo" placeholder="Ej: +56 9 1234 5678" [(ngModel)]="nuevoUsuario.telefono" #telefono="ngModel" appTelefono [class.border-red-500]="telefono.invalid && telefono.touched" />
         <p *ngIf="telefono.errors?.['telefono'] && telefono.touched" class="mt-1 text-xs text-red-600">El teléfono no es válido.</p>
       </div>
       <div>
@@ -65,13 +65,13 @@
   <app-tabla-contenido [totalRegistros]="usuarios.length">
     <thead>
       <tr>
-        <th scope="col">Nombre</th>
-        <th scope="col">Apellidos</th>
-        <th scope="col">Correo</th>
-        <th scope="col">Teléfono</th>
-        <th scope="col">Rol</th>
-        <th scope="col">Estado</th>
-        <th scope="col" class="acciones">Acciones</th>
+        <th>Nombre</th>
+        <th>Apellidos</th>
+        <th>Correo</th>
+        <th>Teléfono</th>
+        <th>Rol</th>
+        <th>Estado</th>
+        <th class="acciones">Acciones</th>
       </tr>
     </thead>
     <tbody>

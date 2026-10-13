@@ -1,3 +1,5 @@
+import { InicialesPipe } from '../../pipes/iniciales.pipe';
+import { NombrePropioPipe } from '../../pipes/nombre-propio.pipe';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { SidebarComponent } from './sidebar.component';
@@ -9,7 +11,7 @@ describe('SidebarComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RouterModule.forRoot([])],
-      declarations: [SidebarComponent],
+      declarations: [InicialesPipe, NombrePropioPipe, SidebarComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SidebarComponent);

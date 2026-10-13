@@ -14,7 +14,7 @@
     <div class="mt-5 space-y-4">
       <div>
         <label class="etiqueta" for="numero-lote">Número de Lote <span class="obligatorio">*</span></label>
-        <input id="numero-lote" name="numeroLote" type="text" class="campo" placeholder="Ej: 1" [(ngModel)]="compra.numeroLote" />
+        <input id="numero-lote" name="numeroLote" type="text" class="campo" placeholder="Ej: 12" [(ngModel)]="compra.numeroLote" />
       </div>
 
       <div>
@@ -59,12 +59,12 @@
 
       <div>
         <label class="etiqueta" for="compra-bruta">Compra Bruta <span class="obligatorio">*</span></label>
-        <input id="compra-bruta" name="compraBruta" type="number" class="campo" placeholder="0" [(ngModel)]="compra.compraBruta" />
+        <input id="compra-bruta" name="compraBruta" type="number" class="campo" placeholder="$0" [(ngModel)]="compra.compraBruta" />
       </div>
 
       <div>
         <label class="etiqueta" for="impuesto">Impuesto (Porcentaje o Total)</label>
-        <input id="impuesto" name="impuesto" type="number" class="campo" placeholder="0" [(ngModel)]="compra.impuesto" />
+        <input id="impuesto" name="impuesto" type="number" class="campo" placeholder="0% o $0" [(ngModel)]="compra.impuesto" />
       </div>
 
       <div>
