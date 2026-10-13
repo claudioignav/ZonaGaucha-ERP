@@ -1,3 +1,4 @@
+import { provideHttpClient } from '@angular/common/http';
 import { NgModule, provideBrowserGlobalErrorListeners, LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEsCl from '@angular/common/locales/es-CL';
@@ -44,6 +45,17 @@ registerLocaleData(localeEsCl);
 
 @NgModule({
   declarations: [
+    RutValidatorDirective,
+    TelefonoValidatorDirective,
+    CorreoValidatorDirective,
+    NombreValidatorDirective,
+    ContrasenaValidatorDirective,
+    FechaPipe,
+    PesosPipe,
+    RutPipe,
+    TelefonoPipe,
+    InicialesPipe,
+    NombrePropioPipe,
     App,
     SidebarComponent,
     LayoutComponent,
@@ -65,20 +77,13 @@ registerLocaleData(localeEsCl);
     PlataformasComponent,
     TiposContenidoComponent,
     TiposPagoComponent,
-    RutValidatorDirective,
-    TelefonoValidatorDirective,
-    CorreoValidatorDirective,
-    NombreValidatorDirective,
-    ContrasenaValidatorDirective,
-    FechaPipe,
-    PesosPipe,
-    RutPipe,
-    TelefonoPipe,
-    InicialesPipe,
-    NombrePropioPipe,
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule],
-  providers: [provideBrowserGlobalErrorListeners(), { provide: LOCALE_ID, useValue: 'es-CL' }],
+  providers: [
+    provideHttpClient(),
+    provideBrowserGlobalErrorListeners(),
+    { provide: LOCALE_ID, useValue: 'es-CL' },
+  ],
   bootstrap: [App],
 })
 export class AppModule {}

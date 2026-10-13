@@ -86,12 +86,19 @@
               "buildTarget": "erp-frontend:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          }
         },
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "coverageReporters": ["html", "text-summary", "lcov"]
+            "coverageReporters": [
+              "html",
+              "text-summary",
+              "lcov"
+            ]
           }
         }
       }
