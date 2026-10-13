@@ -54,7 +54,7 @@ describe('NuevaVentaComponent', () => {
     escribir('#fecha-venta', '2026-09-01T10:00');
     elegir('#plataforma', 'Tienda de Prueba');
     elegir('#lote', 'LOTE #1');
-    elegir('app-tabla-productos select', 'Producto de Prueba');
+    elegir('select[aria-label="Seleccionar producto..."]', 'Producto de Prueba');
     escribir('input[aria-label="Cantidad"]', '2');
     escribir('#valor-bruto', '25000');
     escribir('#valor-adicional', '1500');
@@ -73,11 +73,11 @@ describe('NuevaVentaComponent', () => {
     });
   });
 
-  it('no deja guardar si el cliente tiene números', async () => {
-    escribir('#cliente', 'Cliente 123');
+  it('no deja guardar si el cliente contiene simbolos no admitidos', async () => {
+    escribir('#cliente', 'Cliente <>');
     await fixture.whenStable();
 
-    expect(fixture.nativeElement.textContent).toContain('El nombre del cliente solo puede tener letras.');
+    expect(fixture.nativeElement.textContent).toContain('Ingresa un nombre o razón social válidos.');
     expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
   });
 
