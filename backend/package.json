@@ -9,7 +9,10 @@
     "test": "jest --runInBand"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "dotenv": "^16.6.1",
+    "sequelize": "^6.37.8",
+    "tedious": "^19.2.1"
   },
   "devDependencies": {
     "jest": "^30.5.2",
@@ -43,6 +46,11 @@
         "functions": 80,
         "branches": 80
       }
+    }
+  },
+  "overrides": {
+    "sequelize": {
+      "uuid": "11.1.1"
     }
   }
 }
