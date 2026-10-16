@@ -5,3 +5,5 @@ process.env.DB_USER = 'pruebas';
 process.env.DB_PASS = 'clave-solo-para-pruebas';
 
 process.env.JWT_SECRET = 'clave-larga-exclusiva-para-pruebas-unitarias';
+
+process.env.FRONT_URL = 'https://zgerpfrontstg.z15.web.core.windows.net';

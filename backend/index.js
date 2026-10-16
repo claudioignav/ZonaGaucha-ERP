@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const { sequelize } = require('./models');
 
-require('./config/jwt').validarJWT(process.env);
+require('./config/seguridad').validarSeguridad(process.env);
 
 const app = require('./app');
 
