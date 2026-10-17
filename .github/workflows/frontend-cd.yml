@@ -106,6 +106,12 @@ jobs:
     environment: frontend-staging
 
     steps:
+      - name: Descargar configuracion del commit aprobado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.analisis-iac.outputs.head_sha }}
+          persist-credentials: false
+
       - name: Descargar artefacto aprobado por CI
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -113,6 +119,9 @@ jobs:
           path: dist-ready
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
+
+      - name: Configurar API de preproducción
+        run: node frontend/scripts/configurar-entorno.cjs staging dist-ready
 
       - name: Sincronizar Storage de preproducción
         shell: bash
@@ -157,6 +166,12 @@ jobs:
     environment: frontend-production
 
     steps:
+      - name: Descargar configuracion del commit aprobado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.analisis-iac.outputs.head_sha }}
+          persist-credentials: false
+
       - name: Descargar artefacto aprobado por CI
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -164,6 +179,9 @@ jobs:
           path: dist-ready
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
+
+      - name: Configurar API de producción
+        run: node frontend/scripts/configurar-entorno.cjs production dist-ready
 
       - name: Sincronizar Storage de producción
         shell: bash
