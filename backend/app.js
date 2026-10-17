@@ -5,6 +5,8 @@ const app = express();
 
 app.disable('x-powered-by');
 
+app.use(require('./middleware/cors'));
+
 app.use(express.json({ limit: '100kb' }));
 
 app.use('/', require('./routes/estado'));

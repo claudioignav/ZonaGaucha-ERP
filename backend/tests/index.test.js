@@ -2,6 +2,7 @@ jest.mock('../app', () => ({ listen: jest.fn() }));
 jest.mock('../models', () => ({
   sequelize: { authenticate: jest.fn().mockResolvedValue() },
 }), { virtual: true });
+jest.mock('../config/seguridad', () => ({ validarSeguridad: jest.fn() }), { virtual: true });
 jest.mock('dotenv', () => ({ config: jest.fn() }), { virtual: true });
 
 const variablesAnteriores = { PORT: process.env.PORT, APP_ENV: process.env.APP_ENV };
