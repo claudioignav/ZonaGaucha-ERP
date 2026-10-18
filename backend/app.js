@@ -11,6 +11,8 @@ app.use(express.json({ limit: '100kb' }));
 
 app.use('/', require('./routes/estado'));
 
+app.use('/auth', require('./routes/auth'));
+
 app.use(rutaNoEncontrada);
 
 app.use(manejarErrores);
