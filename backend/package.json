@@ -13,6 +13,7 @@
     "dotenv": "^16.6.1",
     "sequelize": "^6.37.8",
     "tedious": "^19.2.1",
+    "bcrypt": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "cors": "^2.8.6"
   },

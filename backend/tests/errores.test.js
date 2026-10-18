@@ -19,10 +19,10 @@ function crearRespuesta() {
 test('una ruta inexistente responde 404 con un mensaje claro', () => {
   const respuesta = crearRespuesta();
 
-  rutaNoEncontrada({}, respuesta);
+  rutaNoEncontrada({ method: 'GET', originalUrl: '/no-existe' }, respuesta);
 
   assert.equal(respuesta.codigo, 404);
-  assert.deepEqual(respuesta.cuerpo, { error: 'Ruta no encontrada' });
+  assert.deepEqual(respuesta.cuerpo, { error: 'No existe la ruta GET /no-existe' });
 });
 
 test('un error con estado definido conserva el código y el mensaje', () => {
