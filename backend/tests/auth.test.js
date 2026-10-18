@@ -41,6 +41,20 @@ test('normaliza correo sin revelar si existe', async () => {
   expect(respuesta.status).toHaveBeenCalledWith(401);
 });
 
+test('rechaza clave incorrecta', async () => {
+  jest.spyOn(Usuario, 'findOne').mockResolvedValue(guardado());
+
+  expect(
+    (await intentar({ correo: 'ana@zonagaucha.cl', contrasena: claveDePrueba + '-incorrecta' })).status,
+  ).toHaveBeenCalledWith(401);
+});
+
+test('rechaza cuenta desactivada', async () => {
+  jest.spyOn(Usuario, 'findOne').mockResolvedValue(guardado(false));
+
+  expect((await intentar()).status).toHaveBeenCalledWith(403);
+});
+
 test('devuelve datos del usuario sin hash y con token', async () => {
   jest.spyOn(Usuario, 'findOne').mockResolvedValue(guardado());
 
@@ -57,4 +71,11 @@ test('devuelve datos del usuario sin hash y con token', async () => {
 
 test('el perfil devuelve la identidad validada', async () => {
   expect((await ejecutar(perfil)).json).toHaveBeenCalledWith({ id: 1, rol: 'Administrador' });
+});
+
+test.each([null, { nombre: 'Operador' }])('no emite token para un perfil desconocido', async rol => {
+  jest.spyOn(Usuario, 'findOne').mockResolvedValue({ ...guardado(), rol });
+  const respuesta = await intentar();
+  expect(respuesta.status).toHaveBeenCalledWith(403);
+  expect(respuesta.json.mock.calls[0][0]).not.toHaveProperty('token');
 });
