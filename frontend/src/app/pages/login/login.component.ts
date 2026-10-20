@@ -44,6 +44,8 @@ export class LoginComponent {
       return;
     }
 
+    this.mensajeError = '';
+
     this.authService
       .iniciarSesion(this.credenciales)
       .pipe(finalize(() => this.refrescar()))

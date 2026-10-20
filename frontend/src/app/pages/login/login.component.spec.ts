@@ -3,7 +3,7 @@ import { AppModule } from '../../app-module';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 
 const claveDePrueba = crypto.getRandomValues(new Uint32Array(4)).join('-');
 
@@ -92,4 +92,31 @@ it('muestra un error si falla la navegacion despues del login', async () => {
   fixture.componentInstance.iniciarSesion();
   await fixture.whenStable();
   expect(fixture.nativeElement.textContent).toContain('No se pudo abrir el sistema');
+});
+
+it('limpia el error anterior mientras espera la respuesta del nuevo intento', async () => {
+  const respuesta = new Subject();
+  const auth = {
+    iniciarSesion: vi.fn()
+      .mockReturnValueOnce(throwError(() => new Error('Credenciales incorrectas')))
+      .mockReturnValueOnce(respuesta),
+  };
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: auth }],
+  });
+  const fixture = TestBed.createComponent(LoginComponent);
+  const componente = fixture.componentInstance;
+  componente.credenciales = { correo: 'ana@correo.cl', contrasena: claveDePrueba };
+  componente.iniciarSesion();
+  fixture.detectChanges();
+  await fixture.whenStable();
+  expect(fixture.nativeElement.textContent).toContain('Credenciales incorrectas');
+  componente.iniciarSesion();
+  fixture.detectChanges();
+  await fixture.whenStable();
+  expect(componente.mensajeError).toBe('');
+  expect(fixture.nativeElement.textContent).not.toContain('Credenciales incorrectas');
+  expect(auth.iniciarSesion).toHaveBeenCalledTimes(2);
+  respuesta.complete();
 });
