@@ -1,79 +1,95 @@
-import { InicialesPipe } from '../../pipes/iniciales.pipe';
-import { NombrePropioPipe } from '../../pipes/nombre-propio.pipe';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
+import { AppModule } from '../../app-module';
 import { SidebarComponent } from './sidebar.component';
+import { AuthService } from '../../services/auth.service';
 
-describe('SidebarComponent', () => {
-  let component: SidebarComponent;
-  let fixture: ComponentFixture<SidebarComponent>;
+it('muestra el nombre y rol del backend y permite cerrar sesion', async () => {
+  const auth = { sesion: { id: 7, nombre: 'Ana', apellidos: 'Rojas', rol: 'Usuario' }, cerrarSesion: vi.fn() };
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([])],
-      declarations: [InicialesPipe, NombrePropioPipe, SidebarComponent],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(SidebarComponent);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: auth }],
   });
 
-  it('se crea correctamente', () => {
-    expect(component).toBeTruthy();
+  const fixture = TestBed.createComponent(SidebarComponent);
+
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.textContent).toContain('Ana Rojas');
+  expect(fixture.nativeElement.textContent).toContain('AR');
+  expect(fixture.nativeElement.textContent).toContain('Usuario');
+
+  fixture.componentInstance.alternarMenuMovil();
+
+  expect(fixture.componentInstance.menuMovilAbierto).toBe(true);
+
+  fixture.componentInstance.cerrarMenuMovil();
+
+  expect(fixture.componentInstance.menuMovilAbierto).toBe(false);
+
+  fixture.nativeElement.querySelector('[title="Cerrar sesión"]').click();
+
+  expect(auth.cerrarSesion).toHaveBeenCalled();
+});
+
+it.each(['Usuario', 'Administrador'])('el menu de %s muestra solo sus accesos', async rol => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: { sesion: { rol } } }],
   });
+  const fixture = TestBed.createComponent(SidebarComponent);
+  fixture.detectChanges();
+  await fixture.whenStable();
+  const pantalla: HTMLElement = fixture.nativeElement;
+  const esAdministrador = rol === 'Administrador';
+  expect(pantalla.querySelector('nav a[href="/cuentas"]') !== null).toBe(esAdministrador);
+  expect(pantalla.querySelectorAll('nav a[href="/dashboard"]').length > 0).toBe(esAdministrador);
+  expect(pantalla.querySelector('nav a[href="/inventario"]')).not.toBeNull();
+  expect(pantalla.querySelector('nav a[href="/compras"]')).not.toBeNull();
+  expect(pantalla.querySelector('nav a[href="/ventas"]')).not.toBeNull();
+  expect(pantalla.querySelector('nav a[href="/catalogos/productos"]')).not.toBeNull();
+});
 
-  function boton(texto: string): HTMLButtonElement {
-    const botones: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
-    return botones.find((b) => b.textContent?.trim() === texto) as HTMLButtonElement;
-  }
-
-  const menu = (): HTMLElement => fixture.nativeElement.querySelector('aside');
-
-  it('muestra los enlaces del menú apuntando a su página', () => {
-    const enlaces: HTMLAnchorElement[] = Array.from(fixture.nativeElement.querySelectorAll('nav a'));
-
-    const rutas = enlaces.map((enlace) => enlace.getAttribute('href'));
-    expect(rutas).toContain('/dashboard');
-    expect(rutas).toContain('/ventas');
-    expect(rutas).toContain('/catalogos/productos');
+it('alterna modulos y catalogos de forma independiente', async () => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: { sesion: { rol: 'Usuario' } } }],
   });
+  const fixture = TestBed.createComponent(SidebarComponent);
+  fixture.detectChanges();
+  await fixture.whenStable();
+  const pantalla: HTMLElement = fixture.nativeElement;
+  const boton = (titulo: string) => Array.from(pantalla.querySelectorAll('button'))
+    .find(elemento => elemento.textContent?.trim() === titulo)!;
+  boton('MÓDULOS').click();
+  await fixture.whenStable();
+  expect(pantalla.querySelector('nav a[href="/inventario"]')).toBeNull();
+  expect(pantalla.querySelector('nav a[href="/catalogos/productos"]')).not.toBeNull();
+  boton('CATÁLOGOS').click();
+  await fixture.whenStable();
+  expect(pantalla.querySelector('nav a[href="/catalogos/productos"]')).toBeNull();
+  boton('MÓDULOS').click();
+  await fixture.whenStable();
+  expect(pantalla.querySelector('nav a[href="/inventario"]')).not.toBeNull();
+  expect(pantalla.querySelector('nav a[href="/catalogos/productos"]')).toBeNull();
+});
 
-  it('muestra el usuario conectado al final del menú', () => {
-    expect(fixture.nativeElement.textContent).toContain('Usuario Prueba');
+it('cierra el menu movil al tocar el fondo sin cambiar las secciones', async () => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: { sesion: { rol: 'Usuario' } } }],
   });
-
-  it('esconde y vuelve a mostrar los módulos al tocar su título', async () => {
-    boton('MÓDULOS').click();
-    await fixture.whenStable();
-
-    expect(fixture.nativeElement.textContent).not.toContain('Inventario');
-
-    boton('MÓDULOS').click();
-    await fixture.whenStable();
-
-    expect(fixture.nativeElement.textContent).toContain('Inventario');
-  });
-
-  it('esconde los catálogos al tocar su título', async () => {
-    boton('CATÁLOGOS').click();
-    await fixture.whenStable();
-
-    expect(fixture.nativeElement.textContent).not.toContain('Proveedores');
-  });
-
-  it('abre el menú en el celular y lo cierra al tocar el fondo oscuro', async () => {
-    const hamburguesa: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-label="Abrir menú"]');
-    expect(menu().classList).toContain('-translate-x-full');
-
-    hamburguesa.click();
-    await fixture.whenStable();
-
-    expect(menu().classList).not.toContain('-translate-x-full');
-
-    fixture.nativeElement.querySelector('button.fixed.inset-0').click();
-    await fixture.whenStable();
-
-    expect(menu().classList).toContain('-translate-x-full');
-  });
+  const fixture = TestBed.createComponent(SidebarComponent);
+  fixture.detectChanges();
+  await fixture.whenStable();
+  const pantalla: HTMLElement = fixture.nativeElement;
+  pantalla.querySelector<HTMLButtonElement>('[aria-label="Abrir menú"]')!.click();
+  await fixture.whenStable();
+  expect(fixture.componentInstance.menuMovilAbierto).toBe(true);
+  pantalla.querySelector<HTMLButtonElement>('[aria-label="Cerrar menú"]')!.click();
+  await fixture.whenStable();
+  expect(fixture.componentInstance.menuMovilAbierto).toBe(false);
+  expect(fixture.componentInstance.modulosAbierto).toBe(true);
+  expect(fixture.componentInstance.catalogosAbierto).toBe(true);
 });

@@ -1,32 +1,15 @@
-import { InicialesPipe } from '../../pipes/iniciales.pipe';
-import { NombrePropioPipe } from '../../pipes/nombre-propio.pipe';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
+import { AppModule } from '../../app-module';
 import { LayoutComponent } from './layout.component';
-import { SidebarComponent } from '../sidebar/sidebar.component';
 
-describe('LayoutComponent', () => {
-  let component: LayoutComponent;
-  let fixture: ComponentFixture<LayoutComponent>;
+it('incluye menu y espacio para las paginas', async () => {
+  TestBed.configureTestingModule({ imports: [AppModule] });
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([])],
-      declarations: [InicialesPipe, NombrePropioPipe, LayoutComponent, SidebarComponent],
-    }).compileComponents();
+  const fixture = TestBed.createComponent(LayoutComponent);
 
-    fixture = TestBed.createComponent(LayoutComponent);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
-  });
+  fixture.detectChanges();
+  await fixture.whenStable();
 
-  it('se crea correctamente', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('muestra el menú lateral y el espacio donde se cargan las páginas', () => {
-    const pantalla: HTMLElement = fixture.nativeElement;
-    expect(pantalla.querySelector('app-sidebar')).toBeTruthy();
-    expect(pantalla.querySelector('main router-outlet')).toBeTruthy();
-  });
+  expect(fixture.nativeElement.querySelector('app-sidebar')).not.toBeNull();
+  expect(fixture.nativeElement.querySelector('router-outlet')).not.toBeNull();
 });

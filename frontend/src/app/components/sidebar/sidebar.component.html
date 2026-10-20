@@ -1,23 +1,19 @@
 <button
   type="button"
   class="fixed top-3 left-4 z-40 flex size-11 items-center justify-center rounded-lg bg-verde-oscuro text-white shadow-lg md:hidden"
-  aria-label="Abrir menú"
-  (click)="alternarMenuMovil()"
->
+  aria-label="Abrir menú" (click)="alternarMenuMovil()" >
   <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" />
   </svg>
 </button>
 
 @if (menuMovilAbierto) {
-  <button type="button" class="fixed inset-0 z-40 bg-black/50 md:hidden" aria-label="Cerrar menú" (click)="cerrarMenuMovil()"></button>
+  <button type="button" class="fixed inset-0 z-40 bg-black/50 md:hidden" aria-label="Cerrar menú" (click)="cerrarMenuMovil()" ></button>
 }
 
 <aside
-  class="fixed inset-y-0 left-0 z-50 flex h-dvh w-60 flex-col bg-verde-oscuro px-4 py-5 transition-transform duration-300 md:translate-x-0"
-  [class.-translate-x-full]="!menuMovilAbierto"
->
-  <a routerLink="/dashboard" class="flex items-center gap-3" (click)="cerrarMenuMovil()">
+  class="fixed inset-y-0 left-0 z-50 flex h-dvh w-60 flex-col bg-verde-oscuro px-4 py-5 transition-transform duration-300 md:translate-x-0" [class.-translate-x-full]="!menuMovilAbierto" >
+  <a [routerLink]="inicio" class="flex items-center gap-3" (click)="cerrarMenuMovil()" >
     <img class="size-10 shrink-0 rounded-[10px]" src="assets/icons/logo.svg" alt="Logo ZonaGaucha" />
     <div>
       <p class="font-titulo text-xl font-extrabold text-white">ZonaGaucha</p>
@@ -28,7 +24,7 @@
   <nav class="mt-6 min-h-0 flex-1 overflow-y-auto [scrollbar-width:none]">
     <div class="space-y-1">
         @for (enlace of enlacesPrincipales; track enlace.ruta) {
-          <a [routerLink]="enlace.ruta" routerLinkActive="activo" class="enlace-menu" (click)="cerrarMenuMovil()">
+          <a routerLinkActive="activo" class="enlace-menu" (click)="cerrarMenuMovil()" [routerLink]="enlace.ruta" >
             <img class="size-[18px]" [src]="enlace.icono" alt="" />
             {{ enlace.etiqueta }}
           </a>
@@ -37,9 +33,7 @@
 
     <button
       type="button"
-      class="mt-5 flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-bold tracking-wide text-white hover:bg-white/5"
-      (click)="modulosAbierto = !modulosAbierto; $event.stopPropagation()"
-    >
+      class="mt-5 flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-bold tracking-wide text-white hover:bg-white/5" (click)="modulosAbierto = !modulosAbierto; $event.stopPropagation()" >
       MÓDULOS
       <svg class="size-3 transition-transform" [class.-rotate-90]="!modulosAbierto" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
         <path stroke-linecap="round" stroke-linejoin="round" d="m3 4.5 3 3 3-3" />
@@ -48,7 +42,7 @@
     @if (modulosAbierto) {
       <div class="mt-1 space-y-1">
         @for (enlace of enlacesModulos; track enlace.ruta) {
-          <a [routerLink]="enlace.ruta" routerLinkActive="activo" class="enlace-menu" (click)="cerrarMenuMovil()">
+          <a routerLinkActive="activo" class="enlace-menu" (click)="cerrarMenuMovil()" [routerLink]="enlace.ruta" >
             <img class="size-[18px]" [src]="enlace.icono" alt="" />
             {{ enlace.etiqueta }}
           </a>
@@ -69,7 +63,7 @@
     @if (catalogosAbierto) {
       <div class="mt-1 space-y-1">
         @for (enlace of enlacesCatalogos; track enlace.ruta) {
-          <a [routerLink]="enlace.ruta" routerLinkActive="activo" class="enlace-menu" (click)="cerrarMenuMovil()">
+          <a routerLinkActive="activo" class="enlace-menu" (click)="cerrarMenuMovil()" [routerLink]="enlace.ruta" >
             <img class="size-[18px]" [src]="enlace.icono" alt="" />
             {{ enlace.etiqueta }}
           </a>
@@ -80,13 +74,13 @@
 
   <div class="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
     <div class="flex size-9 shrink-0 items-center justify-center rounded-full bg-verde-boton text-sm font-semibold text-white">
-      {{ usuario.nombre | iniciales }}
+      {{ nombreCompleto | iniciales }}
     </div>
     <div class="min-w-0 flex-1">
-      <p class="truncate text-[13px] font-semibold text-white">{{ usuario.nombre | nombrePropio }}</p>
-      <p class="text-[11px] text-verde-claro/70">{{ usuario.rol }}</p>
+      <p class="truncate text-[13px] font-semibold text-white">{{ nombreCompleto | nombrePropio }}</p>
+      <p class="text-[11px] text-verde-claro/70">{{ sesion?.rol }}</p>
     </div>
-    <a routerLink="/login" class="flex size-7 shrink-0 items-center justify-center rounded-md bg-white/10 hover:bg-white/20" title="Cerrar sesión">
+    <a routerLink="/login" class="flex size-7 shrink-0 items-center justify-center rounded-md bg-white/10 hover:bg-white/20" title="Cerrar sesión" (click)="cerrarSesion()" >
       <img class="size-4" src="assets/icons/log-out.svg" alt="Cerrar sesión" />
     </a>
   </div>
