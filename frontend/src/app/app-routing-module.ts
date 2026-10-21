@@ -1,4 +1,5 @@
-import { NgModule } from '@angular/core';
+import { authGuard, adminGuard } from './services/auth.guard';
+import { NgModule, inject } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { LayoutComponent } from './components/layout/layout.component';
@@ -15,16 +16,21 @@ import { ProveedoresComponent } from './pages/proveedores/proveedores.component'
 import { PlataformasComponent } from './pages/plataformas/plataformas.component';
 import { TiposContenidoComponent } from './pages/tipos-contenido/tipos-contenido.component';
 import { TiposPagoComponent } from './pages/tipos-pago/tipos-pago.component';
+import { AuthService } from './services/auth.service';
+import { rutaInicio } from './models/permisos';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'inicio', redirectTo: () => rutaInicio(inject(AuthService).sesion?.rol) },
   {
     path: '',
     component: LayoutComponent,
+    canActivate: [authGuard],
+    canActivateChild: [authGuard],
     children: [
-      { path: 'dashboard', component: DashboardComponent },
-      { path: 'cuentas', component: AdministrarCuentasComponent },
+      { path: 'dashboard', component: DashboardComponent, canActivate: [adminGuard] },
+      { path: 'cuentas', component: AdministrarCuentasComponent, canActivate: [adminGuard] },
       {
         path: 'ventas',
         children: [
