@@ -1,95 +1,122 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
+import { AppModule } from '../../app-module';
 import { LoginComponent } from './login.component';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
+import { of, throwError, Subject } from 'rxjs';
 
-describe('LoginComponent', () => {
-  let component: LoginComponent;
-  let fixture: ComponentFixture<LoginComponent>;
+const claveDePrueba = crypto.getRandomValues(new Uint32Array(4)).join('-');
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([{ path: 'dashboard', children: [] }]), FormsModule],
-      declarations: [LoginComponent],
-    }).compileComponents();
+it('valida correo antes de enviar credenciales y navega al responder el backend', async () => {
+  const auth = { iniciarSesion: vi.fn(() => of({ id: 7, nombre: 'Ana', rol: 'Usuario' })) };
 
-    fixture = TestBed.createComponent(LoginComponent);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: auth }],
   });
 
-  it('se crea correctamente', () => {
-    expect(component).toBeTruthy();
+  const fixture = TestBed.createComponent(LoginComponent);
+  const componente = fixture.componentInstance;
+  const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+  componente.iniciarSesion();
+
+  expect(auth.iniciarSesion).not.toHaveBeenCalled();
+
+  componente.credenciales = { correo: 'incorrecto', contrasena: claveDePrueba };
+  componente.iniciarSesion();
+
+  expect(auth.iniciarSesion).not.toHaveBeenCalled();
+
+  componente.credenciales = { correo: 'ana@correo.cl', contrasena: claveDePrueba };
+  componente.iniciarSesion();
+
+  expect(auth.iniciarSesion).toHaveBeenCalledWith(componente.credenciales);
+  expect(navegar).toHaveBeenCalledWith(['/inventario']);
+
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.querySelector('input[type="password"]')).not.toBeNull();
+
+  componente.mostrarContrasena = true;
+  componente.refrescar();
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.querySelector('input[type="password"]')).toBeNull();
+});
+
+it('muestra error de credenciales sin navegar', async () => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [
+      {
+        provide: AuthService,
+        useValue: { iniciarSesion: () => throwError(() => new Error('Credenciales incorrectas')) },
+      },
+    ],
   });
 
-  function escribir(selector: string, valor: string): void {
-    const campo: HTMLInputElement = fixture.nativeElement.querySelector(selector);
-    campo.value = valor;
-    campo.dispatchEvent(new Event('input'));
-  }
+  const fixture = TestBed.createComponent(LoginComponent);
+  const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
 
-  function enviarFormulario(): void {
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
-  }
+  fixture.componentInstance.credenciales = { correo: 'ana@correo.cl', contrasena: claveDePrueba + '-incorrecta' };
+  fixture.componentInstance.iniciarSesion();
+  fixture.detectChanges();
+  await fixture.whenStable();
 
-  const mensajeError = (): string | undefined => fixture.nativeElement.querySelector('.text-red-700')?.textContent?.trim();
+  expect(fixture.nativeElement.textContent).toContain('Credenciales incorrectas');
+  expect(navegar).not.toHaveBeenCalled();
+});
 
-  it('muestra los campos de correo y contraseña y el botón para entrar', () => {
-    const pantalla: HTMLElement = fixture.nativeElement;
-    expect(pantalla.querySelector('#correo')).toBeTruthy();
-    expect(pantalla.querySelector('#contrasena')).toBeTruthy();
-    expect(pantalla.querySelector('button[type="submit"]')?.textContent).toContain('Iniciar Sesión');
+it('el administrador entra a las metricas financieras', () => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: { iniciarSesion: () => of({ rol: 'Administrador' }) } }],
   });
+  const fixture = TestBed.createComponent(LoginComponent);
+  const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+  fixture.componentInstance.credenciales = { correo: 'admin@correo.cl', contrasena: claveDePrueba };
+  fixture.componentInstance.iniciarSesion();
+  expect(navegar).toHaveBeenCalledWith(['/dashboard']);
+});
 
-  it('avisa cuando se intenta entrar con los campos vacíos', async () => {
-    enviarFormulario();
-    await fixture.whenStable();
-
-    expect(mensajeError()).toBe('Ingresa tu correo y contraseña.');
+it('muestra un error si falla la navegacion despues del login', async () => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: { iniciarSesion: () => of({ rol: 'Usuario' }) } }],
   });
+  const fixture = TestBed.createComponent(LoginComponent);
+  vi.spyOn(TestBed.inject(Router), 'navigate').mockRejectedValue(new Error('No se pudo navegar'));
+  fixture.componentInstance.credenciales = { correo: 'ana@correo.cl', contrasena: claveDePrueba };
+  fixture.componentInstance.iniciarSesion();
+  await fixture.whenStable();
+  expect(fixture.nativeElement.textContent).toContain('No se pudo abrir el sistema');
+});
 
-  it.each(['usuario.prueba', 'usuario@prueba'])('avisa cuando el correo %s no tiene @ o punto', async (correo) => {
-    escribir('#correo', correo);
-    escribir('#contrasena', 'clave123');
-
-    enviarFormulario();
-    await fixture.whenStable();
-
-    expect(mensajeError()).toBe('El correo electrónico no es válido.');
+it('limpia el error anterior mientras espera la respuesta del nuevo intento', async () => {
+  const respuesta = new Subject();
+  const auth = {
+    iniciarSesion: vi.fn()
+      .mockReturnValueOnce(throwError(() => new Error('Credenciales incorrectas')))
+      .mockReturnValueOnce(respuesta),
+  };
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: auth }],
   });
-
-  it('entra al dashboard cuando los datos están bien', async () => {
-    escribir('#correo', 'usuario.prueba@correo.cl');
-    escribir('#contrasena', 'clave123');
-
-    enviarFormulario();
-    await fixture.whenStable();
-
-    expect(TestBed.inject(Router).url).toBe('/dashboard');
-    expect(mensajeError()).toBeUndefined();
-  });
-
-  it('avisa cuando falla la navegación al dashboard', async () => {
-    vi.spyOn(TestBed.inject(Router), 'navigate').mockRejectedValue(new Error('Error de navegación'));
-    escribir('#correo', 'usuario.prueba@correo.cl');
-    escribir('#contrasena', 'clave123');
-
-    enviarFormulario();
-    await fixture.whenStable();
-
-    expect(mensajeError()).toBe('No se pudo abrir el dashboard. Inténtalo nuevamente.');
-  });
-
-  it('muestra la contraseña con el ojito y la vuelve a ocultar', async () => {
-    const campo: HTMLInputElement = fixture.nativeElement.querySelector('#contrasena');
-    const ojito: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="button"]');
-
-    ojito.click();
-    await fixture.whenStable();
-    expect(campo.type).toBe('text');
-
-    ojito.click();
-    await fixture.whenStable();
-    expect(campo.type).toBe('password');
-  });
+  const fixture = TestBed.createComponent(LoginComponent);
+  const componente = fixture.componentInstance;
+  componente.credenciales = { correo: 'ana@correo.cl', contrasena: claveDePrueba };
+  componente.iniciarSesion();
+  fixture.detectChanges();
+  await fixture.whenStable();
+  expect(fixture.nativeElement.textContent).toContain('Credenciales incorrectas');
+  componente.iniciarSesion();
+  fixture.detectChanges();
+  await fixture.whenStable();
+  expect(componente.mensajeError).toBe('');
+  expect(fixture.nativeElement.textContent).not.toContain('Credenciales incorrectas');
+  expect(auth.iniciarSesion).toHaveBeenCalledTimes(2);
+  respuesta.complete();
 });
