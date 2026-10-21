@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ErrorHandler } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
@@ -71,4 +72,26 @@ it('cierra sesion al expirar el token y conserva sesion ante falta de permisos',
 
   expect(servicio.sesion).toBeNull();
   expect(navegar).toHaveBeenCalledWith(['/login']);
+});
+
+it('maneja el fallo de redireccion y conserva el error HTTP original', async () => {
+  const errorNavegacion = new Error('No se pudo abrir el login');
+  const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockRejectedValue(errorNavegacion);
+  const manejarError = vi.spyOn(TestBed.inject(ErrorHandler), 'handleError').mockImplementation(() => {});
+  const recibirError = vi.fn();
+  servicio.sesion = { id: 7, nombre: 'Ana', rol: 'Usuario', token: 'token' };
+
+  TestBed.inject(HttpClient).get(RUTAS_API.usuarios).subscribe({ error: recibirError });
+  http.expectOne(RUTAS_API.usuarios)
+    .flush({ error: 'Token expirado' }, { status: 401, statusText: 'Unauthorized' });
+
+  await Promise.resolve();
+
+  expect(servicio.sesion).toBeNull();
+  expect(navegar).toHaveBeenCalledWith(['/login']);
+  expect(manejarError).toHaveBeenCalledExactlyOnceWith(errorNavegacion);
+  expect(recibirError).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
+    status: 401,
+    error: { error: 'Token expirado' },
+  }));
 });
