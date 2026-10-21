@@ -2,7 +2,7 @@
   type="button"
   class="fixed top-3 left-4 z-40 flex size-11 items-center justify-center rounded-lg bg-verde-oscuro text-white shadow-lg md:hidden"
   aria-label="Abrir menú" (click)="alternarMenuMovil()" >
-  <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <svg aria-hidden="true" class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16" />
   </svg>
 </button>
@@ -35,7 +35,7 @@
       type="button"
       class="mt-5 flex w-full items-center justify-between rounded-lg px-4 py-2 text-xs font-bold tracking-wide text-white hover:bg-white/5" (click)="modulosAbierto = !modulosAbierto; $event.stopPropagation()" >
       MÓDULOS
-      <svg class="size-3 transition-transform" [class.-rotate-90]="!modulosAbierto" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
+      <svg aria-hidden="true" class="size-3 transition-transform" [class.-rotate-90]="!modulosAbierto" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
         <path stroke-linecap="round" stroke-linejoin="round" d="m3 4.5 3 3 3-3" />
       </svg>
     </button>
@@ -56,7 +56,7 @@
       (click)="catalogosAbierto = !catalogosAbierto; $event.stopPropagation()"
     >
       CATÁLOGOS
-      <svg class="size-3 transition-transform" [class.-rotate-90]="!catalogosAbierto" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
+      <svg aria-hidden="true" class="size-3 transition-transform" [class.-rotate-90]="!catalogosAbierto" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
         <path stroke-linecap="round" stroke-linejoin="round" d="m3 4.5 3 3 3-3" />
       </svg>
     </button>
