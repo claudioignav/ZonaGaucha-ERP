@@ -119,3 +119,73 @@ describe('listado y registro de cuentas', () => {
     expect(buscar).not.toHaveBeenCalled();
   });
 });
+
+describe('edición y estado de cuentas', () => {
+  test('al editar sin clave no se toca el hash', async () => {
+    const usuario = usuarioBd();
+
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(usuario);
+    jest.spyOn(Rol, 'findOne').mockResolvedValue({ idRol: 1 });
+
+    await ejecutar(usuarios.actualizar, {
+      params: { id: '2' },
+      body: { nombre: 'Luis A.', correo: 'NUEVO@zonagaucha.cl', rol: 'Administrador' },
+    });
+
+    const cambios = usuario.update.mock.calls[0][0];
+
+    expect(cambios).toMatchObject({ nombre: 'Luis A.', correo: 'nuevo@zonagaucha.cl', idRol: 1 });
+    expect(cambios.contrasenaHash).toBeUndefined();
+  });
+
+  test('al editar con clave nueva se vuelve a hashear', async () => {
+    const usuario = usuarioBd();
+
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(usuario);
+
+    await ejecutar(usuarios.actualizar, { params: { id: '2' }, body: { contrasena: claveDePrueba } });
+
+    expect(await bcrypt.compare(claveDePrueba, usuario.update.mock.calls[0][0].contrasenaHash)).toBe(true);
+  });
+
+  test('eliminar y restaurar cambian el estado', async () => {
+    const usuario = usuarioBd();
+
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(usuario);
+
+    const eliminado = await ejecutar(usuarios.eliminar, { params: { id: '2' } });
+
+    expect(eliminado.json.mock.calls[0][0].estado).toBe('Eliminado');
+
+    const restaurado = await ejecutar(usuarios.restaurar, { params: { id: '2' } });
+
+    expect(restaurado.json.mock.calls[0][0].estado).toBe('Activo');
+  });
+
+  test('nadie puede eliminarse a si mismo', async () => {
+    await expect(ejecutar(usuarios.eliminar, { params: { id: '1' } })).rejects.toMatchObject({
+      status: 400,
+    });
+  });
+
+  test('si el usuario no existe responde 404', async () => {
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(null);
+
+    await expect(ejecutar(usuarios.restaurar, { params: { id: '99' } })).rejects.toMatchObject({
+      status: 404,
+    });
+  });
+
+  test('al editar rechaza un perfil no admitido sin cambiar la cuenta', async () => {
+    const usuario = usuarioBd();
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(usuario);
+    const buscarRol = jest.spyOn(Rol, 'findOne');
+
+    await expect(ejecutar(usuarios.actualizar, {
+      params: { id: '2' }, body: { rol: 'Operador' },
+    })).rejects.toMatchObject({ status: 400 });
+
+    expect(buscarRol).not.toHaveBeenCalled();
+    expect(usuario.update).not.toHaveBeenCalled();
+  });
+});
