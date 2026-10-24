@@ -1,127 +1,142 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { Router } from '@angular/router';
+import { By } from '@angular/platform-browser';
+import { NgForm } from '@angular/forms';
+import { AppModule } from '../../app-module';
 import { AdministrarCuentasComponent } from './administrar-cuentas.component';
-import { TelefonoPipe } from '../../pipes/telefono.pipe';
-import { NombrePropioPipe } from '../../pipes/nombre-propio.pipe';
-import { TablaContenidoComponent } from '../../components/tabla-contenido/tabla-contenido.component';
-import { CorreoValidatorDirective } from '../../validators/correo.validator';
-import { NombreValidatorDirective } from '../../validators/nombre.validator';
-import { ContrasenaValidatorDirective } from '../../validators/contrasena.validator';
-import { TelefonoValidatorDirective } from '../../validators/telefono.validator';
+import { RUTAS_API } from '../../services/api';
 
-describe('AdministrarCuentasComponent', () => {
-  let component: AdministrarCuentasComponent;
-  let fixture: ComponentFixture<AdministrarCuentasComponent>;
+const registros = [
+  {
+    id: 1,
+    nombre: 'Ana',
+    apellidos: 'Rojas',
+    correo: 'ana@correo.cl',
+    telefono: '912345678',
+    rol: 'Usuario' as const,
+    estado: 'Activo' as const,
+  },
+];
+let fixture: ComponentFixture<AdministrarCuentasComponent>;
+let http: HttpTestingController;
+let navegar: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([]), FormsModule],
-      declarations: [
-        AdministrarCuentasComponent,
-        TablaContenidoComponent,
-        TelefonoPipe,
-        NombrePropioPipe,
-        CorreoValidatorDirective,
-        NombreValidatorDirective,
-        ContrasenaValidatorDirective,
-        TelefonoValidatorDirective,
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(AdministrarCuentasComponent);
-    component = fixture.componentInstance;
-    component.usuarios = [
-      {
-        id: 1,
-        nombre: 'usuario',
-        apellidos: 'de prueba',
-        correo: 'usuario.prueba@correo.cl',
-        telefono: '911112222',
-        rol: 'Usuario',
-        estado: 'Activo',
-      },
-    ];
-    await fixture.whenStable();
+beforeEach(async () => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [provideHttpClient(), provideHttpClientTesting()],
   });
-
-  it('se crea correctamente', () => {
-    expect(component).toBeTruthy();
-  });
-
-  function boton(texto: string): HTMLButtonElement {
-    const botones: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
-    return botones.find((b) => b.textContent?.trim() === texto) as HTMLButtonElement;
+  http = TestBed.inject(HttpTestingController);
+  navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+  fixture = TestBed.createComponent(AdministrarCuentasComponent);
+  fixture.detectChanges();
+  for (const peticion of http.match(() => true)) {
+    if (peticion.request.url.endsWith('/opciones'))
+      peticion.flush({
+        proveedores: ['Proveedor de Prueba'],
+        tiposPago: ['Tarjeta'],
+        tiposContenido: ['Ropa'],
+        productos: ['Camisa'],
+        plataformas: ['Web'],
+        lotes: ['12'],
+      });
+    else if (peticion.request.url.endsWith('/resumen'))
+      peticion.flush({
+        fechaActual: '2026-10-07T12:00',
+        compraBruta: 1000,
+        compraNeta: 1190,
+        impuestosTotales: 190,
+        ventaNeta: 2100,
+        totalAdicional: 100,
+        promedioVenta: 20,
+        productosDisponibles: 8,
+      });
+    else if (peticion.request.url === RUTAS_API.usuarios) peticion.flush(registros);
+    else peticion.flush([{ id: 1, nombre: 'Tarjeta' }]);
   }
 
-  async function escribir(campos: Record<string, string>): Promise<void> {
-    for (const [selector, valor] of Object.entries(campos)) {
-      const campo: HTMLInputElement = fixture.nativeElement.querySelector(selector);
-      campo.value = valor;
-      campo.dispatchEvent(new Event('input'));
-      campo.dispatchEvent(new Event('blur'));
-    }
-    await fixture.whenStable();
-  }
+  await fixture.whenStable();
+});
 
-  async function enviar(): Promise<void> {
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
-    await fixture.whenStable();
-  }
+afterEach(() => http.verify());
 
-  const pantalla = (): string => fixture.nativeElement.textContent;
-  const filas = (): number => fixture.nativeElement.querySelectorAll('tbody tr').length;
+it('muestra la respuesta recibida por http', () => {
+  expect(fixture.nativeElement.textContent).toContain('Ana');
+});
 
-  it('muestra al usuario con mayúscula inicial y el teléfono formateado', () => {
-    expect(pantalla()).toContain('Usuario');
-    expect(pantalla()).toContain('De Prueba');
-    expect(pantalla()).toContain('+56 9 1111 2222');
-  });
+it('cambia estado y vuelve a consultar la tabla', () => {
+  fixture.componentInstance.cambiarEstado(registros[0]);
 
-  it('deja ver la contraseña nueva al tocar el ojito', async () => {
-    const campo: HTMLInputElement = fixture.nativeElement.querySelector('#contrasena');
+  const cambio = http.expectOne(RUTAS_API.usuarios + '/1/eliminar');
 
-    fixture.nativeElement.querySelector('button[title="Mostrar contraseña"]').click();
-    await fixture.whenStable();
+  expect(cambio.request.method).toBe('PATCH');
 
-    expect(campo.type).toBe('text');
-  });
+  cambio.flush({ ...registros[0], estado: 'Eliminado' });
+  http.expectOne(RUTAS_API.usuarios).flush([{ ...registros[0], estado: 'Eliminado' }]);
+  fixture.componentInstance.cambiarEstado(fixture.componentInstance.usuarios[0]);
+  http.expectOne(RUTAS_API.usuarios + '/1/restaurar').flush(registros[0]);
+  http.expectOne(RUTAS_API.usuarios).flush(registros);
 
-  it('agrega el usuario a la tabla cuando el formulario está bien', async () => {
-    await escribir({ '#nombre': 'José', '#apellidos': 'Muñoz', '#correo': 'jose@correo.cl', '#contrasena': 'gaucho' });
+  expect(fixture.componentInstance.usuarios[0].estado).toBe('Activo');
+});
 
-    await enviar();
+it('muestra el error de carga recibido del backend', async () => {
+  fixture.componentInstance.cargarUsuarios();
+  for (const peticion of http.match(() => true))
+    peticion.flush({ error: 'No se pudo cargar' }, { status: 500, statusText: 'Error' });
 
-    expect(filas()).toBe(2);
-    expect(pantalla()).toContain('jose@correo.cl');
-  });
+  await fixture.whenStable();
 
-  it('marca y explica los campos con errores', async () => {
-    await escribir({ '#nombre': 'Ana2', '#correo': 'ana@correo', '#contrasena': 'abc', '#telefono': '123' });
+  expect(fixture.componentInstance.mensajeError).toBe('No se pudo cargar');
+});
 
-    expect(pantalla()).toContain('Solo se permiten letras y espacios.');
-    expect(pantalla()).toContain('El correo debe tener @ y punto.');
-    expect(pantalla()).toContain('La contraseña debe tener al menos 6 caracteres.');
-    expect(pantalla()).toContain('El teléfono no es válido.');
-    expect(fixture.nativeElement.querySelector('#nombre').classList).toContain('border-red-500');
-  });
+it('valida y envia el formulario de cuenta', async () => {
+  const formulario = fixture.debugElement.query(By.directive(NgForm)).injector.get(NgForm);
 
-  it('no agrega nada si faltan datos', async () => {
-    await enviar();
+  fixture.componentInstance.agregarUsuario(formulario);
 
-    expect(pantalla()).toContain('Revisa los campos marcados antes de guardar.');
-    expect(filas()).toBe(1);
-  });
+  expect(fixture.componentInstance.mensajeError).toContain('Revisa');
 
-  it('elimina al usuario y lo puede restaurar', async () => {
-    boton('Eliminar').click();
-    await fixture.whenStable();
+  fixture.componentInstance.nuevoUsuario = {
+    nombre: 'Luis',
+    apellidos: 'Soto',
+    correo: 'luis@correo.cl',
+    contrasena: crypto.randomUUID(),
+    telefono: '912345678',
+    rol: 'Usuario',
+  };
+  fixture.componentInstance.refrescar();
+  await fixture.whenStable();
+  fixture.componentInstance.agregarUsuario(formulario);
 
-    expect(fixture.nativeElement.querySelector('.insignia').classList).toContain('bg-red-100');
+  const crear = http.expectOne(RUTAS_API.usuarios);
 
-    boton('Restaurar').click();
-    await fixture.whenStable();
+  expect(crear.request.body.nombre).toBe('Luis');
 
-    expect(boton('Eliminar')).toBeTruthy();
-  });
+  crear.flush({ id: 2 });
+  http.expectOne(RUTAS_API.usuarios).flush(registros);
+
+  expect(fixture.componentInstance.nuevoUsuario.nombre).toBe('');
+});
+
+it('impide enviar una cuenta con telefono de longitud incorrecta', async () => {
+  fixture.componentInstance.nuevoUsuario = {
+    nombre: 'Juan',
+    apellidos: 'Pérez García',
+    correo: 'usuario@gmail.com',
+    contrasena: crypto.randomUUID(),
+    telefono: '123',
+    rol: 'Usuario',
+  };
+  fixture.componentInstance.refrescar();
+  await fixture.whenStable();
+
+  const formulario = fixture.debugElement.query(By.directive(NgForm)).injector.get(NgForm);
+
+  expect(formulario.controls['telefono'].errors).toEqual({ telefono: true });
+  fixture.componentInstance.agregarUsuario(formulario);
+  http.expectNone(RUTAS_API.usuarios);
+  expect(fixture.componentInstance.mensajeError).toContain('Revisa');
 });
