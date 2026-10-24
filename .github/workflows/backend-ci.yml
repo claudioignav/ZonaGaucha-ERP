@@ -121,7 +121,7 @@ jobs:
           retention-days: 7
 
   compilacion-calidad:
-    name: Empaquetado y análisis estático (SAST)
+    name: Análisis estático (SAST)
     needs: pruebas
     runs-on: ubuntu-latest
     timeout-minutes: 20
