@@ -2,7 +2,7 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.8125rem;
+    font-size: 0.84375rem;
     color: #27272a;
   }
 
@@ -10,7 +10,7 @@
     padding: 0.875rem 1.5rem;
     background-color: #d8f3dc;
     color: #1e3f20;
-    font-size: 0.75rem;
+    font-size: 0.84375rem;
     font-weight: 700;
     text-align: left;
     white-space: nowrap;
@@ -32,7 +32,11 @@
 
   &.compacta {
     table {
-      font-size: 0.75rem;
+      font-size: 0.78125rem;
+    }
+
+    th {
+      font-size: 0.78125rem;
     }
 
     th,
