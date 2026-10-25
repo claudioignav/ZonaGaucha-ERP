@@ -49,3 +49,20 @@ it('elimina y restaura en el backend', () => {
   servicio.restaurar(2).subscribe();
   http.expectOne(RUTAS_API.usuarios + '/2/restaurar').flush({ id: 2, estado: 'Activo' });
 });
+
+it('actualiza la cuenta con put y devuelve el usuario confirmado por el backend', () => {
+  const datos = {
+    nombre: 'Luis', apellidos: 'Soto', correo: 'luis@correo.cl',
+    telefono: '912345678', rol: 'Usuario' as const,
+  };
+  const confirmado = { ...datos, id: 2, estado: 'Activo' as const };
+  let recibido;
+  servicio.actualizar(2, datos).subscribe((usuario) => (recibido = usuario));
+  const actualizar = http.expectOne(RUTAS_API.usuarios + '/2');
+
+  expect(actualizar.request.method).toBe('PUT');
+  expect(actualizar.request.body).toEqual(datos);
+  actualizar.flush(confirmado);
+
+  expect(recibido).toEqual(confirmado);
+});

@@ -140,3 +140,121 @@ it('impide enviar una cuenta con telefono de longitud incorrecta', async () => {
   http.expectNone(RUTAS_API.usuarios);
   expect(fixture.componentInstance.mensajeError).toContain('Revisa');
 });
+
+async function abrirFormularioEdicion(): Promise<NgForm> {
+  fixture.nativeElement.querySelector('button[title="Editar"]').click();
+  await fixture.whenStable();
+
+  return fixture.debugElement.query(By.css('[role="dialog"] form')).injector.get(NgForm);
+}
+
+it('edita en una ventana sin cambiar el registro ni el formulario de alta al cancelar', async () => {
+  const componente = fixture.componentInstance;
+  componente.nuevoUsuario.nombre = 'Luis';
+  await abrirFormularioEdicion();
+
+  expect(fixture.nativeElement.querySelector('#edicion-nombre').value).toBe('Ana');
+  componente.edicion!.nombre = 'María';
+
+  expect(componente.usuarios[0].nombre).toBe('Ana');
+  expect(componente.nuevoUsuario.nombre).toBe('Luis');
+
+  const cancelar = Array.from(
+    fixture.nativeElement.querySelectorAll('[role="dialog"] button'),
+  ).find((boton) => (boton as HTMLButtonElement).textContent?.trim() === 'Cancelar');
+  (cancelar as HTMLButtonElement).click();
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+  expect(componente.editandoId).toBeNull();
+  expect(componente.usuarios[0].nombre).toBe('Ana');
+  http.expectNone(RUTAS_API.usuarios + '/1');
+});
+
+it('guarda la edición, cierra la ventana y recarga la tabla', async () => {
+  const formulario = await abrirFormularioEdicion();
+  const componente = fixture.componentInstance;
+  componente.edicion!.nombre = 'María';
+  componente.refrescar();
+  await fixture.whenStable();
+
+  componente.guardarEdicion(formulario);
+  const actualizar = http.expectOne(RUTAS_API.usuarios + '/1');
+  expect(actualizar.request.method).toBe('PUT');
+  expect(actualizar.request.body.nombre).toBe('María');
+  actualizar.flush({ ...registros[0], nombre: 'María' });
+  http.expectOne(RUTAS_API.usuarios).flush([{ ...registros[0], nombre: 'María' }]);
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+  expect(fixture.nativeElement.textContent).toContain('María');
+});
+
+it('mantiene abierta la edición inválida y no envía la actualización', async () => {
+  const formulario = await abrirFormularioEdicion();
+  const componente = fixture.componentInstance;
+  componente.edicion!.correo = 'correo-invalido';
+  componente.refrescar();
+  await fixture.whenStable();
+
+  componente.guardarEdicion(formulario);
+
+  expect(formulario.controls['correo'].touched).toBe(true);
+  expect(componente.mensajeEdicion).toContain('Revisa');
+  expect(componente.edicion).not.toBeNull();
+  http.expectNone(RUTAS_API.usuarios + '/1');
+});
+
+it('conserva los cambios y muestra el error cuando el backend rechaza la edición', async () => {
+  const formulario = await abrirFormularioEdicion();
+  fixture.componentInstance.edicion!.nombre = 'María';
+  fixture.componentInstance.refrescar();
+  await fixture.whenStable();
+  fixture.componentInstance.guardarEdicion(formulario);
+  http.expectOne(RUTAS_API.usuarios + '/1').flush(
+    { error: 'El correo ya está registrado' },
+    { status: 409, statusText: 'Conflict' },
+  );
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.querySelector('[role="dialog"] [role="alert"]').textContent)
+    .toContain('El correo ya está registrado');
+  expect(fixture.componentInstance.edicion!.nombre).toBe('María');
+  expect(fixture.componentInstance.usuarios[0].nombre).toBe('Ana');
+  http.expectNone(RUTAS_API.usuarios);
+});
+
+it('conserva el estado de la cuenta si falla la desactivación', async () => {
+  fixture.componentInstance.cambiarEstado(registros[0]);
+  http.expectOne(RUTAS_API.usuarios + '/1/eliminar').flush(
+    { error: 'No se pudo desactivar la cuenta' },
+    { status: 500, statusText: 'Error' },
+  );
+  await fixture.whenStable();
+
+  expect(fixture.componentInstance.usuarios[0].estado).toBe('Activo');
+  expect(fixture.nativeElement.textContent).toContain('No se pudo desactivar la cuenta');
+  http.expectNone(RUTAS_API.usuarios);
+});
+
+it('conserva el formulario de alta cuando el backend rechaza el registro', async () => {
+  const componente = fixture.componentInstance;
+  componente.nuevoUsuario = {
+    nombre: 'Luis', apellidos: 'Soto', correo: 'luis@correo.cl',
+    contrasena: crypto.randomUUID(), telefono: '912345678', rol: 'Usuario',
+  };
+  componente.refrescar();
+  await fixture.whenStable();
+  const formulario = fixture.debugElement.query(By.directive(NgForm)).injector.get(NgForm);
+
+  componente.agregarUsuario(formulario);
+  http.expectOne(RUTAS_API.usuarios).flush(
+    { error: 'El correo ya está registrado' },
+    { status: 409, statusText: 'Conflict' },
+  );
+  await fixture.whenStable();
+
+  expect(componente.nuevoUsuario.nombre).toBe('Luis');
+  expect(fixture.nativeElement.textContent).toContain('El correo ya está registrado');
+  http.expectNone(RUTAS_API.usuarios);
+});
