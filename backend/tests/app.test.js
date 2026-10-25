@@ -30,4 +30,10 @@ describe('estado de la api', () => {
 
     consola.mockRestore();
   });
+  test('exige token en usuarios', async () => {
+    expect((await request(app).get('/usuarios')).status).toBe(401);
+  });
+  test('exige token en catalogos', async () => {
+    expect((await request(app).get('/catalogos')).status).toBe(401);
+  });
 });

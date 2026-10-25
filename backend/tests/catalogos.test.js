@@ -132,4 +132,55 @@ describe('catalogos con reglas propias', () => {
     expect(crear.mock.calls[0][0].precioVenta).toBe(1500.5);
   });
 
+  test('un producto sin precio guarda precio nulo', async () => {
+    const crear = jest
+      .spyOn(Producto, 'create')
+      .mockResolvedValue(crearRegistro({ idProducto: 2 }));
+
+    await ejecutar(catalogos.productos.crear, {
+      body: { nombre: 'Boina', idCategoria: 1, precioVenta: '' },
+    });
+
+    expect(crear.mock.calls[0][0].precioVenta).toBeNull();
+  });
+
+  test.each([
+    ['negativo', -10],
+    ['con tres decimales', '10.125'],
+    ['texto', 'mil pesos'],
+  ])('rechaza un precio de venta %s', async (_caso, precioVenta) => {
+    await expect(
+      ejecutar(catalogos.productos.crear, {
+        body: { nombre: 'Boina', idCategoria: 1, precioVenta },
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+  });
+
+  test('editar sin precio conserva el precio guardado', async () => {
+    const registro = crearRegistro({ idProducto: 3, nombre: 'Mate', precioVenta: 900 });
+
+    jest.spyOn(Producto, 'findByPk').mockResolvedValue(registro);
+
+    await ejecutar(catalogos.productos.actualizar, {
+      params: { id: '3' },
+      body: { nombre: 'Mate grande' },
+    });
+
+    expect(registro.update).toHaveBeenCalledWith({ nombre: 'Mate grande' });
+  });
+
+  test('el precio de venta sale como numero en el listado', async () => {
+    jest.spyOn(Producto, 'findAll').mockResolvedValue([
+      {
+        idProducto: 3,
+        nombre: 'Mate',
+        precioVenta: '1500.50',
+        categoria: { nombre: 'Matero' },
+      },
+    ]);
+
+    const res = await ejecutar(catalogos.productos.listar);
+
+    expect(res.json.mock.calls[0][0][0]).toMatchObject({ id: 3, precioVenta: 1500.5 });
+  });
 });

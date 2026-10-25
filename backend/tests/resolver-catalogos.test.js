@@ -50,3 +50,15 @@ test('admite datos que ya traen ids y catalogos sin referencias', async () => {
 
   expect(next).toHaveBeenCalledTimes(2);
 });
+
+test('rechaza tipos de pago que no vienen como lista', async () => {
+  const buscar = jest.spyOn(TipoPago, 'findOne');
+  const next = jest.fn();
+
+  await expect(
+    resolver(req('/plataformas', { tiposPago: 'Tarjeta' }), {}, next),
+  ).rejects.toMatchObject({ status: 400 });
+
+  expect(buscar).not.toHaveBeenCalled();
+  expect(next).not.toHaveBeenCalled();
+});
