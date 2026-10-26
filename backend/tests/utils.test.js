@@ -1,4 +1,42 @@
+const { normalizarRut, calcularDv } = require('../utils/rut');
 const { exigirCampos, buscarOFallar } = require('../utils/errores');
+
+describe('rut', () => {
+  test.each([
+    ['12.345.678-5', '12345678-5'],
+    ['123456785', '12345678-5'],
+    ['6.059.032-k', '6059032-K'],
+    ['76543216', '7654321-6'],
+  ])('%s se guarda como %s', (escrito, guardado) => {
+    expect(normalizarRut(escrito)).toBe(guardado);
+  });
+
+  test('si no viene el digito verificador lo calcula', () => {
+    expect(normalizarRut('12.345.678')).toBe('12345678-5');
+  });
+
+  test.each(['12.345.678-9', '123', 'abc', ''])('%s no sirve', (rut) => {
+    expect(normalizarRut(rut)).toBeNull();
+  });
+
+  test('el digito puede salir 0', () => {
+    expect(calcularDv('1000013')).toBe('0');
+  });
+});
+
+describe('errores', () => {
+  test('exigirCampos nombra los campos que faltan', () => {
+    expect(() => exigirCampos({ nombre: 'x', correo: '' }, ['nombre', 'correo', 'rol'])).toThrow(
+      'correo, rol',
+    );
+  });
+
+  test('buscarOFallar corta con 404 si no existe', async () => {
+    const modelo = { findByPk: jest.fn().mockResolvedValue(null) };
+
+    await expect(buscarOFallar(modelo, 99)).rejects.toMatchObject({ status: 404 });
+  });
+});
 
 test('exige los campos obligatorios', () => {
   expect(() => exigirCampos({}, ['correo'])).toThrow('correo');
