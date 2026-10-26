@@ -1,11 +1,12 @@
+const { randomUUID } = require('node:crypto');
 const { configurarBase } = require('../config/entorno');
 
 const staging = {
   APP_ENV: 'staging',
   DB_HOST: 'zg-dbserver.database.windows.net',
   DB_NAME: 'sqldb-zonagaucha-stg',
-  DB_USER: 'prueba',
-  DB_PASS: 'clave',
+  DB_USER: randomUUID(),
+  DB_PASS: randomUUID(),
 };
 
 test('configura Azure SQL con cifrado y validacion del certificado', () => {
@@ -16,7 +17,7 @@ test('configura Azure SQL con cifrado y validacion del certificado', () => {
   });
 });
 
-test.each(['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS'])('exige %s', (campo) => {
+test.each(Object.keys(staging).filter(campo => campo.startsWith('DB_')))('exige %s', (campo) => {
   expect(() => configurarBase({ ...staging, [campo]: '' })).toThrow(campo);
 });
 
