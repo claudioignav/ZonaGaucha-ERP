@@ -19,9 +19,16 @@ describe('BotonesAccionesComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('muestra los botones para editar y eliminar', () => {
-    const pantalla: HTMLElement = fixture.nativeElement;
-    expect(pantalla.querySelector('button[title="Editar"]')).toBeTruthy();
-    expect(pantalla.querySelector('button[title="Eliminar"]')).toBeTruthy();
+  it.each([
+    ['Editar', 'editar'],
+    ['Eliminar', 'eliminar'],
+  ] as const)('el botón %s avisa con el evento %s', (titulo, evento) => {
+    const escuchar = vi.fn();
+
+    component[evento].subscribe(escuchar);
+
+    fixture.nativeElement.querySelector(`button[title="${titulo}"]`).click();
+
+    expect(escuchar).toHaveBeenCalledTimes(1);
   });
 });
