@@ -1,3 +1,6 @@
+@if (mensajeError) {
+  <p role="alert" class="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeError }}</p>
+}
 <div class="mx-auto flex max-w-[1400px] flex-col gap-4">
   <header>
     <p class="migas"><a routerLink="/inicio" class="hover:underline">Inicio</a> &gt; Proveedores</p>
@@ -5,48 +8,86 @@
     <p class="subtitulo-pagina">Registro y contacto de los proveedores oficiales de materias primas y productos</p>
   </header>
 
-  <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
+  <form #formulario="ngForm" novalidate class="tarjeta flex flex-wrap items-end gap-4 p-4">
     <div class="min-w-44 flex-1">
       <label class="etiqueta" for="razon-social">Razón Social</label>
-      <input id="razon-social" type="text" class="campo" placeholder="Ej: Importadora Global S.A." />
+      <input id="razon-social" type="text" class="campo" placeholder="Ej: Importadora Global S.A." name="razonSocial" [(ngModel)]="nuevo.razonSocial" />
     </div>
     <div class="min-w-36 flex-1">
       <label class="etiqueta" for="rut">RUT</label>
-      <input id="rut" type="text" class="campo" placeholder="Ej: 12345678-9" />
+      <input id="rut" type="text" class="campo" placeholder="Ej: 12345678-9" name="rut" [(ngModel)]="nuevo.rut" #rut="ngModel" appRut [class.border-red-500]="rut.invalid && rut.touched" />
     </div>
     <div class="min-w-40 flex-1">
       <label class="etiqueta" for="telefono">Teléfono</label>
-      <input id="telefono" type="tel" class="campo" placeholder="Ej: +56 9 1234 5678" />
+      <input id="telefono" type="tel" class="campo" placeholder="Ej: +56 9 1234 5678" name="telefono" [(ngModel)]="nuevo.telefono" />
     </div>
     <div class="min-w-44 flex-1">
       <label class="etiqueta" for="correo">Correo Electrónico</label>
-      <input id="correo" type="email" class="campo" placeholder="Ej: contacto@empresa.com" />
+      <input id="correo" type="email" class="campo" placeholder="Ej: contacto@empresa.com" name="correo" [(ngModel)]="nuevo.correo" email />
     </div>
-    <button type="button" class="boton-oscuro">+ Agregar Proveedor</button>
-  </section>
+    <button type="button" class="boton-oscuro" (click)="guardar(formulario.valid)" >+ Agregar Proveedor</button>
+  </form>
 
-  <app-tabla-contenido [totalRegistros]="proveedores.length">
-    <thead>
-      <tr>
-        <th scope="col">Razón Social</th>
-        <th scope="col">RUT</th>
-        <th scope="col">Teléfono</th>
-        <th scope="col">Correo</th>
-        <th scope="col" class="acciones">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (proveedor of proveedores; track proveedor.id) {
+  <app-tabla-contenido [totalRegistros]="registros.length" >
+    <table>
+      <thead>
         <tr>
-          <td class="font-semibold">{{ proveedor.razonSocial }}</td>
-          <td class="sin-salto">{{ proveedor.rut | rut }}</td>
-          <td class="sin-salto">{{ proveedor.telefono | telefono }}</td>
-          <td class="sin-salto">{{ proveedor.correo }}</td>
-          <td class="acciones">
-            <app-botones-acciones />
-          </td>
+          <th scope="col">Razón Social</th>
+          <th scope="col">RUT</th>
+          <th scope="col">Teléfono</th>
+          <th scope="col">Correo</th>
+          <th scope="col" class="acciones">Acciones</th>
         </tr>
-      }
-    </tbody>
+      </thead>
+      <tbody>
+        @for (proveedor of registros; track proveedor.id) {
+          <tr>
+            <td class="font-semibold">{{ proveedor.razonSocial }}</td>
+            <td class="sin-salto">{{ proveedor.rut | rut }}</td>
+            <td class="sin-salto">{{ proveedor.telefono | telefono }}</td>
+            <td class="sin-salto">{{ proveedor.correo }}</td>
+            <td class="acciones">
+              <app-botones-acciones (editar)="editar(proveedor)" (eliminar)="eliminar(proveedor)" />
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </app-tabla-contenido>
 </div>
+
+@if (edicion) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-edicion-proveedor">
+    <form #formularioEdicion="ngForm" (ngSubmit)="guardarEdicion(formularioEdicion.valid)" novalidate class="tarjeta w-full max-w-2xl p-6">
+      <h2 id="titulo-edicion-proveedor" class="border-b border-slate-200 pb-2 font-semibold">Editar proveedor</h2>
+
+      @if (mensajeEdicion) {
+        <p role="alert" class="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeEdicion }}</p>
+      }
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div>
+          <label class="etiqueta" for="edicion-razon-social">Razón Social</label>
+          <input id="edicion-razon-social" type="text" class="campo" name="razonSocial" [(ngModel)]="edicion.razonSocial" />
+        </div>
+        <div>
+          <label class="etiqueta" for="edicion-rut">RUT</label>
+          <input id="edicion-rut" type="text" class="campo" name="rut" [(ngModel)]="edicion.rut" #rutEdicion="ngModel" appRut [class.border-red-500]="rutEdicion.invalid && rutEdicion.touched" />
+        </div>
+        <div>
+          <label class="etiqueta" for="edicion-proveedor-telefono">Teléfono</label>
+          <input id="edicion-proveedor-telefono" type="tel" class="campo" name="telefono" [(ngModel)]="edicion.telefono" />
+        </div>
+        <div>
+          <label class="etiqueta" for="edicion-proveedor-correo">Correo Electrónico</label>
+          <input id="edicion-proveedor-correo" type="email" class="campo" name="correo" [(ngModel)]="edicion.correo" email />
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" class="boton-gris" (click)="cancelarEdicion()">Cancelar</button>
+        <button type="submit" class="boton-oscuro">Guardar</button>
+      </div>
+    </form>
+  </div>
+}
