@@ -1,3 +1,6 @@
+@if (mensajeError) {
+  <p role="alert" class="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeError }}</p>
+}
 <div class="mx-auto flex max-w-[1400px] flex-col gap-4">
   <header>
     <p class="migas"><a routerLink="/inicio" class="hover:underline">Inicio</a> &gt; Productos</p>
@@ -8,35 +11,89 @@
   <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
     <div class="min-w-60 flex-[2]">
       <label class="etiqueta" for="nuevo-producto">Nuevo Producto</label>
-      <input id="nuevo-producto" type="text" class="campo" placeholder="Ej: Boina Gaucha" />
+      <input id="nuevo-producto" type="text" class="campo" placeholder="Ej: Boina Gaucha" name="nombre" [(ngModel)]="nuevo.nombre" />
     </div>
     <div class="min-w-48 flex-1">
       <label class="etiqueta" for="categoria">Categoría de Producto</label>
-      <select id="categoria" class="campo">
+      <select id="categoria" class="campo" name="categoria" [(ngModel)]="nuevo.categoria" >
         <option value="">Seleccionar categoría...</option>
+          @for (categoria of categorias; track categoria) {
+          <option [value]="categoria">{{ categoria }}</option>
+        }
       </select>
     </div>
-    <button type="button" class="boton-oscuro">+ Agregar Producto</button>
+    <div class="min-w-40 flex-1">
+      <label class="etiqueta" for="precio-venta">Precio de Venta</label>
+      <input id="precio-venta" type="number" min="0" step="0.01" class="campo" placeholder="Ej: 12990" name="precioVenta" [(ngModel)]="nuevo.precioVenta" />
+    </div>
+    <button type="button" class="boton-oscuro" (click)="guardar()" >+ Agregar Producto</button>
   </section>
 
-  <app-tabla-contenido [totalRegistros]="productos.length">
-    <thead>
-      <tr>
-        <th scope="col">Producto</th>
-        <th scope="col" class="centro">Categoría</th>
-        <th scope="col" class="acciones">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (producto of productos; track producto.id) {
+  <app-tabla-contenido [totalRegistros]="registros.length" >
+    <table>
+      <thead>
         <tr>
-          <td class="font-semibold">{{ producto.nombre }}</td>
-          <td class="centro"><span class="insignia">{{ producto.categoria }}</span></td>
-          <td class="acciones">
-            <app-botones-acciones />
-          </td>
+          <th scope="col">Producto</th>
+          <th scope="col" class="centro">Categoría</th>
+          <th scope="col" class="centro">Precio de Venta</th>
+          <th scope="col" class="acciones">Acciones</th>
         </tr>
-      }
-    </tbody>
+      </thead>
+      <tbody>
+        @for (producto of registros; track producto.id) {
+          <tr>
+            <td class="font-semibold">{{ producto.nombre }}</td>
+            <td class="centro"><span class="insignia">{{ producto.categoria }}</span></td>
+            <td class="centro">
+              @if (producto.precioVenta === null) {
+                <span class="text-slate-400">Sin precio</span>
+              } @else {
+                ${{ producto.precioVenta | number: '1.0-2':'es-CL' }}
+              }
+            </td>
+            <td class="acciones">
+              <app-botones-acciones (editar)="editar(producto)" (eliminar)="eliminar(producto)" />
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </app-tabla-contenido>
 </div>
+
+@if (edicion) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-edicion-producto">
+    <form #formularioEdicion="ngForm" (ngSubmit)="guardarEdicion(formularioEdicion.valid)" novalidate class="tarjeta w-full max-w-2xl p-6">
+      <h2 id="titulo-edicion-producto" class="border-b border-slate-200 pb-2 font-semibold">Editar producto</h2>
+
+      @if (mensajeEdicion) {
+        <p role="alert" class="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeEdicion }}</p>
+      }
+
+      <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div>
+          <label class="etiqueta" for="edicion-producto-nombre">Producto</label>
+          <input id="edicion-producto-nombre" type="text" class="campo" name="nombre" [(ngModel)]="edicion.nombre" />
+        </div>
+        <div>
+          <label class="etiqueta" for="edicion-producto-categoria">Categoría de Producto</label>
+          <select id="edicion-producto-categoria" class="campo" name="categoria" [(ngModel)]="edicion.categoria">
+            <option value="">Seleccionar categoría...</option>
+            @for (categoria of categorias; track categoria) {
+              <option [value]="categoria">{{ categoria }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="etiqueta" for="edicion-producto-precio">Precio de Venta</label>
+          <input id="edicion-producto-precio" type="number" min="0" step="0.01" class="campo" placeholder="Ej: 12990" name="precioVenta" [(ngModel)]="edicion.precioVenta" />
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" class="boton-gris" (click)="cancelarEdicion()">Cancelar</button>
+        <button type="submit" class="boton-oscuro">Guardar</button>
+      </div>
+    </form>
+  </div>
+}

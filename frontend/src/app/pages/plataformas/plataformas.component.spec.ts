@@ -1,35 +1,117 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { Router } from '@angular/router';
+
+import { AppModule } from '../../app-module';
 import { PlataformasComponent } from './plataformas.component';
-import { TablaContenidoComponent } from '../../components/tabla-contenido/tabla-contenido.component';
-import { BotonesAccionesComponent } from '../../components/botones-acciones/botones-acciones.component';
+import { RUTAS_API } from '../../services/api';
 
-describe('PlataformasComponent', () => {
-  let component: PlataformasComponent;
-  let fixture: ComponentFixture<PlataformasComponent>;
+const registros = [{ id: 1, nombre: 'Web', tiposPago: ['Tarjeta'] }];
+let fixture: ComponentFixture<PlataformasComponent>;
+let http: HttpTestingController;
+let navegar: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([])],
-      declarations: [PlataformasComponent, TablaContenidoComponent, BotonesAccionesComponent],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(PlataformasComponent);
-    component = fixture.componentInstance;
-    component.plataformas = [{ id: 1, nombre: 'Tienda de Prueba', tiposPago: ['Transferencia', 'Efectivo'] }];
-    await fixture.whenStable();
+beforeEach(async () => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [provideHttpClient(), provideHttpClientTesting()],
   });
+  http = TestBed.inject(HttpTestingController);
+  navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+  fixture = TestBed.createComponent(PlataformasComponent);
+  fixture.detectChanges();
+  for (const peticion of http.match(() => true)) {
+    if (peticion.request.url.endsWith('/opciones'))
+      peticion.flush({
+        proveedores: ['Proveedor de Prueba'],
+        tiposPago: ['Tarjeta'],
+        tiposContenido: ['Ropa'],
+        productos: ['Camisa'],
+        plataformas: ['Web'],
+        lotes: ['12'],
+      });
+    else if (peticion.request.url.endsWith('/resumen'))
+      peticion.flush({
+        fechaActual: '2026-10-07T12:00',
+        compraBruta: 1000,
+        compraNeta: 1190,
+        impuestosTotales: 190,
+        ventaNeta: 2100,
+        totalAdicional: 100,
+        promedioVenta: 20,
+        productosDisponibles: 8,
+      });
+    else if (peticion.request.url === RUTAS_API.catalogos + '/plataformas')
+      peticion.flush(registros);
+    else peticion.flush([{ id: 1, nombre: 'Tarjeta' }]);
+  }
 
-  it('se crea correctamente', () => {
-    expect(component).toBeTruthy();
-  });
+  await fixture.whenStable();
+});
 
-  it('muestra la plataforma con sus formas de pago separadas por guion', () => {
-    const fila: HTMLElement = fixture.nativeElement.querySelector('tbody tr');
+afterEach(() => http.verify());
 
-    expect(fila.textContent).toContain('Tienda de Prueba');
-    expect(fila.textContent).toContain('Transferencia - Efectivo');
-    expect(fila.querySelector('button[title="Editar"]')).toBeTruthy();
-    expect(fila.querySelector('button[title="Eliminar"]')).toBeTruthy();
-  });
+it('muestra la respuesta recibida por http', () => {
+  expect(fixture.componentInstance.registros.length).toBe(1);
+});
+
+it('guarda edita y elimina usando la api', async () => {
+  fixture.componentInstance.guardar(false);
+
+  expect(fixture.componentInstance.mensajeError).toContain('Completa');
+
+  const { id, ...nuevo } = registros[0];
+
+  fixture.componentInstance.nuevo = nuevo;
+  fixture.componentInstance.guardar();
+
+  const crear = http.expectOne(RUTAS_API.catalogos + '/plataformas');
+
+  expect(crear.request.method).toBe('POST');
+
+  crear.flush(registros[0]);
+  http.expectOne(RUTAS_API.catalogos + '/plataformas').flush(registros);
+  fixture.componentInstance.editar(registros[0]);
+  fixture.componentInstance.guardarEdicion();
+
+  const editar = http.expectOne(RUTAS_API.catalogos + '/plataformas' + '/1');
+
+  expect(editar.request.method).toBe('PUT');
+
+  editar.flush(registros[0]);
+  http.expectOne(RUTAS_API.catalogos + '/plataformas').flush(registros);
+  fixture.componentInstance.eliminar(registros[0]);
+
+  const borrar = http.expectOne(RUTAS_API.catalogos + '/plataformas' + '/1');
+
+  expect(borrar.request.method).toBe('DELETE');
+
+  borrar.flush(null);
+  http.expectOne(RUTAS_API.catalogos + '/plataformas').flush([]);
+
+  expect(fixture.componentInstance.registros).toEqual([]);
+});
+
+it('muestra error del servidor al guardar', async () => {
+  const { id, ...nuevo } = registros[0];
+
+  fixture.componentInstance.nuevo = nuevo;
+  fixture.componentInstance.guardar();
+  http
+    .expectOne(RUTAS_API.catalogos + '/plataformas')
+    .flush({ error: 'Registro repetido' }, { status: 409, statusText: 'Conflict' });
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.textContent).toContain('Registro repetido');
+});
+
+it('muestra el error de carga recibido del backend', async () => {
+  fixture.componentInstance.cargar();
+  for (const peticion of http.match(() => true))
+    peticion.flush({ error: 'No se pudo cargar' }, { status: 500, statusText: 'Error' });
+
+  await fixture.whenStable();
+
+  expect(fixture.componentInstance.mensajeError).toBe('No se pudo cargar');
 });

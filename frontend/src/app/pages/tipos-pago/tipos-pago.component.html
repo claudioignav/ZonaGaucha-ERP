@@ -1,3 +1,6 @@
+@if (mensajeError) {
+  <p role="alert" class="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeError }}</p>
+}
 <div class="mx-auto flex max-w-[1400px] flex-col gap-4">
   <header>
     <p class="migas"><a routerLink="/inicio" class="hover:underline">Inicio</a> &gt; Tipos de Pago</p>
@@ -8,27 +11,51 @@
   <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
     <div class="min-w-60 flex-1">
       <label class="etiqueta" for="nuevo-tipo-pago">Nuevo Tipo de Pago <span class="obligatorio">*</span></label>
-      <input id="nuevo-tipo-pago" type="text" class="campo" placeholder="Ej: Transferencia" />
+      <input id="nuevo-tipo-pago" type="text" class="campo" placeholder="Ej: Transferencia" name="nombre" [(ngModel)]="nuevo.nombre" />
     </div>
-    <button type="button" class="boton-oscuro">+ Agregar Tipo de Pago</button>
+    <button type="button" class="boton-oscuro" (click)="guardar()" >+ Agregar Tipo de Pago</button>
   </section>
 
-  <app-tabla-contenido [totalRegistros]="tiposPago.length">
-    <thead>
-      <tr>
-        <th scope="col">Tipo de Pago</th>
-        <th scope="col" class="acciones">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (tipoPago of tiposPago; track tipoPago.id) {
+  <app-tabla-contenido [totalRegistros]="registros.length" >
+    <table>
+      <thead>
         <tr>
-          <td class="font-semibold">{{ tipoPago.nombre }}</td>
-          <td class="acciones">
-            <app-botones-acciones />
-          </td>
+          <th scope="col">Tipo de Pago</th>
+          <th scope="col" class="acciones">Acciones</th>
         </tr>
-      }
-    </tbody>
+      </thead>
+      <tbody>
+        @for (tipoPago of registros; track tipoPago.id) {
+          <tr>
+            <td class="font-semibold">{{ tipoPago.nombre }}</td>
+            <td class="acciones">
+              <app-botones-acciones (editar)="editar(tipoPago)" (eliminar)="eliminar(tipoPago)" />
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </app-tabla-contenido>
 </div>
+
+@if (edicion) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-edicion-tipo-pago">
+    <form #formularioEdicion="ngForm" (ngSubmit)="guardarEdicion(formularioEdicion.valid)" novalidate class="tarjeta w-full max-w-lg p-6">
+      <h2 id="titulo-edicion-tipo-pago" class="border-b border-slate-200 pb-2 font-semibold">Editar tipo de pago</h2>
+
+      @if (mensajeEdicion) {
+        <p role="alert" class="mt-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeEdicion }}</p>
+      }
+
+      <div class="mt-4">
+        <label class="etiqueta" for="edicion-tipo-pago-nombre">Nombre</label>
+        <input id="edicion-tipo-pago-nombre" type="text" class="campo" name="nombre" [(ngModel)]="edicion.nombre" />
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" class="boton-gris" (click)="cancelarEdicion()">Cancelar</button>
+        <button type="submit" class="boton-oscuro">Guardar</button>
+      </div>
+    </form>
+  </div>
+}
