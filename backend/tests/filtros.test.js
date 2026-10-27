@@ -19,3 +19,9 @@ test('rechaza fechas y filtros con tipos no validos', () => {
     filtrar({ numeroFactura: ['F1'] }, 'fechaCompra', { numeroFactura: 'numeroFactura' }),
   ).toThrow('Filtro');
 });
+
+test('sin valores mantiene el listado completo', () => {
+  expect(filtrar({ numeroFactura: '' }, 'fechaCompra', { numeroFactura: 'numeroFactura' })).toEqual(
+    {},
+  );
+});

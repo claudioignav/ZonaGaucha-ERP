@@ -21,7 +21,9 @@ const crearRegistro = (datos = {}) => ({
 });
 
 const simularTransaccion = () =>
-  jest.spyOn(sequelize, 'transaction').mockImplementation((callback) => callback({}));
+  jest
+    .spyOn(sequelize, 'transaction')
+    .mockImplementation((callback) => callback({ LOCK: { UPDATE: 'UPDATE' } }));
 
 const ejecutar = async (controlador, req) => {
   const res = crearRes();

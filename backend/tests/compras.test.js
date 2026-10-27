@@ -96,4 +96,72 @@ describe('compras', () => {
     expect(res.status).toHaveBeenCalledWith(201);
   });
 
+  test('la compra bruta sale de cantidad por precio de cada linea', async () => {
+    simularTransaccion();
+
+    const crearCompra = jest.spyOn(Compra, 'create').mockResolvedValue({ idCompra: 9 });
+
+    jest.spyOn(Lote, 'create').mockResolvedValue({ idLote: 3 });
+    jest.spyOn(DetalleLote, 'bulkCreate').mockResolvedValue([]);
+
+    await ejecutar(compras.crear, {
+      body: compraValida({
+        compraBruta: undefined,
+        impuesto: 0,
+        productos: [
+          { idProducto: 5, cantidad: 3, precioUnitario: 10.1 },
+          { idProducto: 6, cantidad: 1, precioUnitario: 0.2 },
+        ],
+      }),
+    });
+
+    expect(crearCompra.mock.calls[0][0]).toMatchObject({ compraBruta: 30.5, compraNeta: 30.5 });
+  });
+
+  test('un total enviado que no coincide con las lineas se rechaza', async () => {
+    await expect(
+      ejecutar(compras.crear, { body: compraValida({ compraBruta: 90000 }) }),
+    ).rejects.toThrow('no coincide');
+  });
+
+  test.each([
+    ['sin precio', { productos: [{ idProducto: 5, cantidad: 25 }] }],
+    ['con precio 0', { productos: [{ idProducto: 5, cantidad: 25, precioUnitario: 0 }] }],
+    ['con tres decimales', { productos: [{ idProducto: 5, cantidad: 25, precioUnitario: 1.125 }] }],
+    ['sin productos', { productos: [] }],
+    ['con cantidad 0', { productos: [{ idProducto: 5, cantidad: 0, precioUnitario: 4000 }] }],
+    ['sin factura', { numeroFactura: '' }],
+  ])('no deja crear una compra %s', async (_caso, cambios) => {
+    await expect(ejecutar(compras.crear, { body: compraValida(cambios) })).rejects.toMatchObject({
+      status: 400,
+    });
+  });
+
+  test('el listado muestra precio y subtotal por linea', async () => {
+    jest.spyOn(Compra, 'findAll').mockResolvedValue([
+      {
+        idCompra: 1,
+        numeroFactura: 'F-100',
+        compraBruta: '100000.00',
+        impuesto: '0.00',
+        compraNeta: '100000.00',
+        lote: {
+          numeroLote: 1426,
+          detalles: [
+            {
+              producto: { nombre: 'Poncho' },
+              cantidadIngresada: 25,
+              precioCompraUnitario: '4000.00',
+            },
+          ],
+        },
+      },
+    ]);
+
+    const res = await ejecutar(compras.listar);
+
+    expect(res.json.mock.calls[0][0][0].productos).toEqual([
+      { producto: 'Poncho', cantidad: 25, precioUnitario: 4000, subtotal: 100000 },
+    ]);
+  });
 });

@@ -1,4 +1,6 @@
+const { Op } = require('sequelize');
 const { normalizarRut, calcularDv } = require('../utils/rut');
+const { filtroFechas, fechaHoy } = require('../utils/consultas');
 const { exigirCampos, buscarOFallar } = require('../utils/errores');
 
 describe('rut', () => {
@@ -21,6 +23,23 @@ describe('rut', () => {
 
   test('el digito puede salir 0', () => {
     expect(calcularDv('1000013')).toBe('0');
+  });
+});
+
+describe('fechas', () => {
+  test('sin fechas no filtra nada', () => {
+    expect(filtroFechas('fechaVenta')).toEqual({});
+  });
+
+  test('con las dos fechas arma el rango completo del dia', () => {
+    const filtro = filtroFechas('fechaVenta', '2026-10-01', '2026-10-31');
+
+    expect(filtro.fechaVenta[Op.gte].getDate()).toBe(1);
+    expect(filtro.fechaVenta[Op.lte].getHours()).toBe(23);
+  });
+
+  test('la fecha de hoy va en formato estandar con hora', () => {
+    expect(fechaHoy()).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
   });
 });
 
