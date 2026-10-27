@@ -1,6 +1,8 @@
 export interface DetalleCompra {
   producto: string;
   cantidad: number;
+  precioUnitario?: number | null;
+  subtotal?: number | null;
 }
 
 export interface Compra {
@@ -16,6 +18,11 @@ export interface Compra {
   impuesto: number;
   compraNeta: number;
 }
+
+export type CompraFormulario = Omit<Compra, 'id' | 'compraBruta' | 'impuesto' | 'compraNeta'> & {
+  compraBruta?: number;
+  impuesto: number | string;
+};
 
 export interface ResumenCompras {
   fechaActual: string;
@@ -47,7 +54,7 @@ export const opcionesCompra: OpcionesCompra = {
   productos: [],
 };
 
-export function nuevaCompraVacia(): Omit<Compra, 'id' | 'compraNeta'> {
+export function nuevaCompraVacia(): CompraFormulario {
   return {
     numeroFactura: '',
     numeroLote: '',
@@ -57,6 +64,6 @@ export function nuevaCompraVacia(): Omit<Compra, 'id' | 'compraNeta'> {
     tipoContenido: '',
     productos: [{ producto: '', cantidad: 1 }],
     compraBruta: 0,
-    impuesto: 0,
+    impuesto: '',
   };
 }

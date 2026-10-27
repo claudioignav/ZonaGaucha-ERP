@@ -1,3 +1,6 @@
+@if (mensajeError) {
+  <p role="alert" class="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeError }}</p>
+}
 <div class="mx-auto flex max-w-[1400px] flex-col gap-4">
   <header>
     <p class="migas"><a routerLink="/inicio" class="hover:underline">Inicio</a> &gt; Compras</p>
@@ -5,6 +8,7 @@
     <p class="subtitulo-pagina">Gestión de órdenes de entrada y proveedores</p>
   </header>
 
+  @if (puedeVerMetricas) {
   <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
     <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg">{{ resumen.fechaActual | fecha }}</app-tarjeta-resumen>
 
@@ -14,30 +18,37 @@
 
     <app-tarjeta-resumen titulo="Impuestos Totales" icono="security.svg">{{ resumen.impuestosTotales | pesos }}</app-tarjeta-resumen>
   </section>
+  }
 
   <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
     <div class="min-w-32 flex-1">
       <label class="etiqueta" for="filtro-factura">Número de Factura</label>
-      <input id="filtro-factura" type="text" class="campo" placeholder="Ej: 2000001" />
+      <input id="filtro-factura" type="text" class="campo" placeholder="Ej: 3311111" name="filtroFactura" [(ngModel)]="filtros.numeroFactura" />
     </div>
     <div class="min-w-32 flex-1">
       <label class="etiqueta" for="filtro-fecha">Fecha de Compra</label>
-      <input id="filtro-fecha" type="date" class="campo" />
+      <input id="filtro-fecha" type="date" class="campo" name="filtroFecha" [(ngModel)]="filtros.fechaCompra" />
     </div>
     <div class="min-w-32 flex-1">
       <label class="etiqueta" for="filtro-proveedor">Proveedor</label>
-      <select id="filtro-proveedor" class="campo">
+      <select id="filtro-proveedor" class="campo" name="filtroProveedor" [(ngModel)]="filtros.proveedor" >
         <option value="">Seleccionar proveedor...</option>
+          @for (opcion of opciones.proveedores; track opcion) {
+          <option [value]="opcion">{{ opcion }}</option>
+        }
       </select>
     </div>
     <div class="min-w-32 flex-1">
       <label class="etiqueta" for="filtro-pago">Tipo de Pago</label>
-      <select id="filtro-pago" class="campo">
+      <select id="filtro-pago" class="campo" name="filtroPago" [(ngModel)]="filtros.tipoPago" >
         <option value="">Seleccionar pago...</option>
+          @for (opcion of opciones.tiposPago; track opcion) {
+          <option [value]="opcion">{{ opcion }}</option>
+        }
       </select>
     </div>
     <div class="flex gap-3">
-      <button type="button" class="boton-oscuro">
+      <button type="button" class="boton-oscuro" (click)="cargarCompras()" >
         <img class="size-3.5" src="assets/icons/search.svg" alt="" />
         Aplicar Filtros
       </button>
@@ -45,38 +56,114 @@
     </div>
   </section>
 
-  <app-tabla-contenido [totalRegistros]="compras.length" [paginado]="true" [compacta]="true">
-    <thead>
-      <tr>
-        <th scope="col">N° Factura</th>
-        <th scope="col">Proveedor</th>
-        <th scope="col">Fecha Compra</th>
-        <th scope="col" class="centro">Tipo de Pago</th>
-        <th scope="col">Nombre Producto</th>
-        <th scope="col" class="centro">Cantidad</th>
-        <th scope="col">Compra Bruta</th>
-        <th scope="col">Impuesto</th>
-        <th scope="col">Compra Neto</th>
-        <th scope="col" class="acciones">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (compra of compras; track compra.id) {
+  <app-tabla-contenido
+    [totalRegistros]="compras.length"
+    [paginado]="true"
+    [compacta]="true"
+    [registrosPorPagina]="registrosPorPagina"
+    [paginaActual]="paginaActual"
+    (paginaCambiada)="paginaActual = $event"
+  >
+    <table>
+      <thead>
         <tr>
-          <td class="font-semibold">{{ compra.numeroFactura }}</td>
-          <td>{{ compra.proveedor }}</td>
-          <td class="sin-salto">{{ compra.fechaCompra | fecha: 'tabla' }}</td>
-          <td class="centro"><span class="insignia">{{ compra.tipoPago }}</span></td>
-          <td>{{ compra.productos[0].producto }}</td>
-          <td class="centro">{{ compra.productos[0].cantidad }}</td>
-          <td>{{ compra.compraBruta | pesos }}</td>
-          <td>{{ compra.impuesto | pesos }}</td>
-          <td class="font-semibold text-verde-boton">{{ compra.compraNeta | pesos }}</td>
-          <td class="acciones">
-            <app-botones-acciones />
-          </td>
+          <th scope="col">N° Factura</th>
+          <th scope="col">Proveedor</th>
+          <th scope="col">Fecha Compra</th>
+          <th scope="col" class="centro">Tipo de Pago</th>
+          <th scope="col">Nombre Producto</th>
+          <th scope="col" class="centro">Cantidad</th>
+          <th scope="col">Compra Bruta</th>
+          <th scope="col">Impuesto</th>
+          <th scope="col">Compra Neto</th>
+          <th scope="col" class="acciones">Acciones</th>
         </tr>
-      }
-    </tbody>
+      </thead>
+      <tbody>
+        @for (compra of comprasVisibles; track compra.id) {
+          <tr>
+            <td class="font-semibold">{{ compra.numeroFactura }}</td>
+            <td>{{ compra.proveedor }}</td>
+            <td class="sin-salto">{{ compra.fechaCompra | fecha: 'tabla' }}</td>
+            <td class="centro"><span class="insignia">{{ compra.tipoPago }}</span></td>
+            <td>
+              {{ compra.productos[0]?.producto }}
+              @if (compra.productos.length > 1) {
+                <span class="text-xs text-slate-600">y {{ compra.productos.length - 1 }} más</span>
+              }
+            </td>
+            <td class="centro">{{ unidades(compra) }}</td>
+            <td>{{ compra.compraBruta | pesos }}</td>
+            <td>{{ compra.impuesto | pesos }}</td>
+            <td class="font-semibold text-verde-boton">{{ compra.compraNeta | pesos }}</td>
+            <td class="acciones">
+              <div class="flex items-center justify-center gap-1.5">
+                <button type="button" class="boton-icono" title="Ver detalle" (click)="abrirDetalle(compra)"><img class="size-3.5" src="assets/icons/eye.svg" alt="Ver detalle" /></button>
+                @if (puedeModificar) {
+                  <app-botones-acciones />
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </app-tabla-contenido>
 </div>
+
+@if (detalle) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-detalle-compra">
+    <section class="tarjeta w-full max-w-3xl p-6">
+      <h2 id="titulo-detalle-compra" class="border-b border-slate-200 pb-2 font-semibold">Detalle de la compra {{ detalle.numeroFactura }}</h2>
+      <p class="mt-1 text-xs text-slate-600">{{ detalle.proveedor }} · Lote #{{ detalle.numeroLote }} · {{ detalle.fechaCompra | fecha: 'tabla' }}</p>
+
+      <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+        <table class="w-full min-w-[480px] text-sm">
+          <thead class="bg-verde-claro text-left text-xs font-bold text-verde-oscuro uppercase">
+            <tr>
+              <th scope="col" class="px-6 py-3.5">Producto</th>
+              <th scope="col" class="px-3 py-3.5 text-center">Cantidad</th>
+              <th scope="col" class="px-3 py-3.5 text-right">Precio unitario</th>
+              <th scope="col" class="px-3 py-3.5 text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (linea of detalle.productos; track $index) {
+              <tr class="border-b border-slate-200">
+                <td class="px-6 py-3">{{ linea.producto }}</td>
+                <td class="px-3 py-3 text-center">{{ linea.cantidad }}</td>
+                <td class="px-3 py-3 text-right">
+                  @if (linea.precioUnitario === null) {
+                    <span class="text-slate-400">Sin precio registrado</span>
+                  } @else {
+                    {{ linea.precioUnitario | number: '1.0-2':'es-CL' }}
+                  }
+                </td>
+                <td class="px-3 py-3 text-right font-semibold">
+                  @if (linea.subtotal === null || linea.subtotal === undefined) {
+                    <span class="text-slate-400">Sin precio registrado</span>
+                  } @else {
+                    {{ linea.subtotal | pesos }}
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <dl class="ml-auto mt-4 grid max-w-xs grid-cols-2 gap-2 text-sm">
+        <dt class="text-slate-600">Compra bruta</dt>
+        <dd class="text-right font-semibold">{{ detalle.compraBruta | pesos }}</dd>
+        <dt class="text-slate-600">Impuesto</dt>
+        <dd class="text-right font-semibold">{{ detalle.impuesto | pesos }}</dd>
+        <dt class="text-slate-600">Compra neta</dt>
+        <dd class="text-right font-semibold text-verde-boton">{{ detalle.compraNeta | pesos }}</dd>
+      </dl>
+
+      <div class="mt-6 flex justify-end">
+        <button type="button" class="boton-oscuro" (click)="cerrarDetalle()">Cerrar</button>
+      </div>
+    </section>
+  </div>
+}

@@ -1,4 +1,4 @@
-import { Component, Input, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 
 @Component({
   selector: 'app-tabla-contenido',
@@ -13,7 +13,8 @@ export class TablaContenidoComponent {
   @Input() registrosPorPagina = 10;
   @Input() compacta = false;
 
-  paginaActual = 1;
+  @Input() paginaActual = 1;
+  @Output() paginaCambiada = new EventEmitter<number>();
 
   get totalPaginas(): number {
     return Math.ceil(this.totalRegistros / this.registrosPorPagina);
@@ -21,11 +22,12 @@ export class TablaContenidoComponent {
 
   get paginasVisibles(): number[] {
     const cantidad = Math.min(this.totalPaginas, 10);
-    return Array.from({ length: cantidad }, (_, i) => i + 1);
+    const inicio = Math.max(1, Math.min(this.paginaActual - 4, this.totalPaginas - cantidad + 1));
+    return Array.from({ length: cantidad }, (_, i) => inicio + i);
   }
 
   get primerRegistro(): number {
-    return (this.paginaActual - 1) * this.registrosPorPagina + 1;
+    return this.totalRegistros === 0 ? 0 : (this.paginaActual - 1) * this.registrosPorPagina + 1;
   }
 
   get ultimoRegistro(): number {
@@ -33,8 +35,9 @@ export class TablaContenidoComponent {
   }
 
   cambiarPagina(pagina: number): void {
-    if (pagina >= 1 && pagina <= this.totalPaginas) {
+    if (pagina >= 1 && pagina <= this.totalPaginas && pagina !== this.paginaActual) {
       this.paginaActual = pagina;
+      this.paginaCambiada.emit(pagina);
     }
   }
 }

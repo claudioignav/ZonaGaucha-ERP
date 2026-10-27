@@ -1,3 +1,6 @@
+@if (mensajeError) {
+  <p role="alert" class="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeError }}</p>
+}
 <div class="mx-auto flex max-w-[1400px] flex-col gap-5">
   <header>
     <p class="migas">
@@ -8,23 +11,23 @@
     <p class="subtitulo-pagina">Registrar información de compra (entrada de stock)</p>
   </header>
 
-  <form class="tarjeta p-6" (ngSubmit)="guardarCompra()">
+  <form class="tarjeta p-6" (ngSubmit)="guardarCompra()" >
     <h2 class="border-b border-slate-200 pb-2 font-semibold">Registrar Información de Compra (Entrada de Stock)</h2>
 
     <div class="mt-5 space-y-4">
       <div>
         <label class="etiqueta" for="numero-lote">Número de Lote <span class="obligatorio">*</span></label>
-        <input id="numero-lote" name="numeroLote" type="text" class="campo" placeholder="Ej: 12" [(ngModel)]="compra.numeroLote" />
+        <input id="numero-lote" type="text" class="campo" placeholder="Ej: 12" name="numeroLote" [(ngModel)]="compra.numeroLote" />
       </div>
 
       <div>
         <label class="etiqueta" for="numero-factura">Número de Factura <span class="obligatorio">*</span></label>
-        <input id="numero-factura" name="numeroFactura" type="text" class="campo" placeholder="Ej: 2000001" [(ngModel)]="compra.numeroFactura" />
+        <input id="numero-factura" type="text" class="campo" placeholder="Ej: 3311111" name="numeroFactura" [(ngModel)]="compra.numeroFactura" />
       </div>
 
       <div>
         <label class="etiqueta" for="proveedor">Proveedor <span class="obligatorio">*</span></label>
-        <select id="proveedor" name="proveedor" class="campo" [(ngModel)]="compra.proveedor">
+        <select id="proveedor" class="campo" name="proveedor" [(ngModel)]="compra.proveedor" >
           <option value="">Seleccionar proveedor...</option>
           @for (opcion of opciones.proveedores; track opcion) {
             <option [value]="opcion">{{ opcion }}</option>
@@ -34,12 +37,12 @@
 
       <div>
         <label class="etiqueta" for="fecha-compra">Fecha de Compra <span class="obligatorio">*</span></label>
-        <input id="fecha-compra" name="fechaCompra" type="datetime-local" step="1" class="campo" [(ngModel)]="compra.fechaCompra" />
+        <input id="fecha-compra" type="datetime-local" step="1" class="campo" name="fechaCompra" [(ngModel)]="compra.fechaCompra" />
       </div>
 
       <div>
         <label class="etiqueta" for="tipo-pago">Tipo de Pago <span class="obligatorio">*</span></label>
-        <select id="tipo-pago" name="tipoPago" class="campo" [(ngModel)]="compra.tipoPago">
+        <select id="tipo-pago" class="campo" name="tipoPago" [(ngModel)]="compra.tipoPago" >
           <option value="">Seleccionar tipo de pago...</option>
           @for (opcion of opciones.tiposPago; track opcion) {
             <option [value]="opcion">{{ opcion }}</option>
@@ -49,7 +52,7 @@
 
       <div>
         <label class="etiqueta" for="tipo-contenido">Tipo de Contenido <span class="obligatorio">*</span></label>
-        <select id="tipo-contenido" name="tipoContenido" class="campo" [(ngModel)]="compra.tipoContenido">
+        <select id="tipo-contenido" class="campo" name="tipoContenido" [(ngModel)]="compra.tipoContenido" >
           <option value="">Seleccionar tipo de contenido...</option>
           @for (opcion of opciones.tiposContenido; track opcion) {
             <option [value]="opcion">{{ opcion }}</option>
@@ -58,13 +61,16 @@
       </div>
 
       <div>
-        <label class="etiqueta" for="compra-bruta">Compra Bruta <span class="obligatorio">*</span></label>
-        <input id="compra-bruta" name="compraBruta" type="number" class="campo" placeholder="$0" [(ngModel)]="compra.compraBruta" />
+        <label class="etiqueta" for="compra-bruta">Compra Bruta</label>
+        <input id="compra-bruta" type="text" class="campo" [value]="compraBruta | pesos" readonly />
       </div>
 
       <div>
         <label class="etiqueta" for="impuesto">Impuesto (Porcentaje o Total)</label>
-        <input id="impuesto" name="impuesto" type="number" class="campo" placeholder="0% o $0" [(ngModel)]="compra.impuesto" />
+        <input id="impuesto" type="text" class="campo" placeholder="0% o $0" name="impuesto" [(ngModel)]="compra.impuesto" />
+        @if (!impuestoValido) {
+          <p class="mt-1 text-xs text-red-600">Escribe un porcentaje (19%) o un monto ($190).</p>
+        }
       </div>
 
       <div>
@@ -73,11 +79,56 @@
       </div>
     </div>
 
-    <app-tabla-productos [productos]="compra.productos" [opciones]="opciones.productos" textoBoton="Agregar Otro Producto" />
+    <h3 class="mt-6 text-sm font-semibold">Sección de Productos</h3>
+
+    <div class="mt-3 overflow-x-auto rounded-xl border border-slate-200">
+      <table class="w-full min-w-[640px] text-sm">
+        <thead class="bg-verde-claro text-left text-xs font-bold text-verde-oscuro uppercase">
+          <tr>
+            <th scope="col" class="px-6 py-3.5">Nombre del Producto</th>
+            <th scope="col" class="w-28 px-3 py-3.5">Cantidad</th>
+            <th scope="col" class="w-40 px-3 py-3.5">Precio Unitario</th>
+            <th scope="col" class="w-36 px-3 py-3.5 text-right">Subtotal</th>
+            <th scope="col" class="w-24 px-3 py-3.5 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (linea of compra.productos; track $index; let i = $index) {
+            <tr class="border-slate-200" [class.border-b]="!$last">
+              <td class="px-6 py-3">
+                <select class="campo bg-white" aria-label="Seleccionar producto..." [name]="'producto-' + i" [(ngModel)]="linea.producto">
+                  <option value="">Seleccionar producto...</option>
+                  @for (producto of opciones.productos; track producto) {
+                    <option [value]="producto">{{ producto }}</option>
+                  }
+                </select>
+              </td>
+              <td class="px-3 py-3">
+                <input type="number" min="1" class="campo bg-white" aria-label="Cantidad" [name]="'cantidad-' + i" [(ngModel)]="linea.cantidad" />
+              </td>
+              <td class="px-3 py-3">
+                <input type="number" min="0" step="0.01" class="campo bg-white" aria-label="Precio unitario" [name]="'precio-' + i" [(ngModel)]="linea.precioUnitario" />
+              </td>
+              <td class="px-3 py-3 text-right font-semibold">{{ subtotal(linea) | pesos }}</td>
+              <td class="px-3 py-3 text-center">
+                <button type="button" title="Quitar producto" (click)="quitarProducto(i)">
+                  <img class="size-7" src="assets/icons/del-btn.svg" alt="Quitar" />
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <button type="button" class="mt-4 flex items-center gap-2 text-sm font-semibold text-verde-boton hover:underline" (click)="agregarProducto()">
+      <img class="size-4" src="assets/icons/plus.svg" alt="" />
+      Agregar Otro Producto
+    </button>
 
     <div class="mt-6 flex justify-end gap-3">
       <a routerLink="/compras" class="boton-oscuro">Cancelar</a>
-      <button type="submit" class="boton-verde">Guardar Compra</button>
+      <button class="boton-verde" type="submit" [disabled]="!lineasCompletas || !impuestoValido">Guardar Compra</button>
     </div>
   </form>
 </div>
