@@ -84,4 +84,38 @@ describe('TablaContenidoComponent', () => {
     expect(boton('11')).toBeUndefined();
     expect(pie()).toContain('...');
   });
+
+
+  it('notifica el cambio de página una sola vez y rechaza páginas inválidas', async () => {
+    await mostrar(25, true);
+    const cambios: number[] = [];
+    component.paginaCambiada.subscribe((pagina) => cambios.push(pagina));
+
+    boton('2').click();
+    await fixture.whenStable();
+    component.cambiarPagina(2);
+    component.cambiarPagina(0);
+    component.cambiarPagina(4);
+
+    expect(cambios).toEqual([2]);
+  });
+
+  it('sin resultados muestra un rango vacío y desactiva Siguiente', async () => {
+    await mostrar(0, true);
+
+    expect(pie()).toContain('Mostrando 0-0 de 0 registros');
+    expect(boton('Siguiente').disabled).toBe(true);
+  });
+
+  it('permite regresar con los botones al superar diez páginas', async () => {
+    await mostrar(150, true);
+    component.cambiarPagina(11);
+    fixture.changeDetectorRef.markForCheck();
+    await fixture.whenStable();
+
+    expect(boton('11')).toBeTruthy();
+    boton('10').click();
+    await fixture.whenStable();
+    expect(pie()).toContain('Mostrando 91-100 de 150 registros');
+  });
 });
