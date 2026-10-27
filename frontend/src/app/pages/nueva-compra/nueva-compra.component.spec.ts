@@ -1,96 +1,150 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { Router } from '@angular/router';
+
+import { AppModule } from '../../app-module';
 import { NuevaCompraComponent } from './nueva-compra.component';
-import { PesosPipe } from '../../pipes/pesos.pipe';
-import { TablaProductosComponent } from '../../components/tabla-productos/tabla-productos.component';
+import { RUTAS_API } from '../../services/api';
 
-describe('NuevaCompraComponent', () => {
-  let component: NuevaCompraComponent;
-  let fixture: ComponentFixture<NuevaCompraComponent>;
+const registros = [
+  {
+    id: 1,
+    numeroFactura: 'F1',
+    numeroLote: '12',
+    proveedor: 'Proveedor de Prueba',
+    fechaCompra: '2026-10-07T12:00',
+    tipoPago: 'Tarjeta',
+    tipoContenido: 'Ropa',
+    productos: [{ producto: 'Camisa', cantidad: 10, precioUnitario: 100 }],
+    compraBruta: 1000,
+    impuesto: 190,
+    compraNeta: 1190,
+  },
+];
+let fixture: ComponentFixture<NuevaCompraComponent>;
+let http: HttpTestingController;
+let navegar: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([{ path: 'compras', children: [] }]), FormsModule],
-      declarations: [NuevaCompraComponent, TablaProductosComponent, PesosPipe],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(NuevaCompraComponent);
-    component = fixture.componentInstance;
-    component.opciones = {
-      proveedores: ['Proveedor de Prueba SpA'],
-      tiposPago: ['Transferencia'],
-      tiposContenido: ['Surtido'],
-      productos: ['Producto de Prueba'],
-    };
-    await fixture.whenStable();
+beforeEach(async () => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [provideHttpClient(), provideHttpClientTesting()],
   });
-
-  it('se crea correctamente', () => {
-    expect(component).toBeTruthy();
-  });
-
-  async function completar(campos: Record<string, string>): Promise<void> {
-    for (const [selector, valor] of Object.entries(campos)) {
-      const campo: HTMLInputElement = fixture.nativeElement.querySelector(selector);
-      campo.value = valor;
-      campo.dispatchEvent(new Event(campo.tagName === 'SELECT' ? 'change' : 'input'));
-    }
-    await fixture.whenStable();
+  http = TestBed.inject(HttpTestingController);
+  navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+  fixture = TestBed.createComponent(NuevaCompraComponent);
+  fixture.detectChanges();
+  for (const peticion of http.match(() => true)) {
+    if (peticion.request.url.endsWith('/opciones'))
+      peticion.flush({
+        proveedores: ['Proveedor de Prueba'],
+        tiposPago: ['Tarjeta'],
+        tiposContenido: ['Ropa'],
+        productos: ['Camisa'],
+        plataformas: ['Web'],
+        lotes: ['12'],
+      });
+    else if (peticion.request.url.endsWith('/resumen'))
+      peticion.flush({
+        fechaActual: '2026-10-07T12:00',
+        compraBruta: 1000,
+        compraNeta: 1190,
+        impuestosTotales: 190,
+        ventaNeta: 2100,
+        totalAdicional: 100,
+        promedioVenta: 20,
+        productosDisponibles: 8,
+      });
+    else if (peticion.request.url === RUTAS_API.compras) peticion.flush(registros);
+    else peticion.flush([{ id: 1, nombre: 'Tarjeta' }]);
   }
 
-  const compraNeta = (): string => fixture.nativeElement.querySelector('#compra-neta').value;
+  await fixture.whenStable();
+});
 
-  it('guarda en la compra todo lo que se completa en el formulario', async () => {
-    await completar({
-      '#numero-lote': '1',
-      '#numero-factura': '2000001',
-      '#proveedor': 'Proveedor de Prueba SpA',
-      '#fecha-compra': '2026-09-01T09:00',
-      '#tipo-pago': 'Transferencia',
-      '#tipo-contenido': 'Surtido',
-      '#compra-bruta': '100000',
-      '#impuesto': '19000',
-      'select[aria-label="Seleccionar producto..."]': 'Producto de Prueba',
-      'input[aria-label="Cantidad"]': '10',
-    });
+afterEach(() => http.verify());
 
-    expect(component.compra).toEqual({
-      numeroFactura: '2000001',
-      numeroLote: '1',
-      proveedor: 'Proveedor de Prueba SpA',
-      fechaCompra: '2026-09-01T09:00',
-      tipoPago: 'Transferencia',
-      tipoContenido: 'Surtido',
-      productos: [{ producto: 'Producto de Prueba', cantidad: 10 }],
-      compraBruta: 100000,
-      impuesto: 19000,
-    });
+it('muestra la respuesta recibida por http', () => {
+  expect(fixture.componentInstance.opciones.productos).toEqual(['Camisa']);
+});
+
+it('suma las lineas y calcula el impuesto en porcentaje', () => {
+  const componente = fixture.componentInstance;
+
+  componente.compra.productos = [
+    { producto: 'Camisa', cantidad: 3, precioUnitario: 1000 },
+    { producto: 'Poncho', cantidad: 1, precioUnitario: 0.5 },
+  ];
+  componente.compra.impuesto = '19%';
+
+  expect(componente.compraBruta).toBe(3000.5);
+  expect(componente.compraNeta).toBe(3570.6);
+});
+
+it('no carga un precio al elegir producto; el precio se escribe a mano', () => {
+  const linea = fixture.componentInstance.compra.productos[0];
+
+  linea.producto = 'Camisa';
+
+  expect(linea.precioUnitario).toBeNull();
+  expect(fixture.componentInstance.lineasCompletas).toBe(false);
+});
+
+it('envia las lineas con precio, la bruta y el tipo de impuesto', () => {
+  const componente = fixture.componentInstance;
+
+  componente.compra = {
+    ...registros[0],
+    productos: [{ producto: 'Camisa', cantidad: 10, precioUnitario: 100 }],
+    impuesto: '19%',
+  };
+  componente.guardarCompra();
+
+  const guardar = http.expectOne(RUTAS_API.compras);
+
+  expect(guardar.request.method).toBe('POST');
+  expect(guardar.request.body).toMatchObject({
+    compraBruta: 1000,
+    impuesto: 19,
+    tipoImpuesto: 'porcentaje',
+    productos: [{ producto: 'Camisa', cantidad: 10, precioUnitario: 100 }],
   });
 
-  it('muestra la compra neta en $0 mientras no se escriban montos', () => {
-    expect(compraNeta()).toBe('$0');
-  });
+  guardar.flush({ id: 1 });
 
-  it('calcula la compra neta al escribir la compra bruta y el impuesto', async () => {
-    await completar({
-      '#compra-bruta': '100000',
-      '#impuesto': '19000',
-    });
+  expect(navegar).toHaveBeenCalledWith(['/compras']);
+});
 
-    expect(compraNeta()).toBe('$119.000');
-  });
+it('un impuesto con texto invalido no permite guardar y el monto con signo pesos se envia tal cual', () => {
+  const componente = fixture.componentInstance;
 
-  const filas = (): number => fixture.nativeElement.querySelectorAll('tbody tr').length;
+  componente.compra.productos = [{ producto: 'Camisa', cantidad: 1, precioUnitario: 1000 }];
+  componente.compra.impuesto = 'abc';
 
-  it('parte con una fila de producto lista para llenar', () => {
-    expect(filas()).toBe(1);
-  });
+  expect(componente.impuestoValido).toBe(false);
 
-  it('vuelve al listado de compras al guardar', async () => {
-    fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
-    await fixture.whenStable();
+  componente.compra.impuesto = '$190';
 
-    expect(TestBed.inject(Router).url).toBe('/compras');
-  });
+  expect(componente.impuestoValido).toBe(true);
+  expect(componente.compraNeta).toBe(1190);
+
+  componente.guardarCompra();
+
+  const guardar = http.expectOne(RUTAS_API.compras);
+
+  expect(guardar.request.body).toMatchObject({ impuesto: 190, tipoImpuesto: 'monto' });
+
+  guardar.flush({ id: 1 });
+});
+
+it('muestra el error al rechazar el registro', async () => {
+  fixture.componentInstance.guardarCompra();
+  http
+    .expectOne(RUTAS_API.compras)
+    .flush({ error: 'Datos no validos' }, { status: 400, statusText: 'Bad Request' });
+  await fixture.whenStable();
+
+  expect(fixture.componentInstance.mensajeError).toBe('Datos no validos');
+  expect(navegar).not.toHaveBeenCalled();
 });
