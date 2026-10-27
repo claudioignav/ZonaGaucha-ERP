@@ -94,6 +94,16 @@ it('muestra el error de carga recibido del backend', async () => {
   expect(fixture.componentInstance.mensajeError).toBe('No se pudo cargar');
 });
 
+it('muestra la fecha y los montos entregados por la API con sus formatos', () => {
+  fixture.detectChanges();
+
+  const texto = fixture.nativeElement.textContent;
+
+  expect(texto).toContain('Oct 7, 2026 12:00');
+  expect(texto).toContain('$1.000');
+  expect(texto).toContain('$1.190');
+});
+
 
 it('el usuario registra pero no consulta metricas ni ve acciones de modificacion', async () => {
   fixture.destroy();
@@ -162,6 +172,7 @@ it('abre el detalle de la compra con precio y subtotal por linea', () => {
 
   expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
 });
+
 
 it('cambia las filas visibles al avanzar y volver a la primera página', async () => {
   fixture.componentInstance.cargarCompras();
