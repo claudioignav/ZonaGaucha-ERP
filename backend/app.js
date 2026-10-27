@@ -19,6 +19,8 @@ app.use('/usuarios', authenticateToken, verifyAdmin, require('./routes/usuarios'
 
 app.use('/catalogos', authenticateToken, require('./routes/catalogos'));
 
+app.use('/compras', authenticateToken, require('./routes/compras'));
+
 app.use(rutaNoEncontrada);
 
 app.use(manejarErrores);
