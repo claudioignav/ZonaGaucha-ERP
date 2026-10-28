@@ -1,3 +1,6 @@
+@if (mensajeError) {
+  <p role="alert" class="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeError }}</p>
+}
 <div class="mx-auto flex max-w-[1400px] flex-col gap-5">
   <header>
     <p class="migas">
@@ -8,13 +11,13 @@
     <p class="subtitulo-pagina">Registrar información de venta</p>
   </header>
 
-  <form class="tarjeta p-6" #formulario="ngForm" (ngSubmit)="guardarVenta()">
+  <form class="tarjeta p-6" #formulario="ngForm" (ngSubmit)="guardarVenta()" >
     <h2 class="border-b border-slate-200 pb-2 font-semibold">Registrar Información de Venta</h2>
 
     <div class="mt-5 space-y-4">
       <div>
         <label class="etiqueta" for="cliente">Nombre del Cliente <span class="obligatorio">*</span></label>
-        <input id="cliente" name="cliente" type="text" class="campo" placeholder="Ej: Distribuidora del Norte S.A." [(ngModel)]="venta.cliente" #cliente="ngModel" pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .&amp;]+" />
+        <input id="cliente" type="text" class="campo" placeholder="Ej: Distribuidora del Norte S.A." name="cliente" [(ngModel)]="venta.cliente" #cliente="ngModel" required pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .&amp;]+" />
         @if (cliente.errors?.['pattern']) {
           <p class="mt-1 text-xs text-red-600">Ingresa un nombre o razón social válidos.</p>
         }
@@ -22,7 +25,7 @@
 
       <div>
         <label class="etiqueta" for="tipo-pago">Tipo de Pago <span class="obligatorio">*</span></label>
-        <select id="tipo-pago" name="tipoPago" class="campo" [(ngModel)]="venta.tipoPago">
+        <select id="tipo-pago" class="campo" name="tipoPago" [(ngModel)]="venta.tipoPago" >
           <option value="">Seleccionar tipo de pago...</option>
           @for (opcion of opciones.tiposPago; track opcion) {
             <option [value]="opcion">{{ opcion }}</option>
@@ -32,12 +35,12 @@
 
       <div>
         <label class="etiqueta" for="fecha-venta">Fecha de Venta <span class="obligatorio">*</span></label>
-        <input id="fecha-venta" name="fechaVenta" type="datetime-local" step="1" class="campo" [(ngModel)]="venta.fechaVenta" />
+        <input id="fecha-venta" type="datetime-local" step="1" class="campo" name="fechaVenta" [(ngModel)]="venta.fechaVenta" />
       </div>
 
       <div>
         <label class="etiqueta" for="plataforma">Plataforma <span class="obligatorio">*</span></label>
-        <select id="plataforma" name="plataforma" class="campo" [(ngModel)]="venta.plataforma">
+        <select id="plataforma" class="campo" name="plataforma" [(ngModel)]="venta.plataforma" >
           <option value="">Seleccionar plataforma...</option>
           @for (opcion of opciones.plataformas; track opcion) {
             <option [value]="opcion">{{ opcion }}</option>
@@ -47,7 +50,7 @@
 
       <div>
         <label class="etiqueta" for="lote">Lote <span class="obligatorio">*</span></label>
-        <select id="lote" name="lote" class="campo" [(ngModel)]="venta.lote">
+        <select id="lote" class="campo" name="lote" [(ngModel)]="venta.lote" >
           <option value="">Seleccionar lote...</option>
           @for (opcion of opciones.lotes; track opcion) {
             <option [value]="opcion">{{ opcion }}</option>
@@ -56,22 +59,71 @@
       </div>
     </div>
 
-    <app-tabla-productos [productos]="venta.productos" [opciones]="opciones.productos" [filaAlterna]="true" />
+    <h3 class="mt-6 text-sm font-semibold">Sección de Productos</h3>
+
+    <div class="mt-3 overflow-x-auto rounded-xl border border-slate-200">
+      <table class="w-full min-w-[640px] text-sm">
+        <thead class="bg-verde-claro text-left text-xs font-bold text-verde-oscuro uppercase">
+          <tr>
+            <th scope="col" class="px-6 py-3.5">Nombre del Producto</th>
+            <th scope="col" class="w-28 px-3 py-3.5">Cantidad</th>
+            <th scope="col" class="w-40 px-3 py-3.5">Precio Unitario</th>
+            <th scope="col" class="w-36 px-3 py-3.5 text-right">Subtotal</th>
+            <th scope="col" class="w-24 px-3 py-3.5 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (linea of venta.productos; track $index; let i = $index) {
+            <tr class="border-slate-200" [class.border-b]="!$last" [class.bg-fondo]="$odd">
+              <td class="px-6 py-3">
+                <select class="campo bg-white" aria-label="Seleccionar producto..." [name]="'producto-' + i" [ngModel]="linea.producto" (ngModelChange)="linea.producto = $event; seleccionarProducto(linea)">
+                  <option value="">Seleccionar producto...</option>
+                  @for (producto of opciones.productos; track producto) {
+                    <option [value]="producto">{{ producto }}</option>
+                  }
+                </select>
+              </td>
+              <td class="px-3 py-3">
+                <input type="number" min="1" class="campo bg-white" aria-label="Cantidad" [name]="'cantidad-' + i" [(ngModel)]="linea.cantidad" />
+              </td>
+              <td class="px-3 py-3">
+                <input type="number" min="0" step="0.01" class="campo bg-white" aria-label="Precio unitario" [name]="'precio-' + i" [(ngModel)]="linea.precioUnitario" />
+              </td>
+              <td class="px-3 py-3 text-right font-semibold">{{ subtotal(linea) | pesos }}</td>
+              <td class="px-3 py-3 text-center">
+                <button type="button" title="Quitar producto" (click)="quitarProducto(i)">
+                  <img class="size-7" src="assets/icons/del-btn.svg" alt="Quitar" />
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <button type="button" class="mt-4 flex items-center gap-2 text-sm font-semibold text-verde-boton hover:underline" (click)="agregarProducto()">
+      <img class="size-4" src="assets/icons/plus.svg" alt="" />
+      Agregar Producto
+    </button>
 
     <div class="mt-5 space-y-4">
       <div>
-        <label class="etiqueta" for="valor-bruto">Valor Bruto <span class="obligatorio">*</span></label>
-        <input id="valor-bruto" name="valorNeto" type="number" class="campo" placeholder="$4.620" [(ngModel)]="venta.valorNeto" />
+        <label class="etiqueta" for="valor-bruto">Valor Bruto</label>
+        <input id="valor-bruto" type="text" class="campo" [value]="valorBruto | pesos" readonly />
       </div>
       <div>
         <label class="etiqueta" for="valor-adicional">Valor Adicional</label>
-        <input id="valor-adicional" name="valorAdicional" type="number" class="campo" placeholder="$3.800" [(ngModel)]="venta.valorAdicional" />
+        <input id="valor-adicional" type="number" min="0" step="1" class="campo" placeholder="$0" name="valorAdicional" [(ngModel)]="venta.valorAdicional" />
+      </div>
+      <div>
+        <label class="etiqueta" for="valor-neto">Valor Neto</label>
+        <input id="valor-neto" type="text" class="campo" [value]="valorNeto | pesos" readonly />
       </div>
     </div>
 
     <div class="mt-6 flex justify-end gap-3">
       <a routerLink="/ventas" class="boton-gris">Cancelar</a>
-      <button type="submit" class="boton-verde" [disabled]="formulario.invalid">Guardar Venta</button>
+      <button class="boton-verde" [disabled]="formulario.invalid || !lineasCompletas" type="submit" >Guardar Venta</button>
     </div>
   </form>
 </div>
