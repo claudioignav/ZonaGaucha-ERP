@@ -21,6 +21,8 @@ app.use('/catalogos', authenticateToken, require('./routes/catalogos'));
 
 app.use('/compras', authenticateToken, require('./routes/compras'));
 
+app.use('/ventas', authenticateToken, require('./routes/ventas'));
+
 app.use(rutaNoEncontrada);
 
 app.use(manejarErrores);

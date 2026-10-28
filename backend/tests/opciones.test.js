@@ -15,3 +15,12 @@ test('devuelve opciones de compras desde los catalogos', async () => {
     productos: ['Prueba'],
   });
 });
+
+test('devuelve lotes reales y opciones de ventas', async () => {
+  for (const nombre of ['Plataforma', 'TipoPago', 'Producto'])
+    jest.spyOn(modelos[nombre], 'findAll').mockResolvedValue([{ nombre: 'Prueba' }]);
+
+  jest.spyOn(modelos.Lote, 'findAll').mockResolvedValue([{ numeroLote: 12 }]);
+
+  expect((await ejecutar(opciones.ventas)).json.mock.calls[0][0].lotes).toEqual(['12']);
+});
