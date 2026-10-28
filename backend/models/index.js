@@ -29,6 +29,8 @@ const PlataformaTipoPago = require('./plataformaTipoPago')(sequelize);
 const Compra = require('./compra')(sequelize);
 const Lote = require('./lote')(sequelize);
 const DetalleLote = require('./detalleLote')(sequelize);
+const Venta = require('./venta')(sequelize);
+const DetalleVenta = require('./detalleVenta')(sequelize);
 
 Rol.hasMany(Usuario, { foreignKey: 'idRol' });
 
@@ -68,6 +70,18 @@ Lote.hasMany(DetalleLote, { foreignKey: 'idLote', as: 'detalles' });
 
 DetalleLote.belongsTo(Producto, { foreignKey: 'idProducto', as: 'producto' });
 
+Venta.belongsTo(Plataforma, { foreignKey: 'idPlataforma', as: 'plataforma' });
+
+Venta.belongsTo(TipoPago, { foreignKey: 'idTipoPago', as: 'tipoPago' });
+
+Venta.belongsTo(Usuario, { foreignKey: 'idUsuario', as: 'usuario' });
+
+Venta.hasMany(DetalleVenta, { foreignKey: 'idVenta', as: 'detalles' });
+
+DetalleVenta.belongsTo(Producto, { foreignKey: 'idProducto', as: 'producto' });
+
+DetalleVenta.belongsTo(Lote, { foreignKey: 'idLote', as: 'lote' });
+
 module.exports = {
   sequelize,
   Rol,
@@ -82,4 +96,6 @@ module.exports = {
   Compra,
   Lote,
   DetalleLote,
+  Venta,
+  DetalleVenta,
 };
