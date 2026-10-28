@@ -102,4 +102,49 @@ describe('ventas', () => {
       ejecutar(ventas.crear, { body: ventaValida({ productos: [] }) }),
     ).rejects.toMatchObject({ status: 400 });
   });
+
+  test('el bruto sale de cantidad por precio y se guarda el precio usado', async () => {
+    simularTransaccion();
+    jest.spyOn(PlataformaTipoPago, 'findOne').mockResolvedValue({});
+    jest.spyOn(DetalleLote, 'findOne').mockResolvedValue(crearRegistro({ cantidadDisponible: 9 }));
+
+    const crearVenta = jest.spyOn(Venta, 'create').mockResolvedValue({ idVenta: 8 });
+    const crearDetalle = jest.spyOn(DetalleVenta, 'bulkCreate').mockResolvedValue([]);
+
+    await ejecutar(ventas.crear, {
+      body: ventaValida({
+        valorBruto: undefined,
+        valorAdicional: 0,
+        productos: [{ idProducto: 5, cantidad: 3, precioUnitario: 1234.5 }],
+      }),
+    });
+
+    expect(crearVenta.mock.calls[0][0]).toMatchObject({ valorBruto: 3703.5, valorNeto: 3703.5 });
+    expect(crearDetalle.mock.calls[0][0][0].precioVentaUnitario).toBe(1234.5);
+  });
+
+  test.each([
+    ['un bruto que no coincide con las lineas', { valorBruto: 15000 }, 'bruto no coincide'],
+    ['un neto que no coincide', { valorNeto: 20000 }, 'neto no coincide'],
+    [
+      'una linea sin precio',
+      { productos: [{ idProducto: 5, cantidad: 2 }] },
+      'precio unitario',
+    ],
+    [
+      'un precio con tres decimales',
+      { productos: [{ idProducto: 5, cantidad: 2, precioUnitario: 10000.125 }] },
+      'precio unitario',
+    ],
+    ['un adicional negativo', { valorAdicional: -1 }, 'adicional'],
+  ])('rechaza %s', async (_caso, cambios, mensaje) => {
+    simularTransaccion();
+    jest.spyOn(PlataformaTipoPago, 'findOne').mockResolvedValue({});
+    jest.spyOn(DetalleLote, 'findOne').mockResolvedValue(crearRegistro({ cantidadDisponible: 9 }));
+
+    const crearVenta = jest.spyOn(Venta, 'create');
+
+    await expect(ejecutar(ventas.crear, { body: ventaValida(cambios) })).rejects.toThrow(mensaje);
+    expect(crearVenta).not.toHaveBeenCalled();
+  });
 });
