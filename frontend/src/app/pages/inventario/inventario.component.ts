@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
-import { Lote, lotesRegistrados, resumenInventario } from '../../models/lote';
+import { finalize } from 'rxjs';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Lote, resumenInventario } from '../../models/lote';
+import { InventarioService } from '../../services/inventario.service';
 
 @Component({
   selector: 'app-inventario',
@@ -7,20 +9,75 @@ import { Lote, lotesRegistrados, resumenInventario } from '../../models/lote';
   templateUrl: './inventario.component.html',
   styleUrl: './inventario.component.scss',
 })
-export class InventarioComponent {
-  lotes: Lote[] = lotesRegistrados;
-  resumen = resumenInventario;
+export class InventarioComponent implements OnInit {
+  private readonly detector = inject(ChangeDetectorRef);
 
+  refrescar(): void {
+    this.detector.markForCheck();
+  }
+
+  mensajeError = '';
+
+  private readonly inventarioService = inject(InventarioService);
+
+  lotes: Lote[] = [];
+
+  resumen = { ...resumenInventario };
+
+  // valores escritos en el formulario, la tabla no cambia hasta aplicarlos.
   filtroLote = '';
+
   filtroProveedor = '';
 
+  filtroContenido = '';
+
+  filtroFecha = '';
+
+  private filtrosAplicados = { lote: '', proveedor: '', contenido: '', fecha: '' };
+
+  aplicarFiltros(): void {
+    this.filtrosAplicados = {
+      lote: this.filtroLote.trim(),
+      proveedor: this.filtroProveedor.trim().toLowerCase(),
+      contenido: this.filtroContenido,
+      fecha: this.filtroFecha,
+    };
+  }
+
+  ngOnInit(): void {
+    this.inventarioService
+      .lotes()
+      .pipe(finalize(() => this.refrescar()))
+      .subscribe({
+        next: (lotes) => (this.lotes = lotes),
+        error: (error: Error) => {
+          this.mensajeError = error.message;
+        },
+      });
+    this.inventarioService
+      .resumen()
+      .pipe(finalize(() => this.refrescar()))
+      .subscribe({
+        next: (resumen) => (this.resumen = resumen),
+        error: (error: Error) => {
+          this.mensajeError = error.message;
+        },
+      });
+  }
+
+  get tiposContenido(): string[] {
+    return [...new Set(this.lotes.map((lote) => lote.tipoContenido))].sort();
+  }
+
   get lotesFiltrados(): Lote[] {
-    const numero = this.filtroLote.trim();
-    const proveedor = this.filtroProveedor.trim().toLowerCase();
+    const { lote, proveedor, contenido, fecha } = this.filtrosAplicados;
+
     return this.lotes.filter(
-      (lote) =>
-        (!numero || String(lote.numero) === numero) &&
-        (!proveedor || lote.proveedor.toLowerCase().includes(proveedor)),
+      (registro) =>
+        (!lote || String(registro.numero) === lote) &&
+        (!proveedor || registro.proveedor.toLowerCase().includes(proveedor)) &&
+        (!contenido || registro.tipoContenido === contenido) &&
+        (!fecha || registro.fechaCreacion === fecha),
     );
   }
 
@@ -28,6 +85,7 @@ export class InventarioComponent {
     if (!lote.unidadesTotales) {
       return 0;
     }
+
     return Math.round((lote.unidadesDisponibles / lote.unidadesTotales) * 100);
   }
 }
