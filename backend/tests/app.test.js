@@ -45,4 +45,7 @@ describe('estado de la api', () => {
   test('exige token en inventario', async () => {
     expect((await request(app).get('/inventario')).status).toBe(401);
   });
+  test('exige token en dashboard', async () => {
+    expect((await request(app).get('/dashboard')).status).toBe(401);
+  });
 });

@@ -25,6 +25,8 @@ app.use('/ventas', authenticateToken, require('./routes/ventas'));
 
 app.use('/inventario', authenticateToken, require('./routes/inventario'));
 
+app.use('/dashboard', authenticateToken, require('./routes/dashboard'));
+
 app.use(rutaNoEncontrada);
 
 app.use(manejarErrores);
