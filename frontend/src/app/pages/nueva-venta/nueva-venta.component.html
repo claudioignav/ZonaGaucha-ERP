@@ -65,7 +65,7 @@
       <table class="w-full min-w-[640px] text-sm">
         <thead class="bg-verde-claro text-left text-xs font-bold text-verde-oscuro uppercase">
           <tr>
-            <th scope="col" class="px-6 py-3.5">Nombre del Producto</th>
+            <th id="columna-producto-venta" scope="col" class="px-6 py-3.5">Nombre del Producto</th>
             <th scope="col" class="w-28 px-3 py-3.5">Cantidad</th>
             <th scope="col" class="w-40 px-3 py-3.5">Precio Unitario</th>
             <th scope="col" class="w-36 px-3 py-3.5 text-right">Subtotal</th>
@@ -76,7 +76,7 @@
           @for (linea of venta.productos; track $index; let i = $index) {
             <tr class="border-slate-200" [class.border-b]="!$last" [class.bg-fondo]="$odd">
               <td class="px-6 py-3">
-                <select class="campo bg-white" aria-label="Seleccionar producto..." [name]="'producto-' + i" [ngModel]="linea.producto" (ngModelChange)="linea.producto = $event; seleccionarProducto(linea)">
+                <select class="campo bg-white" aria-labelledby="columna-producto-venta" [name]="'producto-' + i" [ngModel]="linea.producto" (ngModelChange)="linea.producto = $event; seleccionarProducto(linea)">
                   <option value="">Seleccionar producto...</option>
                   @for (producto of opciones.productos; track producto) {
                     <option [value]="producto">{{ producto }}</option>

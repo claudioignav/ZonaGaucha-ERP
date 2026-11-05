@@ -66,7 +66,9 @@ export class InventarioComponent implements OnInit {
   }
 
   get tiposContenido(): string[] {
-    return [...new Set(this.lotes.map((lote) => lote.tipoContenido))].sort();
+    return [...new Set(this.lotes.map((lote) => lote.tipoContenido))].sort((primero, segundo) =>
+      primero.localeCompare(segundo, 'es'),
+    );
   }
 
   get lotesFiltrados(): Lote[] {

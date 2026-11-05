@@ -116,7 +116,12 @@ it('carga el precio de catalogo al elegir producto y el usuario puede cambiarlo'
   componente.venta.productos = [{ producto: '', cantidad: 1, precioUnitario: null }];
   fixture.detectChanges();
 
-  const select = fixture.nativeElement.querySelector('select[aria-label="Seleccionar producto..."]');
+  const select: HTMLSelectElement = fixture.nativeElement.querySelector(
+    'select[aria-labelledby="columna-producto-venta"]',
+  );
+  const etiqueta = fixture.nativeElement.querySelector('#' + select.getAttribute('aria-labelledby'));
+
+  expect(etiqueta.textContent.trim()).toBe('Nombre del Producto');
 
   select.value = 'Camisa';
   select.dispatchEvent(new Event('change'));

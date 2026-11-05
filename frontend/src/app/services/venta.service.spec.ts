@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { VentaService } from './venta.service';
-import { RUTAS_API, API_URL } from './api';
+import { RUTAS_API } from './api';
 
 let servicio: VentaService;
 let http: HttpTestingController;
@@ -26,10 +26,18 @@ it('consulta listado con los filtros de la pantalla', () => {
 });
 
 it('consulta resumen y opciones del backend', () => {
-  servicio.resumen().subscribe();
-  http.expectOne(RUTAS_API.ventas + '/resumen').flush({});
-  servicio.opciones().subscribe();
-  http.expectOne(RUTAS_API.ventas + '/opciones').flush({});
+  const resumen = { fechaActual: '2026-11-04T12:00', ventaNeta: 2100, totalAdicional: 100 };
+  const opciones = { tiposPago: ['Tarjeta'], plataformas: ['Web'], lotes: ['12'], productos: ['Camisa'] };
+
+  servicio.resumen().subscribe((respuesta) => expect(respuesta).toEqual(resumen));
+  const peticionResumen = http.expectOne(RUTAS_API.ventas + '/resumen');
+  expect(peticionResumen.request.method).toBe('GET');
+  peticionResumen.flush(resumen);
+
+  servicio.opciones().subscribe((respuesta) => expect(respuesta).toEqual(opciones));
+  const peticionOpciones = http.expectOne(RUTAS_API.ventas + '/opciones');
+  expect(peticionOpciones.request.method).toBe('GET');
+  peticionOpciones.flush(opciones);
 });
 
 it('envia el formulario y recibe los totales calculados', () => {

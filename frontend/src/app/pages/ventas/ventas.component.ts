@@ -1,7 +1,7 @@
 import { finalize } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { tienePermiso } from '../../models/permisos';
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
 import { resumenVentas, Venta, opcionesVenta } from '../../models/venta';
 import { FiltrosVenta, VentaService } from '../../services/venta.service';
 
@@ -96,11 +96,24 @@ export class VentasComponent implements OnInit {
   // venta abierta en el cuadro de detalle, null cuando no hay ninguna abierta.
   detalle: Venta | null = null;
 
+  private dialogoDetalle?: HTMLDialogElement;
+
+  @ViewChild('dialogoDetalle')
+  set referenciaDetalle(referencia: ElementRef<HTMLDialogElement> | undefined) {
+    this.dialogoDetalle = referencia?.nativeElement;
+    if (this.dialogoDetalle && !this.dialogoDetalle.open) {
+      this.dialogoDetalle.showModal();
+    }
+  }
+
   abrirDetalle(venta: Venta): void {
     this.detalle = venta;
   }
 
   cerrarDetalle(): void {
+    if (this.dialogoDetalle?.open) {
+      this.dialogoDetalle.close();
+    }
     this.detalle = null;
   }
 }

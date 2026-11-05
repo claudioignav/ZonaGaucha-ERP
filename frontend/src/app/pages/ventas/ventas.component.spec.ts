@@ -25,8 +25,17 @@ const registros = [
 let fixture: ComponentFixture<VentasComponent>;
 let http: HttpTestingController;
 let navegar: ReturnType<typeof vi.spyOn>;
+const mostrarDialogoOriginal = HTMLDialogElement.prototype.showModal;
+const cerrarDialogoOriginal = HTMLDialogElement.prototype.close;
 
 beforeEach(async () => {
+  // jsdom no implementa los metodos nativos del dialogo.
+  HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
+    this.open = true;
+  });
+  HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+    this.open = false;
+  });
   TestBed.configureTestingModule({
     imports: [AppModule],
     providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -64,7 +73,11 @@ beforeEach(async () => {
   await fixture.whenStable();
 });
 
-afterEach(() => http.verify());
+afterEach(() => {
+  HTMLDialogElement.prototype.showModal = mostrarDialogoOriginal;
+  HTMLDialogElement.prototype.close = cerrarDialogoOriginal;
+  http.verify();
+});
 
 it('muestra la respuesta recibida por http', () => {
   expect(fixture.componentInstance.ventas.length).toBe(1);
@@ -136,10 +149,31 @@ it('muestra una fila por venta y abre su detalle con precio por linea', () => {
   fixture.nativeElement.querySelector('button[title="Ver detalle"]').click();
   fixture.detectChanges();
 
-  const dialogo = fixture.nativeElement.querySelector('[role="dialog"]');
+  const dialogo: HTMLDialogElement = fixture.nativeElement.querySelector('dialog');
 
+  expect(dialogo.open).toBe(true);
   expect(dialogo.textContent).toContain('$2.000');
   expect(dialogo.textContent).toContain('Sin precio registrado');
+
+  dialogo.querySelector<HTMLButtonElement>('button')!.click();
+  fixture.detectChanges();
+
+  expect(dialogo.open).toBe(false);
+  expect(fixture.nativeElement.querySelector('dialog')).toBeNull();
+  expect(fixture.componentInstance.detalle).toBeNull();
+});
+
+it('cierra el detalle al cancelar el dialogo', () => {
+  fixture.nativeElement.querySelector('button[title="Ver detalle"]').click();
+  fixture.detectChanges();
+
+  const dialogo: HTMLDialogElement = fixture.nativeElement.querySelector('dialog');
+  dialogo.dispatchEvent(new Event('cancel', { cancelable: true }));
+  fixture.detectChanges();
+
+  expect(dialogo.open).toBe(false);
+  expect(fixture.nativeElement.querySelector('dialog')).toBeNull();
+  expect(fixture.componentInstance.detalle).toBeNull();
 });
 
 

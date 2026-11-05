@@ -110,8 +110,8 @@
 </div>
 
 @if (detalle) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-detalle-venta">
-    <section class="tarjeta w-full max-w-3xl p-6">
+  <dialog #dialogoDetalle class="fixed inset-0 m-0 h-full max-h-none w-full max-w-none items-center justify-center border-0 bg-transparent p-4 open:flex backdrop:bg-slate-900/40" aria-labelledby="titulo-detalle-venta" (cancel)="cerrarDetalle()">
+    <section class="tarjeta max-h-full w-full max-w-3xl overflow-y-auto p-6">
       <h2 id="titulo-detalle-venta" class="border-b border-slate-200 pb-2 font-semibold">Detalle de la venta {{ detalle.numeroFactura }}</h2>
       <p class="mt-1 text-xs text-slate-600">{{ detalle.cliente }} · {{ detalle.plataforma }} · {{ detalle.fechaVenta | fecha: 'tabla' }}</p>
 
@@ -161,5 +161,5 @@
         <button type="button" class="boton-oscuro" (click)="cerrarDetalle()">Cerrar</button>
       </div>
     </section>
-  </div>
+  </dialog>
 }

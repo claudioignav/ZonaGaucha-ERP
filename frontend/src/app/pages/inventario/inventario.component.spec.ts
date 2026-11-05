@@ -152,6 +152,14 @@ it('filtra por tipo de contenido y fecha de creación al aplicar', () => {
   expect(componente.lotesFiltrados.length).toBe(1);
 });
 
+it('ordena los tipos de contenido en espanol y elimina los repetidos', () => {
+  fixture.componentInstance.lotes = ['Zapatos', 'Álbumes', 'Ropa', 'Álbumes'].map(
+    (tipoContenido, indice) => ({ ...registros[0], numero: indice + 1, tipoContenido }),
+  );
+
+  expect(fixture.componentInstance.tiposContenido).toEqual(['Álbumes', 'Ropa', 'Zapatos']);
+});
+
 it('el boton Aplicar Filtros aplica lo escrito en el formulario', () => {
   const componente = fixture.componentInstance;
 
