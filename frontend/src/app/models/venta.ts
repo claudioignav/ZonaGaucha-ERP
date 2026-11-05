@@ -1,6 +1,8 @@
 export interface DetalleProducto {
   producto: string;
   cantidad: number;
+  precioUnitario?: number | null;
+  subtotal?: number | null;
 }
 
 export interface Venta {
@@ -16,10 +18,20 @@ export interface Venta {
   valorAdicional: number;
 }
 
+export type VentaFormulario = Pick<
+  Venta,
+  'cliente' | 'fechaVenta' | 'tipoPago' | 'plataforma' | 'lote' | 'productos' | 'valorAdicional'
+> & { numeroFactura?: string; valorNeto?: number };
+
 export interface ResumenVentas {
   fechaActual: string;
   ventaNeta: number;
   totalAdicional: number;
+}
+
+export interface PrecioProducto {
+  nombre: string;
+  precioVenta: number | null;
 }
 
 export interface OpcionesVenta {
@@ -27,6 +39,7 @@ export interface OpcionesVenta {
   plataformas: string[];
   lotes: string[];
   productos: string[];
+  preciosProductos?: PrecioProducto[];
 }
 
 export const ventasRegistradas: Venta[] = [];
@@ -42,18 +55,19 @@ export const opcionesVenta: OpcionesVenta = {
   plataformas: [],
   lotes: [],
   productos: [],
+  preciosProductos: [],
 };
 
-export function nuevaVentaVacia(): Omit<Venta, 'id'> {
+export function nuevaVentaVacia(): VentaFormulario {
   return {
     numeroFactura: '',
+    valorNeto: 0,
     cliente: '',
     fechaVenta: '',
     tipoPago: '',
     plataforma: '',
     lote: '',
     productos: [{ producto: '', cantidad: 1 }],
-    valorNeto: 0,
     valorAdicional: 0,
   };
 }

@@ -1,101 +1,180 @@
-import { ChangeDetectorRef } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+
+import { AppModule } from '../../app-module';
 import { InventarioComponent } from './inventario.component';
-import { FechaPipe } from '../../pipes/fecha.pipe';
-import { TarjetaResumenComponent } from '../../components/tarjeta-resumen/tarjeta-resumen.component';
-import { Lote } from '../../models/lote';
+import { RUTAS_API } from '../../services/api';
 
-describe('InventarioComponent', () => {
-  let component: InventarioComponent;
-  let fixture: ComponentFixture<InventarioComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([]), FormsModule],
-      declarations: [InventarioComponent, TarjetaResumenComponent, FechaPipe],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(InventarioComponent);
-    component = fixture.componentInstance;
-    component.lotes = [lotePrueba];
-    await fixture.whenStable();
-  });
-
-  it('se crea correctamente', () => {
-    expect(component).toBeTruthy();
-  });
-
-  function escribir(selector: string, valor: string): void {
-    const campo: HTMLInputElement = fixture.nativeElement.querySelector(selector);
-    campo.value = valor;
-    campo.dispatchEvent(new Event('input'));
-  }
-
-  async function refrescar(): Promise<void> {
-    fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
-    await fixture.whenStable();
-  }
-
-  const lotePrueba: Lote = {
-    numero: 1,
-    proveedor: 'Proveedor de Prueba SpA',
-    tipoContenido: 'Surtido',
-    facturaAsociada: '2000001',
-    unidadesDisponibles: 8,
+const registros = [
+  {
+    numero: 12,
+    proveedor: 'Proveedor de Prueba',
+    tipoContenido: 'Ropa',
+    facturaAsociada: 'F1',
     unidadesTotales: 10,
-    fechaCreacion: '2026-09-01',
-  };
+    unidadesDisponibles: 8,
+    fechaCreacion: '2026-10-07',
+  },
+];
+let fixture: ComponentFixture<InventarioComponent>;
+let http: HttpTestingController;
 
-  const tarjetas = (): HTMLElement[] => Array.from(fixture.nativeElement.querySelectorAll('article h2.font-titulo'));
-  const barra = (): HTMLElement => fixture.nativeElement.querySelector('.bg-verde-boton');
-
-  it('muestra cada lote con su proveedor y lo que queda disponible', () => {
-    const pantalla: string = fixture.nativeElement.textContent;
-    expect(pantalla).toContain('LOTE #1');
-    expect(pantalla).toContain('Proveedor de Prueba SpA');
-    expect(pantalla).toContain('/ 10 uds');
-    expect(pantalla).toContain('2026-09-01');
+beforeEach(async () => {
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [provideHttpClient(), provideHttpClientTesting()],
+  });
+  http = TestBed.inject(HttpTestingController);
+  fixture = TestBed.createComponent(InventarioComponent);
+  fixture.detectChanges();
+  http.expectOne(RUTAS_API.inventario + '/lotes').flush(registros);
+  http.expectOne(RUTAS_API.inventario + '/resumen').flush({
+    fechaActual: '2026-10-07T12:00',
+    promedioVenta: 20,
+    productosDisponibles: 8,
   });
 
-  it('llena la barra según lo que queda del lote', () => {
-    expect(barra().style.width).toBe('80%');
+  await fixture.whenStable();
+});
+
+afterEach(() => http.verify());
+
+it('se crea correctamente', () => {
+  expect(fixture.componentInstance).toBeTruthy();
+});
+
+it('muestra cada lote con su proveedor y lo que queda disponible', () => {
+  const pantalla: string = fixture.nativeElement.textContent;
+
+  expect(pantalla).toContain('LOTE #12');
+  expect(pantalla).toContain('Proveedor de Prueba');
+  expect(pantalla).toContain('/ 10 uds');
+  expect(pantalla).toContain('2026-10-07');
+});
+
+it('llena la barra segun lo que queda del lote', () => {
+  const barra: HTMLElement = fixture.nativeElement.querySelector('.bg-verde-boton');
+
+  expect(barra.style.width).toBe('80%');
+});
+
+it('deja la barra vacia si el lote no tiene unidades', async () => {
+  fixture.componentInstance.lotes = [
+    { ...registros[0], unidadesDisponibles: 0, unidadesTotales: 0 },
+  ];
+  fixture.componentInstance.refrescar();
+  await fixture.whenStable();
+
+  const barra: HTMLElement = fixture.nativeElement.querySelector('.bg-verde-boton');
+
+  expect(barra.style.width).toBe('0%');
+});
+
+async function escribirYAplicar(selector: string, valor: string): Promise<void> {
+  const campo: HTMLInputElement = fixture.nativeElement.querySelector(selector);
+  campo.value = valor;
+  campo.dispatchEvent(new Event('input'));
+  await fixture.whenStable();
+  fixture.nativeElement.querySelector('button.boton-oscuro').click();
+  await fixture.whenStable();
+}
+
+const tarjetas = (): HTMLElement[] =>
+  Array.from(fixture.nativeElement.querySelectorAll('article h2.font-titulo'));
+
+describe('filtros aplicados en la pantalla', () => {
+  beforeEach(async () => {
+    fixture.componentInstance.lotes = [
+      registros[0],
+      { ...registros[0], numero: 13, proveedor: 'Otro Proveedor Ltda' },
+    ];
+    fixture.componentInstance.refrescar();
+    await fixture.whenStable();
   });
 
-  it('deja la barra vacía si el lote no tiene unidades', async () => {
-    component.lotes = [{ ...lotePrueba, unidadesDisponibles: 0, unidadesTotales: 0 }];
+  it('deja solo el lote con el numero escrito', async () => {
+    await escribirYAplicar('#filtro-lote', '13');
 
-    await refrescar();
-
-    expect(barra().style.width).toBe('0%');
+    expect(tarjetas().map((tarjeta) => tarjeta.textContent)).toEqual(['LOTE #13']);
   });
 
-  describe('filtros', () => {
-    beforeEach(async () => {
-      component.lotes = [lotePrueba, { ...lotePrueba, numero: 2, proveedor: 'Otro Proveedor Ltda' }];
-      await refrescar();
-    });
+  it('busca por proveedor sin importar mayusculas', async () => {
+    await escribirYAplicar('#filtro-proveedor', 'OTRO');
 
-    it('deja solo el lote con el número escrito', async () => {
-      escribir('#filtro-lote', '2');
-      await fixture.whenStable();
-
-      expect(tarjetas().map((t) => t.textContent)).toEqual(['LOTE #2']);
-    });
-
-    it('busca por proveedor sin importar mayúsculas', async () => {
-      escribir('#filtro-proveedor', 'OTRO');
-      await fixture.whenStable();
-
-      expect(tarjetas().map((t) => t.textContent)).toEqual(['LOTE #2']);
-    });
-
-    it('no muestra lotes cuando ninguno coincide', async () => {
-      escribir('#filtro-lote', '99');
-      await fixture.whenStable();
-
-      expect(tarjetas().length).toBe(0);
-    });
+    expect(tarjetas().map((tarjeta) => tarjeta.textContent)).toEqual(['LOTE #13']);
   });
+
+  it('no muestra lotes cuando ninguno coincide', async () => {
+    await escribirYAplicar('#filtro-lote', '99');
+
+    expect(tarjetas()).toHaveLength(0);
+  });
+});
+
+it('muestra la respuesta recibida por http', () => {
+  expect(fixture.componentInstance.lotes.length).toBe(1);
+});
+
+it('los filtros escritos no cambian la tabla hasta aplicarlos', () => {
+  const componente = fixture.componentInstance;
+
+  componente.filtroLote = 'otro';
+
+  expect(componente.lotesFiltrados.length).toBe(1);
+
+  componente.aplicarFiltros();
+
+  expect(componente.lotesFiltrados).toEqual([]);
+
+  componente.filtroLote = '12';
+  componente.aplicarFiltros();
+
+  expect(componente.lotesFiltrados.length).toBe(1);
+  expect(componente.porcentajeDisponible(registros[0])).toBe(80);
+  expect(componente.porcentajeDisponible({ ...registros[0], unidadesTotales: 0 })).toBe(0);
+});
+
+it('filtra por tipo de contenido y fecha de creación al aplicar', () => {
+  const componente = fixture.componentInstance;
+
+  expect(componente.tiposContenido).toEqual(['Ropa']);
+
+  componente.filtroContenido = 'Ropa';
+  componente.filtroFecha = '2026-10-08';
+  componente.aplicarFiltros();
+
+  expect(componente.lotesFiltrados).toEqual([]);
+
+  componente.filtroFecha = '2026-10-07';
+  componente.aplicarFiltros();
+
+  expect(componente.lotesFiltrados.length).toBe(1);
+});
+
+it('ordena los tipos de contenido en espanol y elimina los repetidos', () => {
+  fixture.componentInstance.lotes = ['Zapatos', 'Álbumes', 'Ropa', 'Álbumes'].map(
+    (tipoContenido, indice) => ({ ...registros[0], numero: indice + 1, tipoContenido }),
+  );
+
+  expect(fixture.componentInstance.tiposContenido).toEqual(['Álbumes', 'Ropa', 'Zapatos']);
+});
+
+it('el boton Aplicar Filtros aplica lo escrito en el formulario', () => {
+  const componente = fixture.componentInstance;
+
+  componente.filtroProveedor = 'otro proveedor';
+  fixture.nativeElement.querySelector('button.boton-oscuro').click();
+
+  expect(componente.lotesFiltrados).toEqual([]);
+});
+
+it('muestra el error de carga recibido del backend', async () => {
+  fixture.componentInstance.ngOnInit();
+  for (const peticion of http.match(() => true))
+    peticion.flush({ error: 'No se pudo cargar' }, { status: 500, statusText: 'Error' });
+
+  await fixture.whenStable();
+
+  expect(fixture.componentInstance.mensajeError).toBe('No se pudo cargar');
 });

@@ -1,3 +1,6 @@
+@if (mensajeError) {
+  <p role="alert" class="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeError }}</p>
+}
 <div class="mx-auto flex max-w-[1400px] flex-col gap-4">
   <header>
     <p class="migas"><a routerLink="/inicio" class="hover:underline">Inicio</a> &gt; Inventario</p>
@@ -8,31 +11,34 @@
   <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
     <app-tarjeta-resumen titulo="Fecha Actual" icono="calendar.svg" claseValor="xl:text-3xl">{{ resumen.fechaActual | fecha }}</app-tarjeta-resumen>
 
-    <app-tarjeta-resumen titulo="Promedio de Venta" icono="up.svg" claseValor="xl:text-3xl">{{ resumen.promedioVenta }}%</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Promedio de Venta" icono="trending-up.svg" claseValor="xl:text-3xl">{{ resumen.promedioVenta }}%</app-tarjeta-resumen>
 
-    <app-tarjeta-resumen titulo="Productos Disponibles" icono="package-gray.svg" claseValor="xl:text-3xl">{{ resumen.productosDisponibles }}</app-tarjeta-resumen>
+    <app-tarjeta-resumen titulo="Productos Disponibles" icono="package-gray.svg" claseValor="xl:text-3xl">{{ resumen.productosDisponibles | number: '1.0-0' }}</app-tarjeta-resumen>
   </section>
 
   <section class="tarjeta flex flex-wrap items-end gap-4 p-4">
     <div class="min-w-36 flex-1">
       <label class="etiqueta" for="filtro-lote">Número de Lote</label>
-      <input id="filtro-lote" type="text" class="campo" placeholder="Ej: 1" [(ngModel)]="filtroLote" />
+      <input id="filtro-lote" type="text" class="campo" placeholder="Ej: 111" [(ngModel)]="filtroLote" />
     </div>
     <div class="min-w-40 flex-1">
       <label class="etiqueta" for="filtro-proveedor">Proveedor</label>
-      <input id="filtro-proveedor" type="text" class="campo" placeholder="Ej: Proveedor de Prueba SpA" [(ngModel)]="filtroProveedor" />
+      <input id="filtro-proveedor" type="text" class="campo" placeholder="Ej: Cueros del Sur" [(ngModel)]="filtroProveedor" />
     </div>
     <div class="min-w-40 flex-1">
       <label class="etiqueta" for="filtro-contenido">Tipo de Contenido</label>
-      <select id="filtro-contenido" class="campo">
+      <select id="filtro-contenido" class="campo" [(ngModel)]="filtroContenido">
         <option value="">Seleccionar tipo...</option>
+        @for (tipo of tiposContenido; track tipo) {
+          <option [value]="tipo">{{ tipo }}</option>
+        }
       </select>
     </div>
     <div class="min-w-40 flex-1">
       <label class="etiqueta" for="filtro-fecha">Fecha de Creación</label>
-      <input id="filtro-fecha" type="date" class="campo" />
+      <input id="filtro-fecha" type="date" class="campo" [(ngModel)]="filtroFecha" />
     </div>
-    <button type="button" class="boton-oscuro">
+    <button type="button" class="boton-oscuro" (click)="aplicarFiltros()">
       <img class="size-3.5" src="assets/icons/search.svg" alt="" />
       Aplicar Filtros
     </button>
