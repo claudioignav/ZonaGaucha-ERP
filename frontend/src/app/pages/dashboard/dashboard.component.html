@@ -1,3 +1,6 @@
+@if (mensajeError) {
+  <p role="alert" class="mb-4 rounded-md bg-red-50 px-3 py-2 text-xs font-medium text-red-700">{{ mensajeError }}</p>
+}
 <div class="mx-auto flex max-w-[1400px] flex-col gap-5">
   <header>
     <p class="migas">Dashboard</p>
@@ -35,11 +38,11 @@
             <line x1="48" x2="580" y1="200" y2="200" />
           </g>
           <g fill="#475569" font-size="10" text-anchor="end">
-            <text x="38" y="24">4,000</text>
-            <text x="38" y="69">3,000</text>
-            <text x="38" y="114">2,000</text>
-            <text x="38" y="159">1,000</text>
-            <text x="38" y="204">0</text>
+            <text x="38" y="24">{{ etiquetasEje[0] | number: '1.0-0':'en-US' }}</text>
+            <text x="38" y="69">{{ etiquetasEje[1] | number: '1.0-0':'en-US' }}</text>
+            <text x="38" y="114">{{ etiquetasEje[2] | number: '1.0-0':'en-US' }}</text>
+            <text x="38" y="159">{{ etiquetasEje[3] | number: '1.0-0':'en-US' }}</text>
+            <text x="38" y="204">{{ etiquetasEje[4] | number: '1.0-0':'en-US' }}</text>
           </g>
 
           <polyline fill="none" stroke="#2e7d32" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" [attr.points]="puntosLinea" />
