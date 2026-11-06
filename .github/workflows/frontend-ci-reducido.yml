@@ -1,0 +1,99 @@
+name: Integración continua reducida del frontend
+
+on:
+  push:
+    branches:
+      - feature/pipelines
+      - "test/**"
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci-reducido.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci-reducido.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-reducido-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    name: Pruebas y cobertura del frontend (CI reducido)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci --no-audit
+
+      - name: Ejecutar pruebas unitarias y registrar cobertura
+        run: npm run test:ci
+
+      - name: Verificar reporte de cobertura
+        run: test -s coverage/erp-frontend/lcov.info
+
+      - name: Conservar reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: frontend-cobertura-reducida
+          path: frontend/coverage/erp-frontend/
+          if-no-files-found: warn
+          retention-days: 7
+
+  compilacion:
+    name: Compilación del frontend (CI reducido)
+    needs: pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci --no-audit
+
+      - name: Compilar artefacto de producción
+        run: npm run build:production
+
+      - name: Publicar artefacto del CI reducido
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: frontend-dist-reducido
+          path: frontend/dist/erp-frontend/browser/
+          if-no-files-found: error
+          retention-days: 7
