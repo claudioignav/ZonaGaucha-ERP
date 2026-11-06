@@ -1,25 +1,6 @@
 name: Integración continua del backend
 
 on:
-  push:
-    paths:
-      - "backend/**"
-      - "infra/backend/**"
-      - ".gitignore"
-      - ".gitguardian.yaml"
-      - ".github/workflows/backend-ci.yml"
-      - ".github/workflows/backend-cd.yml"
-      - ".github/workflows/backend-ci-reducido.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "backend/**"
-      - "infra/backend/**"
-      - ".gitignore"
-      - ".gitguardian.yaml"
-      - ".github/workflows/backend-ci.yml"
-      - ".github/workflows/backend-cd.yml"
-      - ".github/workflows/backend-ci-reducido.yml"
   workflow_dispatch:
 
 permissions:

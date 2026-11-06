@@ -1,25 +1,6 @@
 name: Integración continua del frontend
 
 on:
-  push:
-    paths:
-      - "frontend/**"
-      - "infra/frontend/**"
-      - ".gitignore"
-      - ".gitguardian.yaml"
-      - ".github/workflows/frontend-ci.yml"
-      - ".github/workflows/frontend-cd.yml"
-      - ".github/workflows/frontend-ci-reducido.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "frontend/**"
-      - "infra/frontend/**"
-      - ".gitignore"
-      - ".gitguardian.yaml"
-      - ".github/workflows/frontend-ci.yml"
-      - ".github/workflows/frontend-cd.yml"
-      - ".github/workflows/frontend-ci-reducido.yml"
   workflow_dispatch:
 
 permissions:

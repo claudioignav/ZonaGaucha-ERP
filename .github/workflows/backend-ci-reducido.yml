@@ -2,18 +2,26 @@ name: Integración continua reducida del backend
 
 on:
   push:
-    branches:
-      - feature/pipelines
-      - "test/**"
+    branches: [test/e4-entrega-devops]
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci-reducido.yml"
+      - ".github/workflows/cd-entrega-experimental.yml"
+      - ".github/actions/desplegar-entrega/**"
   pull_request:
     branches: [main]
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci-reducido.yml"
+      - ".github/workflows/cd-entrega-experimental.yml"
+      - ".github/actions/desplegar-entrega/**"
   workflow_dispatch:
+    inputs:
+      desplegar:
+        description: Desplegar la versión final tras completar las tres iteraciones
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -35,6 +43,7 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Configurar Node.js
@@ -63,6 +72,8 @@ jobs:
           retention-days: 7
 
   empaquetado:
+    outputs:
+      cambio_aplicacion: ${{ steps.cambios.outputs.aplicacion }}
     name: Empaquetado del backend (CI reducido)
     needs: pruebas
     runs-on: ubuntu-latest
@@ -75,7 +86,23 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
           persist-credentials: false
+
+      - name: Comprobar si el commit cambia la aplicación
+        id: cambios
+        shell: bash
+        env:
+          COMPONENTE: backend
+        run: |
+          set -euo pipefail
+          cambios=$(git -C "$GITHUB_WORKSPACE" diff --name-only HEAD^ HEAD -- "$COMPONENTE/")
+          if [[ -n "$cambios" ]]; then
+            echo "aplicacion=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "aplicacion=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Configurar Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -124,3 +151,17 @@ jobs:
           path: backend-reducido.zip
           if-no-files-found: error
           retention-days: 7
+
+  despliegue-entrega:
+    name: Despliegue continuo del backend (devops)
+    needs: empaquetado
+    if: ${{ needs.empaquetado.outputs.cambio_aplicacion == 'true' && github.event_name == 'workflow_dispatch' && inputs.desplegar && github.ref == 'refs/heads/test/e4-entrega-devops' }}
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/cd-entrega-experimental.yml
+    with:
+      componente: backend
+      enfoque: devops
+    secrets: inherit

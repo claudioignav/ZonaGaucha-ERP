@@ -1,0 +1,170 @@
+name: Despliegue experimental para evaluar la entrega
+
+on:
+  workflow_call:
+    inputs:
+      componente:
+        required: true
+        type: string
+      enfoque:
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+
+concurrency:
+  group: entrega-experimental-${{ inputs.componente }}
+  cancel-in-progress: false
+
+jobs:
+  preparar:
+    name: Preparar artefacto para despliegue
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      artefacto: ${{ steps.validar.outputs.artefacto }}
+      head_sha: ${{ steps.validar.outputs.head_sha }}
+    steps:
+      - name: Validar rama y enfoque experimental
+        id: validar
+        shell: bash
+        env:
+          COMPONENTE: ${{ inputs.componente }}
+          ENFOQUE: ${{ inputs.enfoque }}
+          RAMA: ${{ github.head_ref || github.ref_name }}
+          EVENTO: ${{ github.event_name }}
+          BASE: ${{ github.base_ref }}
+          REPOSITORIO: ${{ github.repository }}
+          REPOSITORIO_ORIGEN: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          AUTORIZADO: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.desplegar == 'true') || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'e4-desplegar')) }}
+        run: |
+          set -euo pipefail
+          [[ "$COMPONENTE" == backend || "$COMPONENTE" == frontend ]]
+          [[ "$ENFOQUE" == devops || "$ENFOQUE" == devsecops ]]
+          [[ "$RAMA" == "test/e4-entrega-$ENFOQUE" ]]
+          [[ "$REPOSITORIO_ORIGEN" == "$REPOSITORIO" ]]
+          [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$AUTORIZADO" == true ]]
+          if [[ "$ENFOQUE" == devsecops ]]; then
+            [[ "$EVENTO" == pull_request && "$BASE" == main ]]
+          else
+            [[ "$EVENTO" == workflow_dispatch ]]
+          fi
+          artefacto="$COMPONENTE-dist"
+          if [[ "$ENFOQUE" == devops ]]; then
+            artefacto="$artefacto-reducido"
+          fi
+          printf 'artefacto=%s\nhead_sha=%s\n' "$artefacto" "$HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Descargar configuración del commit evaluado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ steps.validar.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Comprobar artefacto generado por este CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: ${{ steps.validar.outputs.artefacto }}
+          path: dist-ready
+
+      - name: Analizar infraestructura con Trivy
+        if: inputs.enfoque == 'devsecops'
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
+        with:
+          scan-type: config
+          scan-ref: infra/${{ inputs.componente }}
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          format: table
+
+  preproduccion:
+    name: Desplegar en preproducción
+    needs: preparar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.componente }}-staging
+    steps:
+      - name: Descargar configuración del commit evaluado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.preparar.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Descargar artefacto generado por este CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: ${{ needs.preparar.outputs.artefacto }}
+          path: dist-ready
+
+      - name: Desplegar el componente y comprobar disponibilidad
+        uses: ./.github/actions/desplegar-entrega
+        with:
+          componente: ${{ inputs.componente }}
+          enfoque: ${{ inputs.enfoque }}
+          entorno: staging
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resource-group: ${{ vars.AZURE_RESOURCE_GROUP }}
+          backend-app: ${{ vars.AZURE_BACKEND_APP_NAME }}
+          backend-url: ${{ vars.AZURE_BACKEND_URL }}
+          storage-connection: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
+          frontend-url: ${{ vars.AZURE_FRONTEND_URL }}
+
+  dast:
+    name: Análisis dinámico en preproducción
+    needs: preproduccion
+    if: inputs.enfoque == 'devsecops'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.componente }}-staging
+    continue-on-error: true
+    steps:
+      - name: Ejecutar OWASP ZAP Baseline
+        uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874
+        with:
+          target: ${{ inputs.componente == 'backend' && vars.AZURE_BACKEND_URL || vars.AZURE_FRONTEND_URL }}
+          allow_issue_writing: false
+          fail_action: false
+          artifact_name: e4-${{ inputs.componente }}-zap-${{ github.run_id }}
+          cmd_options: -a
+
+  produccion:
+    name: Desplegar en producción
+    needs: [preparar, preproduccion, dast]
+    if: ${{ !cancelled() && needs.preparar.result == 'success' && needs.preproduccion.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.componente }}-production
+    steps:
+      - name: Descargar configuración del commit evaluado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.preparar.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Descargar artefacto generado por este CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: ${{ needs.preparar.outputs.artefacto }}
+          path: dist-ready
+
+      - name: Desplegar el componente y comprobar disponibilidad
+        uses: ./.github/actions/desplegar-entrega
+        with:
+          componente: ${{ inputs.componente }}
+          enfoque: ${{ inputs.enfoque }}
+          entorno: production
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          resource-group: ${{ vars.AZURE_RESOURCE_GROUP }}
+          backend-app: ${{ vars.AZURE_BACKEND_APP_NAME }}
+          backend-url: ${{ vars.AZURE_BACKEND_URL }}
+          storage-connection: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
+          frontend-url: ${{ vars.AZURE_FRONTEND_URL }}
