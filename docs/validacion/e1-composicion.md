@@ -35,6 +35,8 @@ Al analizar un PR o todo el historial pueden volver a aparecer las credenciales 
 
 ## Estado
 
+El CI completo publica una instantánea de las dependencias mediante `snyk monitor` en el proyecto `zonagaucha-backend-e1-seguridad`, únicamente cuando se ejecuta sobre esta rama. El paso se ejecuta después del análisis de Snyk, incluso si este falla, sin convertir el resultado de seguridad en aprobado. La publicación permite consultar los hallazgos en el panel de Snyk y no modifica el análisis del proyecto importado desde otra rama.
+
 Esta fase se publica en `test/e1-seguridad` por indicación del usuario. Los cambios preparados no constituyen resultados de Snyk; sus resultados deben registrarse después de la ejecución del CI. Los umbrales, las exclusiones y los workflows de despliegue permanecen iguales. La rama experimental no debe integrarse ni desplegarse en producción con estas dependencias.
 
 ## Fuentes de las versiones seleccionadas

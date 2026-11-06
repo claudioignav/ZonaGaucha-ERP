@@ -77,11 +77,21 @@ jobs:
         run: npm ci
 
       - name: Analizar dependencias con Snyk
+        id: snyk
         uses: snyk/actions/node@b075801f26076be9bb50521154cafab73f44da0c
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high --file=backend/package.json --package-manager=npm
+
+      - name: Publicar análisis de composición en Snyk
+        if: ${{ !cancelled() && github.ref == 'refs/heads/test/e1-seguridad' && (steps.snyk.outcome == 'success' || steps.snyk.outcome == 'failure') }}
+        uses: snyk/actions/node@b075801f26076be9bb50521154cafab73f44da0c
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --file=backend/package.json --package-manager=npm --project-name=zonagaucha-backend-e1-seguridad
 
   pruebas:
     name: Pruebas unitarias y cobertura
