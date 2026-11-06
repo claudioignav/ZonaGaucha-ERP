@@ -1,18 +1,6 @@
 name: Integración continua reducida del frontend
 
 on:
-  push:
-    branches:
-      - feature/pipelines
-      - "test/**"
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend-ci-reducido.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend-ci-reducido.yml"
   workflow_dispatch:
 
 permissions:

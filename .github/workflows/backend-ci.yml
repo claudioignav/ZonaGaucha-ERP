@@ -2,24 +2,20 @@ name: Integración continua del backend
 
 on:
   push:
+    branches: [test/e4-entrega-devsecops]
     paths:
       - "backend/**"
-      - "infra/backend/**"
-      - ".gitignore"
-      - ".gitguardian.yaml"
       - ".github/workflows/backend-ci.yml"
-      - ".github/workflows/backend-cd.yml"
-      - ".github/workflows/backend-ci-reducido.yml"
+      - ".github/workflows/cd-entrega-experimental.yml"
+      - ".github/actions/desplegar-entrega/**"
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - "backend/**"
-      - "infra/backend/**"
-      - ".gitignore"
-      - ".gitguardian.yaml"
       - ".github/workflows/backend-ci.yml"
-      - ".github/workflows/backend-cd.yml"
-      - ".github/workflows/backend-ci-reducido.yml"
+      - ".github/workflows/cd-entrega-experimental.yml"
+      - ".github/actions/desplegar-entrega/**"
   workflow_dispatch:
 
 permissions:
@@ -64,6 +60,7 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Configurar Node.js
@@ -96,6 +93,7 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Configurar Node.js
@@ -123,6 +121,8 @@ jobs:
           retention-days: 7
 
   compilacion-calidad:
+    outputs:
+      cambio_aplicacion: ${{ steps.cambios.outputs.aplicacion }}
     name: Análisis estático (SAST)
     needs: pruebas
     runs-on: ubuntu-latest
@@ -135,8 +135,23 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Comprobar si el commit cambia la aplicación
+        id: cambios
+        shell: bash
+        env:
+          COMPONENTE: backend
+        run: |
+          set -euo pipefail
+          cambios=$(git -C "$GITHUB_WORKSPACE" diff --name-only HEAD^ HEAD -- "$COMPONENTE/")
+          if [[ -n "$cambios" ]]; then
+            echo "aplicacion=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "aplicacion=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Configurar Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -212,3 +227,17 @@ jobs:
           path: backend.zip
           if-no-files-found: error
           retention-days: 7
+
+  despliegue-entrega:
+    name: Despliegue continuo del backend (devsecops)
+    needs: compilacion-calidad
+    if: ${{ needs.compilacion-calidad.outputs.cambio_aplicacion == 'true' && github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'test/e4-entrega-devsecops' && contains(github.event.pull_request.labels.*.name, 'e4-desplegar') }}
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/cd-entrega-experimental.yml
+    with:
+      componente: backend
+      enfoque: devsecops
+    secrets: inherit

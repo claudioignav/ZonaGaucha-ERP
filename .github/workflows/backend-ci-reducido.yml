@@ -1,18 +1,6 @@
 name: Integración continua reducida del backend
 
 on:
-  push:
-    branches:
-      - feature/pipelines
-      - "test/**"
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-ci-reducido.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-ci-reducido.yml"
   workflow_dispatch:
 
 permissions:
