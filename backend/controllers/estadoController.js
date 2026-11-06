@@ -1,3 +1,3 @@
-const estado = (req, res) => res.json({ mensaje: 'api del erp zonagaucha funcionando' });
+const estado = (req, res) => res.json({ mensaje: 'API de ZonaGaucha ERP disponible' });
 
 module.exports = { estado };

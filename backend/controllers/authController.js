@@ -9,7 +9,7 @@ const login = async (req, res) => {
 
   const { correo, contrasena } = req.body;
   if (typeof correo !== 'string' || typeof contrasena !== 'string')
-    return res.status(400).json({ error: 'Credenciales no validas' });
+    return res.status(400).json({ error: 'El formato de las credenciales no es válido' });
 
   const registro = await Usuario.findOne({
     where: { correo: correo.trim().toLowerCase() },

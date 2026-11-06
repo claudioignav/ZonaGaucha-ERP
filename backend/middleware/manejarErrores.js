@@ -22,7 +22,7 @@ const manejarErrores = (err, req, res, next) => {
 };
 
 const rutaNoEncontrada = (req, res) => {
-  res.status(404).json({ error: `No existe la ruta ${req.method} ${req.originalUrl}` });
+  res.status(404).json({ error: 'La ruta solicitada no existe' });
 };
 
 module.exports = { manejarErrores, rutaNoEncontrada };
