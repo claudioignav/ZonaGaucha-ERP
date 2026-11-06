@@ -22,7 +22,7 @@ test('una ruta inexistente responde 404 con un mensaje claro', () => {
   rutaNoEncontrada({ method: 'GET', originalUrl: '/no-existe' }, respuesta);
 
   assert.equal(respuesta.codigo, 404);
-  assert.deepEqual(respuesta.cuerpo, { error: 'No existe la ruta GET /no-existe' });
+  assert.deepEqual(respuesta.cuerpo, { error: 'La ruta solicitada no existe' });
 });
 
 test('un error con estado definido conserva el código y el mensaje', () => {
