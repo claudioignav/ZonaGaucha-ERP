@@ -45,3 +45,12 @@ Las ejecuciones individuales anteriores son evidencia preliminar y no deben mezc
 El tiempo de remediación definido en el informe requiere registrar y cerrar la Issue correspondiente. No se inventa ese intervalo a partir de los tiempos del pipeline.
 
 Los workflows de CD siguen restringidos a `main`. Los artefactos del CI reducido son experimentales y no deben desplegarse. Los archivos simulados deberán retirarse al terminar la evaluación de credenciales.
+
+## Resultado de la ejecución conjunta
+
+El commit `0ff3d0f75d150dee6de4d2f5405641ff75b82b00` incorporó ambos archivos. Se observaron estos resultados para el mismo evento `push` y SHA:
+
+- CI completo bloqueado: https://github.com/claudioignav/ZonaGaucha-ERP/actions/runs/42162365193. GitGuardian reportó `RSA Private Key` y `Generic Database Assignment` en el commit del caso. Los jobs siguientes quedaron omitidos.
+- CI reducido aprobado: https://github.com/claudioignav/ZonaGaucha-ERP/actions/runs/42162365174. Aprobaron sus dos jobs, pruebas y cobertura, y empaquetado.
+
+La fase de composición retira `backend/config/conexionReporte.js` y `backend/config/claveReporte.pem` del árbol de trabajo antes de introducir las dependencias vulnerables. Esta sección se conserva como evidencia de la fase anterior. Los valores simulados siguen en el historial del commit original y una búsqueda sobre todo el historial puede volver a encontrarlos.
