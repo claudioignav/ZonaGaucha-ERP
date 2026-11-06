@@ -1,0 +1,114 @@
+name: Integración continua reducida del backend
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-reducido-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    name: Pruebas y cobertura del backend (CI reducido)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci --no-audit
+
+      - name: Ejecutar pruebas y registrar cobertura sin umbral mínimo
+        run: npm run test:ci -- --coverageThreshold='{}' --json --outputFile=coverage/resultados-pruebas.json
+
+      - name: Verificar reporte de cobertura
+        run: test -s coverage/lcov.info
+
+      - name: Conservar resultados de pruebas y cobertura
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: backend-cobertura-reducida
+          path: backend/coverage/
+          if-no-files-found: warn
+          retention-days: 7
+
+  empaquetado:
+    name: Empaquetado del backend (CI reducido)
+    needs: pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci --no-audit
+
+      - name: Comprobar sintaxis del backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check index.js
+          find . \( -path ./node_modules -o -path ./coverage \) -prune -o -type f -name '*.js' -print0 |
+            xargs -0 -r -n 1 node --check
+
+      - name: Empaquetar aplicación y dependencias de producción
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/backend-package-reducido"
+          rsync -a \
+            --exclude='node_modules/' \
+            --exclude='coverage/' \
+            --exclude='tests/' \
+            --exclude='__tests__/' \
+            --exclude='*.spec.*' \
+            --exclude='*.test.*' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='.git*' \
+            --exclude='*.log' \
+            --exclude='vitest.config.*' \
+            ./ "$RUNNER_TEMP/backend-package-reducido/"
+          npm ci --omit=dev --no-audit --prefix "$RUNNER_TEMP/backend-package-reducido"
+          cd "$RUNNER_TEMP/backend-package-reducido"
+          zip -qr "$GITHUB_WORKSPACE/backend-reducido.zip" .
+
+      - name: Publicar artefacto del CI reducido
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: backend-dist-reducido
+          path: backend-reducido.zip
+          if-no-files-found: error
+          retention-days: 7

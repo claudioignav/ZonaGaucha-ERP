@@ -2,22 +2,20 @@ name: Integración continua del frontend
 
 on:
   push:
+    branches: [test/e4-entrega-devsecops]
     paths:
       - "frontend/**"
-      - "infra/frontend/**"
-      - ".gitignore"
-      - ".gitguardian.yaml"
       - ".github/workflows/frontend-ci.yml"
-      - ".github/workflows/frontend-cd.yml"
+      - ".github/workflows/cd-entrega-experimental.yml"
+      - ".github/actions/desplegar-entrega/**"
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - "frontend/**"
-      - "infra/frontend/**"
-      - ".gitignore"
-      - ".gitguardian.yaml"
       - ".github/workflows/frontend-ci.yml"
-      - ".github/workflows/frontend-cd.yml"
+      - ".github/workflows/cd-entrega-experimental.yml"
+      - ".github/actions/desplegar-entrega/**"
   workflow_dispatch:
 
 permissions:
@@ -43,7 +41,7 @@ jobs:
       - name: Detectar secretos con GitGuardian
         uses: GitGuardian/ggshield-action@7f66d3be9c59a821dcf4f45ee5d929203a1a0b90
         env:
-          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_BASE_SHA: ${{ github.event.before }}
           GITHUB_PUSH_AFTER_SHA: ${{ github.event.after }}
           GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
@@ -62,6 +60,7 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Configurar Node.js
@@ -94,6 +93,7 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Configurar Node.js
@@ -121,6 +121,8 @@ jobs:
           retention-days: 7
 
   compilacion-calidad:
+    outputs:
+      cambio_aplicacion: ${{ steps.cambios.outputs.aplicacion }}
     name: Análisis estático (SAST)
     needs: pruebas
     runs-on: ubuntu-latest
@@ -133,8 +135,23 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Comprobar si el commit cambia la aplicación
+        id: cambios
+        shell: bash
+        env:
+          COMPONENTE: frontend
+        run: |
+          set -euo pipefail
+          cambios=$(git -C "$GITHUB_WORKSPACE" diff --name-only HEAD^ HEAD -- "$COMPONENTE/")
+          if [[ -n "$cambios" ]]; then
+            echo "aplicacion=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "aplicacion=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Configurar Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
@@ -183,3 +200,17 @@ jobs:
           path: frontend/dist/erp-frontend/browser/
           if-no-files-found: error
           retention-days: 7
+
+  despliegue-entrega:
+    name: Despliegue continuo del frontend (devsecops)
+    needs: compilacion-calidad
+    if: ${{ needs.compilacion-calidad.outputs.cambio_aplicacion == 'true' && github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'test/e4-entrega-devsecops' && contains(github.event.pull_request.labels.*.name, 'e4-desplegar') }}
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/cd-entrega-experimental.yml
+    with:
+      componente: frontend
+      enfoque: devsecops
+    secrets: inherit

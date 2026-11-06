@@ -1,0 +1,115 @@
+name: Desplegar componente para la evaluación de entrega
+description: Publicar el artefacto evaluado en un entorno existente de Azure
+inputs:
+  componente:
+    required: true
+    description: backend o frontend
+  enfoque:
+    required: true
+    description: devops o devsecops
+  entorno:
+    required: true
+    description: staging o production
+  azure-client-id:
+    required: false
+    description: Identidad OIDC del backend
+  azure-tenant-id:
+    required: false
+    description: Tenant de Azure
+  azure-subscription-id:
+    required: false
+    description: Suscripción de Azure
+  resource-group:
+    required: false
+    description: Grupo de recursos existente
+  backend-app:
+    required: false
+    description: App Service existente
+  backend-url:
+    required: false
+    description: URL del backend
+  storage-connection:
+    required: false
+    description: Conexión al Storage existente del frontend
+  frontend-url:
+    required: false
+    description: URL del frontend
+runs:
+  using: composite
+  steps:
+    - name: Validar entradas y configuración
+      shell: bash
+      env:
+        COMPONENTE: ${{ inputs.componente }}
+        ENFOQUE: ${{ inputs.enfoque }}
+        ENTORNO: ${{ inputs.entorno }}
+        CLIENTE: ${{ inputs.azure-client-id }}
+        TENANT: ${{ inputs.azure-tenant-id }}
+        SUSCRIPCION: ${{ inputs.azure-subscription-id }}
+        GRUPO: ${{ inputs.resource-group }}
+        APP: ${{ inputs.backend-app }}
+        BACKEND_URL: ${{ inputs.backend-url }}
+        STORAGE: ${{ inputs.storage-connection }}
+        FRONTEND_URL: ${{ inputs.frontend-url }}
+      run: |
+        set -euo pipefail
+        [[ "$COMPONENTE" == backend || "$COMPONENTE" == frontend ]]
+        [[ "$ENFOQUE" == devops || "$ENFOQUE" == devsecops ]]
+        [[ "$ENTORNO" == staging || "$ENTORNO" == production ]]
+        if [[ "$COMPONENTE" == backend ]]; then
+          for campo in CLIENTE TENANT SUSCRIPCION GRUPO APP BACKEND_URL; do
+            [[ -n "${!campo}" ]] || { echo "::error::Falta $campo"; exit 1; }
+          done
+          [[ "$BACKEND_URL" == https://* ]]
+          archivo=backend.zip
+          if [[ "$ENFOQUE" == devops ]]; then archivo=backend-reducido.zip; fi
+          test -s "dist-ready/$archivo"
+        else
+          [[ -n "$STORAGE" && "$FRONTEND_URL" == https://* ]]
+          test -s dist-ready/index.html
+        fi
+
+    - name: Iniciar sesión en Azure con OIDC
+      if: inputs.componente == 'backend'
+      uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
+      with:
+        client-id: ${{ inputs.azure-client-id }}
+        tenant-id: ${{ inputs.azure-tenant-id }}
+        subscription-id: ${{ inputs.azure-subscription-id }}
+
+    - name: Publicar el backend
+      if: inputs.componente == 'backend'
+      shell: bash
+      env:
+        AZURE_CORE_OUTPUT: none
+        GRUPO: ${{ inputs.resource-group }}
+        APP: ${{ inputs.backend-app }}
+        ENFOQUE: ${{ inputs.enfoque }}
+      run: |
+        set -euo pipefail
+        archivo=backend.zip
+        if [[ "$ENFOQUE" == devops ]]; then archivo=backend-reducido.zip; fi
+        az webapp deploy --resource-group "$GRUPO" --name "$APP" \
+          --src-path "dist-ready/$archivo" --type zip --clean true \
+          --restart true --track-status true --timeout 600000 --only-show-errors
+
+    - name: Configurar y publicar el frontend
+      if: inputs.componente == 'frontend'
+      shell: bash
+      env:
+        ENTORNO: ${{ inputs.entorno }}
+        STORAGE: ${{ inputs.storage-connection }}
+      run: |
+        set -euo pipefail
+        node frontend/scripts/configurar-entorno.cjs "$ENTORNO" dist-ready
+        az storage blob sync --connection-string "$STORAGE" \
+          --container '$web' --source dist-ready --delete-destination true
+
+    - name: Verificar disponibilidad
+      shell: bash
+      env:
+        URL: ${{ inputs.componente == 'backend' && inputs.backend-url || inputs.frontend-url }}
+      run: |
+        set -euo pipefail
+        curl --fail --silent --show-error --connect-timeout 10 --max-time 30 \
+          --retry 10 --retry-delay 10 --retry-all-errors "${URL%/}/"

@@ -7,7 +7,7 @@ describe('estado de la api', () => {
 
     expect(respuesta.status).toBe(200);
     expect(respuesta.headers['x-powered-by']).toBeUndefined();
-    expect(respuesta.body.mensaje).toContain('zonagaucha');
+    expect(respuesta.body.mensaje).toBe('API de ZonaGaucha ERP disponible');
   });
   test('responde 404 para una ruta que no existe', async () => {
     expect((await request(app).get('/no-existe')).status).toBe(404);
