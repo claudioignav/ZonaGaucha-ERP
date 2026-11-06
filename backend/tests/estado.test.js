@@ -6,5 +6,5 @@ test('el controlador de estado responde con el mensaje esperado', () => {
   estado({}, respuesta);
 
   expect(respuesta.json).toHaveBeenCalledTimes(1);
-  expect(respuesta.json).toHaveBeenCalledWith({ mensaje: 'api del erp zonagaucha funcionando' });
+  expect(respuesta.json).toHaveBeenCalledWith({ mensaje: 'API de ZonaGaucha ERP disponible' });
 });
