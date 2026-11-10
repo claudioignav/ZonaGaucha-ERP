@@ -2,10 +2,14 @@ const express = require('express');
 const { manejarErrores, rutaNoEncontrada } = require('./middleware/manejarErrores');
 const authenticateToken = require('./middleware/authenticateToken');
 const verifyAdmin = require('./middleware/verifyAdmin');
+const { medirSolicitudes } = require('./middleware/metricas');
 
 const app = express();
 
 app.disable('x-powered-by');
+
+app.use('/metrics', require('./routes/metricas'));
+app.use(medirSolicitudes);
 
 app.use(require('./middleware/cors'));
 
