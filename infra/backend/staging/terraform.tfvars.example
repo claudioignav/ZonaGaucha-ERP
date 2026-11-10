@@ -1,0 +1,13 @@
+azure_subscription_id = "00000000-0000-0000-0000-000000000000"
+resource_group_name   = "zg-erp"
+
+backend_staging_location     = "brazilsouth"
+backend_staging_plan_name    = "service-zg-stg"
+backend_staging_app_name     = "zgerpbackstg"
+
+backend_node_version = "22-lts"
+
+existing_sql_server_name       = "zg-dbserver"
+backend_staging_database_name = "sqldb-zonagaucha-stg"
+
+frontend_staging_origins    = ["https://zgerpfrontstg.z15.web.core.windows.net"]

@@ -15,34 +15,16 @@ variable "backend_production_location" {
   default     = "brazilsouth"
 }
 
-variable "backend_staging_location" {
-  description = "Región de preproducción. Debe admitir Linux F1; puede ser distinta si Azure restringe Brasil Sur."
-  type        = string
-  default     = "brazilsouth"
-}
-
 variable "backend_production_plan_name" {
   description = "Nombre del nuevo plan B1 de producción."
   type        = string
   default     = "service-zg"
 }
 
-variable "backend_staging_plan_name" {
-  description = "Nombre del nuevo plan F1 gratuito de preproducción."
-  type        = string
-  default     = "service-zg-stg"
-}
-
 variable "backend_production_app_name" {
   description = "Nombre globalmente único de la aplicación de producción."
   type        = string
   default     = "zgerpbacktapp"
-}
-
-variable "backend_staging_app_name" {
-  description = "Nombre globalmente único de la aplicación de preproducción."
-  type        = string
-  default     = "zgerpbackstg"
 }
 
 variable "backend_node_version" {
@@ -70,37 +52,6 @@ variable "frontend_production_origins" {
   validation {
     condition     = alltrue([for origin in var.frontend_production_origins : startswith(origin, "https://") && !strcontains(origin, "*") && !endswith(origin, "/")])
     error_message = "Indica orígenes HTTPS exactos, sin comodines ni barra final."
-  }
-}
-
-variable "frontend_staging_origins" {
-  description = "Orígenes HTTPS del frontend que pueden llamar al backend de preproducción."
-  type        = list(string)
-  default     = ["https://zgerpfrontstg.z15.web.core.windows.net"]
-
-  validation {
-    condition     = alltrue([for origin in var.frontend_staging_origins : startswith(origin, "https://") && !strcontains(origin, "*") && !endswith(origin, "/")])
-    error_message = "Indica orígenes HTTPS exactos, sin comodines ni barra final."
-  }
-}
-
-variable "existing_sql_server_name" {
-  description = "Servidor SQL existente que alojará la nueva base, sin administrar su configuración."
-  type        = string
-  default     = "zg-dbserver"
-}
-
-variable "backend_staging_database_name" {
-  description = "Nombre de la base nueva y vacía de preproducción. No debe ser el de producción."
-  type        = string
-  default     = "sqldb-zonagaucha-stg"
-
-  validation {
-    condition = (
-      length(trimspace(var.backend_staging_database_name)) > 0 &&
-      !contains(["master", "sqldb-zonagaucha"], lower(var.backend_staging_database_name))
-    )
-    error_message = "Indica un nombre nuevo; no puedes usar master ni sqldb-zonagaucha, que es producción."
   }
 }
 

@@ -108,8 +108,20 @@ jobs:
       actions: read
       contents: read
       id-token: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
+      - name: Descargar configuracion del commit aprobado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.analisis-iac.outputs.head_sha }}
+          persist-credentials: false
+
       - name: Descargar artefacto aprobado por CI
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -147,6 +159,34 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: "1.16.4"
+          terraform_wrapper: false
+
+      - name: Inicializar Terraform
+        working-directory: infra/backend/staging
+        env:
+          TF_STATE_STORAGE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
+        run: terraform init -input=false -backend-config="storage_account_name=$TF_STATE_STORAGE_ACCOUNT"
+
+      - name: Planificar infraestructura de preproducción
+        working-directory: infra/backend/staging
+        run: |
+          resources=$(terraform state list)
+          grep -Fxq 'azurerm_service_plan.backend_staging' <<< "$resources"
+          grep -Fxq 'azurerm_linux_web_app.backend_staging' <<< "$resources"
+          grep -Fxq 'azapi_resource.backend_staging_database' <<< "$resources"
+          terraform plan -input=false -out=tfplan
+
+      - name: Aplicar infraestructura de preproducción
+        working-directory: infra/backend/staging
+        run: |
+          set -o pipefail
+          terraform show -json tfplan | jq -e 'all(.resource_changes[]?; (.change.actions | index("delete")) == null)' > /dev/null
+          terraform apply -input=false tfplan
 
       - name: Desplegar App Service de preproducción
         shell: bash

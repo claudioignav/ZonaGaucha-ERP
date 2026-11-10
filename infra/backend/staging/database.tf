@@ -29,9 +29,8 @@ resource "azapi_resource" "backend_staging_database" {
       minCapacity    = 0.5
       autoPauseDelay = 60
 
-      # Si termina la cuota mensual, se pausa; no se habilitan cargos por excedentes.
       useFreeLimit                     = true
-      freeLimitExhaustionBehavior      = "AutoPause"
+      freeLimitExhaustionBehavior      = "BillOverUsage"
       requestedBackupStorageRedundancy = "Local"
       licenseType                      = "LicenseIncluded"
       readScale                        = "Disabled"
