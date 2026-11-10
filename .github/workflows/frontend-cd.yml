@@ -104,6 +104,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: frontend-staging
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_azure_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
       - name: Descargar configuracion del commit aprobado
@@ -122,6 +132,33 @@ jobs:
 
       - name: Configurar API de preproducción
         run: node frontend/scripts/configurar-entorno.cjs staging dist-ready
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: "1.16.4"
+          terraform_wrapper: false
+
+      - name: Inicializar Terraform
+        working-directory: infra/frontend/staging
+        env:
+          TF_STATE_STORAGE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
+        run: terraform init -input=false -backend-config="storage_account_name=$TF_STATE_STORAGE_ACCOUNT"
+
+      - name: Planificar infraestructura de preproducción
+        working-directory: infra/frontend/staging
+        run: |
+          resources=$(terraform state list)
+          grep -Fxq 'azurerm_storage_account.frontend_staging' <<< "$resources"
+          grep -Fxq 'azurerm_storage_account_static_website.frontend_staging' <<< "$resources"
+          terraform plan -input=false -out=tfplan
+
+      - name: Aplicar infraestructura de preproducción
+        working-directory: infra/frontend/staging
+        run: |
+          set -o pipefail
+          terraform show -json tfplan | jq -e 'all(.resource_changes[]?; (.change.actions | index("delete")) == null)' > /dev/null
+          terraform apply -input=false tfplan
 
       - name: Sincronizar Storage de preproducción
         shell: bash
