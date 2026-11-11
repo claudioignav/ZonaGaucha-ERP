@@ -1,0 +1,211 @@
+name: frontend-cd-devops
+
+on:
+  workflow_run:
+    workflows: [frontend-ci-devops]
+    types: [completed]
+    branches: ["test/e**"]
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: ID de una ejecución exitosa de frontend-ci-devops en test/e*
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+env:
+  AZURE_FRONTEND_STORAGE_ACCOUNT: zgerpfronttest
+  AZURE_FRONTEND_URL: https://zgerpfronttest.z15.web.core.windows.net/
+
+concurrency:
+  group: frontend-cd-devops-testing
+  cancel-in-progress: false
+
+jobs:
+  analisis-iac:
+    name: Análisis de infraestructura (IaC)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      ci_run_id: ${{ steps.validar-ci.outputs.ci_run_id }}
+      head_sha: ${{ steps.validar-ci.outputs.head_sha }}
+
+    steps:
+      - name: Verificar origen y resultado del CI
+        id: validar-ci
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORIO: ${{ github.repository }}
+          CI_RUN_ID: ${{ github.event.workflow_run.id || inputs.ci_run_id }}
+          CD_REF: ${{ github.ref }}
+          EVENTO_CD: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENTO_CD" == workflow_dispatch && ! "$CD_REF" =~ ^refs/heads/test/e ]]; then
+            echo "::error::Ejecuta el CD manual desde una rama test/e*."
+            exit 1
+          fi
+
+          if [[ ! "$CI_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::El ID del CI debe ser numérico."
+            exit 1
+          fi
+
+          workflow_id=$(gh api "repos/$REPOSITORIO/actions/workflows/frontend-ci-devops.yml" --jq '.id')
+          ejecucion=$(gh api "repos/$REPOSITORIO/actions/runs/$CI_RUN_ID")
+
+          if ! jq -e --arg repositorio "$REPOSITORIO" --argjson workflow_id "$workflow_id" \
+            --arg cd_ref "$CD_REF" --arg evento_cd "$EVENTO_CD" '
+            .workflow_id == $workflow_id and
+            .repository.full_name == $repositorio and
+            .head_repository.full_name == $repositorio and
+            (.head_branch | startswith("test/e")) and
+            ($evento_cd != "workflow_dispatch" or ("refs/heads/" + .head_branch) == $cd_ref) and
+            .status == "completed" and
+            .conclusion == "success" and
+            (.event == "push" or .event == "workflow_dispatch") and
+            (.head_sha | test("^[0-9a-f]{40}$"))
+          ' <<< "$ejecucion" > /dev/null; then
+            echo "::error::Se requiere un frontend-ci-devops exitoso de una rama test/e* de este repositorio."
+            exit 1
+          fi
+
+          head_sha=$(jq -r '.head_sha' <<< "$ejecucion")
+          printf 'ci_run_id=%s\n' "$CI_RUN_ID" >> "$GITHUB_OUTPUT"
+          printf 'head_sha=%s\n' "$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Descargar configuración Terraform del commit aprobado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ steps.validar-ci.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Descargar artefacto aprobado por CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: frontend-dist-reducido
+          path: dist-ready
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.validar-ci.outputs.ci_run_id }}
+
+      - name: Analizar Terraform con Trivy
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
+        with:
+          scan-type: config
+          scan-ref: infra/frontend/testing
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          format: table
+
+  despliegue-testing:
+    name: Despliegue del frontend en Testing
+    needs: analisis-iac
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: frontend-testing
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    steps:
+      - name: Descargar configuración del commit aprobado
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.analisis-iac.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Descargar artefacto aprobado por CI
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: frontend-dist-reducido
+          path: dist-ready
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
+
+      - name: Configurar API de Testing
+        run: node frontend/scripts/configurar-entorno.cjs testing dist-ready
+
+      - name: Iniciar sesión en Azure con OIDC
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: "1.16.4"
+          terraform_wrapper: false
+
+      - name: Inicializar Terraform
+        working-directory: infra/frontend/testing
+        run: terraform init -input=false
+
+      - name: Planificar infraestructura de Testing
+        working-directory: infra/frontend/testing
+        run: |
+          resources=$(terraform state list)
+          grep -Fxq 'azurerm_storage_account.frontend_testing' <<< "$resources"
+          grep -Fxq 'azurerm_storage_account_static_website.frontend_testing' <<< "$resources"
+          terraform plan -input=false -out=tfplan
+
+      - name: Aplicar infraestructura de Testing
+        working-directory: infra/frontend/testing
+        run: |
+          set -o pipefail
+          terraform show -json tfplan | jq -e '
+            all(.resource_changes[]? | select(.mode == "managed");
+              ((.change.actions | index("delete")) == null) and (
+              (.address == "azurerm_storage_account.frontend_testing" and
+               .change.after.name == "zgerpfronttest" and .change.after.resource_group_name == "zg-erp") or
+              (.address == "azurerm_storage_account_static_website.frontend_testing" and
+               (.change.after.storage_account_id | endswith("/resourceGroups/zg-erp/providers/Microsoft.Storage/storageAccounts/zgerpfronttest")))
+              ))
+          ' > /dev/null
+          terraform apply -input=false tfplan
+
+      - name: Sincronizar Storage de Testing
+        shell: bash
+        run: >-
+          az storage blob sync
+          --account-name "$AZURE_FRONTEND_STORAGE_ACCOUNT"
+          --auth-mode login
+          --container '$web'
+          --source dist-ready
+          --delete-destination true
+
+      - name: Verificar disponibilidad de Testing
+        run: curl --fail --silent --show-error --retry 5 --retry-delay 10 "$AZURE_FRONTEND_URL"
+
+  dast-testing:
+    name: Análisis dinámico (DAST)
+    needs: despliegue-testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: frontend-testing
+    continue-on-error: true
+
+    steps:
+      - name: Ejecutar OWASP ZAP Baseline
+        uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874
+        with:
+          target: ${{ env.AZURE_FRONTEND_URL }}
+          allow_issue_writing: false
+          fail_action: false
+          artifact_name: frontend-testing-zap-${{ github.run_id }}
+          cmd_options: -a

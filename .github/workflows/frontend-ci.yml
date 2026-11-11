@@ -9,9 +9,8 @@ on:
       - ".gitguardian.yaml"
       - ".github/workflows/frontend-ci.yml"
       - ".github/workflows/frontend-cd.yml"
-      - ".github/workflows/frontend-ci-reducido.yml"
+      - ".github/workflows/frontend-ci-devops.yml"
   pull_request:
-    branches: [main]
     paths:
       - "frontend/**"
       - "infra/frontend/**"
@@ -19,7 +18,7 @@ on:
       - ".gitguardian.yaml"
       - ".github/workflows/frontend-ci.yml"
       - ".github/workflows/frontend-cd.yml"
-      - ".github/workflows/frontend-ci-reducido.yml"
+      - ".github/workflows/frontend-ci-devops.yml"
   workflow_dispatch:
 
 permissions:
@@ -161,7 +160,6 @@ jobs:
         run: npm run build:production
 
       - name: Analizar código y comprobar Quality Gate con SonarCloud
-        if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
         uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -175,7 +173,7 @@ jobs:
             -Dsonar.test.inclusions=**/*.spec.ts
             -Dsonar.exclusions=**/*.spec.ts
             -Dsonar.javascript.lcov.reportPaths=coverage/erp-frontend/lcov.info
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.wait=${{ (github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')) && 'true' || 'false' }}
             -Dsonar.qualitygate.timeout=300
 
       - name: Publicar artefacto del frontend

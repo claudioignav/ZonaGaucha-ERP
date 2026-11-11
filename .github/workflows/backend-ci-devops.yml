@@ -1,30 +1,27 @@
-name: Integración continua reducida del backend
+name: backend-ci-devops
 
 on:
   push:
     branches:
-      - feature/pipelines
-      - "test/**"
+      - "test/e**"
     paths:
       - "backend/**"
-      - ".github/workflows/backend-ci-reducido.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "backend/**"
-      - ".github/workflows/backend-ci-reducido.yml"
+      - "infra/backend/testing/**"
+      - ".github/workflows/backend-ci-devops.yml"
+      - ".github/workflows/backend-cd-devops.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: backend-ci-reducido-${{ github.ref }}
+  group: backend-ci-devops-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   pruebas:
-    name: Pruebas y cobertura del backend (CI reducido)
+    if: startsWith(github.ref, 'refs/heads/test/e')
+    name: Pruebas y cobertura del backend (CI DevOps)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -35,6 +32,7 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Configurar Node.js
@@ -53,6 +51,23 @@ jobs:
       - name: Verificar reporte de cobertura
         run: test -s coverage/lcov.info
 
+      - name: Analizar código con SonarCloud
+        continue-on-error: true
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: backend
+          args: >-
+            -Dsonar.organization=claudioignav
+            -Dsonar.projectKey=claudioignav_erp-backend
+            -Dsonar.sources=.
+            -Dsonar.tests=.
+            -Dsonar.test.inclusions=**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
+            -Dsonar.exclusions=node_modules/**,coverage/**,**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.qualitygate.wait=false
+
       - name: Conservar resultados de pruebas y cobertura
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -63,7 +78,7 @@ jobs:
           retention-days: 7
 
   empaquetado:
-    name: Empaquetado del backend (CI reducido)
+    name: Empaquetado del backend (CI DevOps)
     needs: pruebas
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -117,7 +132,7 @@ jobs:
           cd "$RUNNER_TEMP/backend-package-reducido"
           zip -qr "$GITHUB_WORKSPACE/backend-reducido.zip" .
 
-      - name: Publicar artefacto del CI reducido
+      - name: Publicar artefacto del CI DevOps
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: backend-dist-reducido

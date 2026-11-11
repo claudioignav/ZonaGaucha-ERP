@@ -9,9 +9,8 @@ on:
       - ".gitguardian.yaml"
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/backend-cd.yml"
-      - ".github/workflows/backend-ci-reducido.yml"
+      - ".github/workflows/backend-ci-devops.yml"
   pull_request:
-    branches: [main]
     paths:
       - "backend/**"
       - "infra/backend/**"
@@ -19,7 +18,7 @@ on:
       - ".gitguardian.yaml"
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/backend-cd.yml"
-      - ".github/workflows/backend-ci-reducido.yml"
+      - ".github/workflows/backend-ci-devops.yml"
   workflow_dispatch:
 
 permissions:
@@ -166,7 +165,6 @@ jobs:
             xargs -0 -r -n 1 node --check
 
       - name: Analizar código y comprobar Quality Gate con SonarCloud
-        if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
         uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -180,7 +178,7 @@ jobs:
             -Dsonar.test.inclusions=**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
             -Dsonar.exclusions=node_modules/**,coverage/**,**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.wait=${{ (github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')) && 'true' || 'false' }}
             -Dsonar.qualitygate.timeout=300
 
       - name: Empaquetar aplicación y dependencias de producción
