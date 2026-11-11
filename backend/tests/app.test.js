@@ -49,3 +49,42 @@ describe('estado de la api', () => {
     expect((await request(app).get('/dashboard')).status).toBe(401);
   });
 });
+
+describe('metricas de la api', () => {
+  const { randomBytes } = require('node:crypto');
+  const token = randomBytes(32).toString('hex');
+
+  test('deshabilita /metrics cuando no hay token configurado', async () => {
+    jest.replaceProperty(process, 'env', { ...process.env, METRICS_TOKEN: '' });
+
+    await request(app).get('/metrics').expect(404);
+  });
+
+  test('rechaza solicitudes sin token o con un token incorrecto', async () => {
+    jest.replaceProperty(process, 'env', { ...process.env, METRICS_TOKEN: token });
+
+    await request(app).get('/metrics').expect(401).expect('WWW-Authenticate', 'Bearer');
+    await request(app).get('/metrics').set('Authorization', 'Bearer incorrecto').expect(401);
+  });
+
+  test('publica las métricas para Grafana sin incluir la URL de la solicitud', async () => {
+    jest.replaceProperty(process, 'env', { ...process.env, METRICS_TOKEN: token });
+    await request(app).get('/?busqueda=dato-de-prueba').expect(200);
+    await request(app).get('/AUTH/perfil').expect(401);
+    await request(app).get('/no-existe/dato-de-prueba').expect(404);
+
+    const respuesta = await request(app)
+      .get('/metrics')
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .expect('Content-Type', /text\/plain/)
+      .expect('Cache-Control', 'no-store');
+
+    expect(respuesta.text).toContain('http_requests_total{method="GET",route="/",status_code="200"}');
+    expect(respuesta.text).toContain('http_requests_total{method="GET",route="sin_ruta",status_code="404"}');
+    expect(respuesta.text).toContain('http_requests_total{method="GET",route="/auth/perfil",status_code="401"}');
+    expect(respuesta.text).toContain('http_request_duration_seconds_bucket{');
+    expect(respuesta.text).not.toContain('dato-de-prueba');
+    expect(respuesta.text).not.toContain('route="/metrics"');
+  });
+});

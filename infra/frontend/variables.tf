@@ -20,18 +20,3 @@ variable "frontend_production_storage_account_name" {
   type        = string
   default     = "zgerpfrontapp"
 }
-
-variable "frontend_staging_storage_account_name" {
-  description = "Nombre globalmente único para el Storage del frontend de staging."
-  type        = string
-  default     = "zgerpfrontstg"
-}
-
-variable "tags" {
-  description = "Etiquetas comunes para los recursos nuevos administrados por Terraform."
-  type        = map(string)
-  default = {
-    application = "zona-gaucha-erp"
-    managed-by  = "terraform"
-  }
-}
