@@ -3,12 +3,13 @@ const path = require('node:path');
 
 const [entorno, destino] = process.argv.slice(2);
 const urls = {
+  testing: 'https://zgerpbacktest.azurewebsites.net',
   staging: 'https://zgerpbackstg.azurewebsites.net',
   production: 'https://zgerpbacktapp.azurewebsites.net',
 };
 
 if (!urls[entorno] || !destino)
-  throw new Error('Uso: node scripts/configurar-entorno.cjs staging|production <carpeta browser>');
+  throw new Error('Uso: node scripts/configurar-entorno.cjs testing|staging|production <carpeta browser>');
 
 const carpeta = path.resolve(destino);
 

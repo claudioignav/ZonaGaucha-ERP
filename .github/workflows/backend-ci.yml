@@ -4,20 +4,21 @@ on:
   push:
     paths:
       - "backend/**"
-      - "infra/backend/**"
+      - "infra/environments/*/backend/**"
       - ".gitignore"
       - ".gitguardian.yaml"
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/backend-cd.yml"
+      - ".github/workflows/backend-ci-devops.yml"
   pull_request:
-    branches: [main]
     paths:
       - "backend/**"
-      - "infra/backend/**"
+      - "infra/environments/*/backend/**"
       - ".gitignore"
       - ".gitguardian.yaml"
       - ".github/workflows/backend-ci.yml"
       - ".github/workflows/backend-cd.yml"
+      - ".github/workflows/backend-ci-devops.yml"
   workflow_dispatch:
 
 permissions:
@@ -43,7 +44,7 @@ jobs:
       - name: Detectar secretos con GitGuardian
         uses: GitGuardian/ggshield-action@7f66d3be9c59a821dcf4f45ee5d929203a1a0b90
         env:
-          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_BASE_SHA: ${{ github.event.before }}
           GITHUB_PUSH_AFTER_SHA: ${{ github.event.after }}
           GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
@@ -164,7 +165,6 @@ jobs:
             xargs -0 -r -n 1 node --check
 
       - name: Analizar código y comprobar Quality Gate con SonarCloud
-        if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
         uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -178,7 +178,7 @@ jobs:
             -Dsonar.test.inclusions=**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
             -Dsonar.exclusions=node_modules/**,coverage/**,**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.wait=${{ (github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')) && 'true' || 'false' }}
             -Dsonar.qualitygate.timeout=300
 
       - name: Empaquetar aplicación y dependencias de producción
