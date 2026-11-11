@@ -6,7 +6,7 @@ on:
       - "test/e**"
     paths:
       - "backend/**"
-      - "infra/backend/testing/**"
+      - "infra/environments/testing/backend/**"
       - ".github/workflows/backend-ci-devops.yml"
       - ".github/workflows/backend-cd-devops.yml"
   workflow_dispatch:

@@ -31,6 +31,7 @@ jobs:
     outputs:
       ci_run_id: ${{ steps.validar-ci.outputs.ci_run_id }}
       head_sha: ${{ steps.validar-ci.outputs.head_sha }}
+      directorio_terraform: ${{ steps.rutas-terraform.outputs.directorio }}
 
     steps:
       - name: Verificar origen y resultado del CI
@@ -81,6 +82,26 @@ jobs:
           ref: ${{ steps.validar-ci.outputs.head_sha }}
           persist-credentials: false
 
+      - name: Localizar configuración Terraform del commit aprobado
+        id: rutas-terraform
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -d infra/environments/staging/frontend ]]; then
+            directorio=infra/environments/staging/frontend
+            ruta_analisis=infra/environments
+          elif [[ -d infra/frontend/staging ]]; then
+            directorio=infra/frontend/staging
+            ruta_analisis=infra/frontend
+          else
+            echo "::error::No se encontró la configuración Terraform de staging para frontend."
+            exit 1
+          fi
+
+          printf 'directorio=%s\n' "$directorio" >> "$GITHUB_OUTPUT"
+          printf 'ruta_analisis=%s\n' "$ruta_analisis" >> "$GITHUB_OUTPUT"
+
       - name: Descargar artefacto aprobado por CI
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -90,10 +111,11 @@ jobs:
           run-id: ${{ steps.validar-ci.outputs.ci_run_id }}
 
       - name: Analizar Terraform con Trivy
-        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
           scan-type: config
-          scan-ref: infra/frontend
+          scan-ref: ${{ steps.rutas-terraform.outputs.ruta_analisis }}
+          skip-dirs: '**/backend'
           severity: CRITICAL,HIGH
           exit-code: "1"
           format: table
@@ -140,13 +162,13 @@ jobs:
           terraform_wrapper: false
 
       - name: Inicializar Terraform
-        working-directory: infra/frontend/staging
+        working-directory: ${{ needs.analisis-iac.outputs.directorio_terraform }}
         env:
           TF_STATE_STORAGE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
         run: terraform init -input=false -backend-config="storage_account_name=$TF_STATE_STORAGE_ACCOUNT"
 
       - name: Planificar infraestructura de preproducción
-        working-directory: infra/frontend/staging
+        working-directory: ${{ needs.analisis-iac.outputs.directorio_terraform }}
         run: |
           resources=$(terraform state list)
           grep -Fxq 'azurerm_storage_account.frontend_staging' <<< "$resources"
@@ -154,7 +176,7 @@ jobs:
           terraform plan -input=false -out=tfplan
 
       - name: Aplicar infraestructura de preproducción
-        working-directory: infra/frontend/staging
+        working-directory: ${{ needs.analisis-iac.outputs.directorio_terraform }}
         run: |
           set -o pipefail
           terraform show -json tfplan | jq -e 'all(.resource_changes[]?; (.change.actions | index("delete")) == null)' > /dev/null

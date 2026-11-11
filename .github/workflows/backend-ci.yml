@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "backend/**"
-      - "infra/backend/**"
+      - "infra/environments/*/backend/**"
       - ".gitignore"
       - ".gitguardian.yaml"
       - ".github/workflows/backend-ci.yml"
@@ -13,7 +13,7 @@ on:
   pull_request:
     paths:
       - "backend/**"
-      - "infra/backend/**"
+      - "infra/environments/*/backend/**"
       - ".gitignore"
       - ".gitguardian.yaml"
       - ".github/workflows/backend-ci.yml"

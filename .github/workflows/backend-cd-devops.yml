@@ -36,6 +36,7 @@ jobs:
     outputs:
       ci_run_id: ${{ steps.validar-ci.outputs.ci_run_id }}
       head_sha: ${{ steps.validar-ci.outputs.head_sha }}
+      directorio_terraform: ${{ steps.rutas-terraform.outputs.directorio }}
 
     steps:
       - name: Verificar origen y resultado del CI
@@ -89,6 +90,23 @@ jobs:
           ref: ${{ steps.validar-ci.outputs.head_sha }}
           persist-credentials: false
 
+      - name: Localizar configuración Terraform del commit aprobado
+        id: rutas-terraform
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -d infra/environments/testing/backend ]]; then
+            directorio=infra/environments/testing/backend
+          elif [[ -d infra/backend/testing ]]; then
+            directorio=infra/backend/testing
+          else
+            echo "::error::No se encontró la configuración Terraform de testing para backend."
+            exit 1
+          fi
+
+          printf 'directorio=%s\n' "$directorio" >> "$GITHUB_OUTPUT"
+
       - name: Descargar artefacto aprobado por CI
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -98,10 +116,10 @@ jobs:
           run-id: ${{ steps.validar-ci.outputs.ci_run_id }}
 
       - name: Analizar Terraform con Trivy
-        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
         with:
           scan-type: config
-          scan-ref: infra/backend/testing
+          scan-ref: ${{ steps.rutas-terraform.outputs.directorio }}
           severity: CRITICAL,HIGH
           exit-code: "1"
           format: table
@@ -171,11 +189,11 @@ jobs:
           terraform_wrapper: false
 
       - name: Inicializar Terraform
-        working-directory: infra/backend/testing
+        working-directory: ${{ needs.analisis-iac.outputs.directorio_terraform }}
         run: terraform init -input=false
 
       - name: Planificar infraestructura de Testing
-        working-directory: infra/backend/testing
+        working-directory: ${{ needs.analisis-iac.outputs.directorio_terraform }}
         run: |
           resources=$(terraform state list)
           grep -Fxq 'azurerm_service_plan.backend_testing' <<< "$resources"
@@ -183,7 +201,7 @@ jobs:
           terraform plan -input=false -out=tfplan
 
       - name: Aplicar infraestructura de Testing
-        working-directory: infra/backend/testing
+        working-directory: ${{ needs.analisis-iac.outputs.directorio_terraform }}
         run: |
           set -o pipefail
           terraform show -json tfplan | jq -e '
