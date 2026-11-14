@@ -1,12 +1,3 @@
-export interface ProductoLote {
-  id: number;
-  nombre: string;
-  categoria?: string | null;
-  unidadesDisponibles: number;
-  unidadesIngresadas: number;
-  precioTotal?: number | null;
-}
-
 export interface Lote {
   numero: number;
   proveedor: string;
@@ -15,7 +6,6 @@ export interface Lote {
   unidadesDisponibles: number;
   unidadesTotales: number;
   fechaCreacion: string;
-  productos: ProductoLote[];
 }
 
 export interface ResumenInventario {
