@@ -201,6 +201,7 @@ jobs:
             ./ "$RUNNER_TEMP/backend-package/"
           npm ci --omit=dev --prefix "$RUNNER_TEMP/backend-package"
           cd "$RUNNER_TEMP/backend-package"
+          printf '%s\n' "$GITHUB_SHA" > version.txt
           zip -qr "$GITHUB_WORKSPACE/backend.zip" .
 
       - name: Publicar artefacto

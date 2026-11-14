@@ -155,7 +155,15 @@ jobs:
           run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
 
       - name: Configurar API de Testing
-        run: node frontend/scripts/configurar-entorno.cjs testing dist-ready
+        shell: bash
+        env:
+          SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
+        run: |
+          grep -Fq "<meta name=\"version-despliegue\" content=\"$SHA_ESPERADO\">" dist-ready/index.html || {
+            echo "::error::El frontend no corresponde al SHA aprobado. Genera un artefacto nuevo con el CI actualizado."
+            exit 1
+          }
+          node frontend/scripts/configurar-entorno.cjs testing dist-ready
 
       - name: Iniciar sesión en Azure con OIDC
         uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
@@ -208,4 +216,8 @@ jobs:
           --delete-destination true
 
       - name: Verificar disponibilidad de Testing
-        run: curl --fail --silent --show-error --retry 5 --retry-delay 10 "$AZURE_FRONTEND_URL"
+        shell: bash
+        env:
+          URL_DESPLIEGUE: ${{ env.AZURE_FRONTEND_URL }}
+          SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
+        run: bash .github/scripts/verificar-despliegue.sh frontend "$URL_DESPLIEGUE" "$SHA_ESPERADO"
