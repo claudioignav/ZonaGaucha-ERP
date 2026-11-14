@@ -124,7 +124,7 @@ jobs:
     name: Despliegue del backend en preproducción
     needs: analisis-iac
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     environment: backend-staging
     permissions:
       actions: read
@@ -263,7 +263,7 @@ jobs:
     needs: [analisis-iac, despliegue-preproduccion, dast-preproduccion]
     if: ${{ always() && needs.analisis-iac.result == 'success' && needs.despliegue-preproduccion.result == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     environment: backend-production
     permissions:
       actions: read

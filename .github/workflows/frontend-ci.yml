@@ -3,6 +3,7 @@ name: Integración continua del frontend
 on:
   push:
     paths:
+      - ".github/scripts/verificar-despliegue.sh"
       - "frontend/**"
       - "infra/environments/*/frontend/**"
       - ".gitignore"
@@ -12,6 +13,7 @@ on:
       - ".github/workflows/frontend-ci-devops.yml"
   pull_request:
     paths:
+      - ".github/scripts/verificar-despliegue.sh"
       - "frontend/**"
       - "infra/environments/*/frontend/**"
       - ".gitignore"

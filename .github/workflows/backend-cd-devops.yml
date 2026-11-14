@@ -128,7 +128,7 @@ jobs:
     name: Despliegue del backend en Testing
     needs: analisis-iac
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     environment: backend-testing
     permissions:
       actions: read
