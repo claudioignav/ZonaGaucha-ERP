@@ -44,6 +44,57 @@
     </button>
   </section>
 
+  <div class="flex justify-end">
+    <div class="flex items-center gap-1.5" role="group" aria-label="Vista de lotes">
+      @for (opcion of vistas; track opcion.valor) {
+        <button
+          type="button"
+          class="h-8 rounded-md border px-3 text-xs font-semibold"
+          [class]="opcion.valor === vista ? 'border-verde-oscuro bg-verde-oscuro text-white' : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'"
+          [attr.aria-pressed]="opcion.valor === vista"
+          [attr.data-vista]="opcion.valor"
+          (click)="cambiarVista(opcion.valor)"
+        >
+          {{ opcion.etiqueta }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (vista === 'tabla') {
+    <app-tabla-contenido [totalRegistros]="lotesFiltrados.length" [compacta]="true">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">N° Lote</th>
+            <th scope="col">Proveedor</th>
+            <th scope="col" class="centro">Tipo de Contenido</th>
+            <th scope="col">Factura Asociada</th>
+            <th scope="col">Fecha Creación</th>
+            <th scope="col" class="centro">Disponibilidad</th>
+            <th scope="col" class="acciones">Ver productos</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (lote of lotesFiltrados; track lote.numero) {
+            <tr>
+              <td class="font-semibold">LOTE #{{ lote.numero }}</td>
+              <td>{{ lote.proveedor }}</td>
+              <td class="centro"><span class="insignia">{{ lote.tipoContenido }}</span></td>
+              <td>{{ lote.facturaAsociada }}</td>
+              <td class="sin-salto">{{ lote.fechaCreacion }}</td>
+              <td class="centro sin-salto">
+                <span class="font-semibold">{{ lote.unidadesDisponibles }}</span>&ngsp;<span class="text-slate-400">/ {{ lote.unidadesTotales }} uds</span>
+              </td>
+              <td class="acciones">
+                <button type="button" class="boton-icono" title="Ver productos" [attr.aria-label]="'Ver productos del lote ' + lote.numero" (click)="abrirProductos(lote)"><img class="size-3.5" src="assets/icons/eye.svg" alt="" /></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </app-tabla-contenido>
+  } @else {
   <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
     @for (lote of lotesFiltrados; track lote.numero) {
       <article class="tarjeta p-6">
@@ -52,7 +103,10 @@
             <h2 class="font-titulo text-xl font-bold">LOTE #{{ lote.numero }}</h2>
             <p class="mt-1 text-[13px] text-slate-600">{{ lote.proveedor }}</p>
           </div>
-          <span class="insignia text-[11px]">{{ lote.tipoContenido }}</span>
+          <div class="flex items-center gap-2">
+            <span class="insignia text-[11px]">{{ lote.tipoContenido }}</span>
+            <button type="button" class="boton-icono" title="Ver productos" [attr.aria-label]="'Ver productos del lote ' + lote.numero" (click)="abrirProductos(lote)"><img class="size-3.5" src="assets/icons/eye.svg" alt="" /></button>
+          </div>
         </div>
         <dl class="mt-4 space-y-3 border-t border-slate-200 pt-4 text-[13px]">
           <div class="flex justify-between">
@@ -77,4 +131,53 @@
       </article>
     }
   </section>
+  }
 </div>
+
+@if (detalle) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-productos-lote">
+    <section class="tarjeta w-full max-w-2xl p-6">
+      <h2 id="titulo-productos-lote" class="border-b border-slate-200 pb-2 font-semibold">Productos del lote #{{ detalle.numero }}</h2>
+      <p class="mt-1 text-xs text-slate-600">{{ detalle.proveedor }} · {{ detalle.tipoContenido }} · {{ detalle.fechaCreacion }}</p>
+
+      @if (detalle.productos.length) {
+        <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full min-w-[560px] text-sm">
+            <thead class="bg-verde-claro text-left text-xs font-bold text-verde-oscuro">
+              <tr>
+                <th scope="col" class="px-6 py-3.5">Producto</th>
+                <th scope="col" class="px-3 py-3.5">Categoría</th>
+                <th scope="col" class="px-3 py-3.5 text-center">Disponibles</th>
+                <th scope="col" class="px-3 py-3.5 text-center">Ingresadas</th>
+                <th scope="col" class="px-3 py-3.5 text-right">Precio total lote</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (producto of detalle.productos; track producto.id) {
+                <tr class="border-b border-slate-200">
+                  <td class="px-6 py-3">{{ producto.nombre }}</td>
+                  <td class="px-3 py-3">{{ producto.categoria || '-' }}</td>
+                  <td class="px-3 py-3 text-center font-semibold">{{ producto.unidadesDisponibles }}</td>
+                  <td class="px-3 py-3 text-center">{{ producto.unidadesIngresadas }}</td>
+                  <td class="px-3 py-3 text-right font-semibold">
+                    @if (producto.precioTotal === null || producto.precioTotal === undefined) {
+                      -
+                    } @else {
+                      {{ producto.precioTotal | pesos }}
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="mt-4 rounded-xl border border-slate-200 px-6 py-4 text-sm text-slate-600">Este lote no tiene productos registrados.</p>
+      }
+
+      <div class="mt-6 flex justify-end">
+        <button type="button" class="boton-oscuro" (click)="cerrarProductos()">Cerrar</button>
+      </div>
+    </section>
+  </div>
+}
