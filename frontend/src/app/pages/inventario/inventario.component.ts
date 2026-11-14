@@ -1,7 +1,9 @@
 import { finalize } from 'rxjs';
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { Lote, resumenInventario } from '../../models/lote';
 import { InventarioService } from '../../services/inventario.service';
+
+export type VistaInventario = 'tarjetas' | 'tabla';
 
 @Component({
   selector: 'app-inventario',
@@ -34,6 +36,28 @@ export class InventarioComponent implements OnInit {
   filtroFecha = '';
 
   private filtrosAplicados = { lote: '', proveedor: '', contenido: '', fecha: '' };
+
+  readonly vistas: { valor: VistaInventario; etiqueta: string }[] = [
+    { valor: 'tarjetas', etiqueta: 'Tarjetas' },
+    { valor: 'tabla', etiqueta: 'Tabla' },
+  ];
+
+  vista: VistaInventario = 'tarjetas';
+
+  cambiarVista(vista: VistaInventario): void {
+    this.vista = vista;
+  }
+
+  detalle: Lote | null = null;
+
+  abrirProductos(lote: Lote): void {
+    this.detalle = lote;
+  }
+
+  @HostListener('document:keydown.escape')
+  cerrarProductos(): void {
+    this.detalle = null;
+  }
 
   aplicarFiltros(): void {
     this.filtrosAplicados = {
