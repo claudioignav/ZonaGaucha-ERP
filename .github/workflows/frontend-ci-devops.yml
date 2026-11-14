@@ -5,6 +5,7 @@ on:
     branches:
       - "test/e**"
     paths:
+      - ".github/scripts/verificar-despliegue.sh"
       - "frontend/**"
       - "infra/environments/testing/frontend/**"
       - ".github/workflows/frontend-ci-devops.yml"
