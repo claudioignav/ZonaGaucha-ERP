@@ -176,6 +176,13 @@ jobs:
             -Dsonar.qualitygate.wait=${{ (github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')) && 'true' || 'false' }}
             -Dsonar.qualitygate.timeout=300
 
+      - name: Identificar versión del artefacto
+        shell: bash
+        run: |
+          archivo=dist/erp-frontend/browser/index.html
+          sed -i "s|</head>|<meta name=\"version-despliegue\" content=\"$GITHUB_SHA\"></head>|" "$archivo"
+          grep -Fq "<meta name=\"version-despliegue\" content=\"$GITHUB_SHA\">" "$archivo"
+
       - name: Publicar artefacto del frontend
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:

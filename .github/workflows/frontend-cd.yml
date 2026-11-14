@@ -153,7 +153,15 @@ jobs:
           run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
 
       - name: Configurar API de preproducción
-        run: node frontend/scripts/configurar-entorno.cjs staging dist-ready
+        shell: bash
+        env:
+          SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
+        run: |
+          grep -Fq "<meta name=\"version-despliegue\" content=\"$SHA_ESPERADO\">" dist-ready/index.html || {
+            echo "::error::El frontend no corresponde al SHA aprobado. Genera un artefacto nuevo con el CI actualizado."
+            exit 1
+          }
+          node frontend/scripts/configurar-entorno.cjs staging dist-ready
 
       - name: Instalar Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -194,9 +202,11 @@ jobs:
           --delete-destination true
 
       - name: Verificar disponibilidad de preproducción
+        shell: bash
         env:
-          AZURE_FRONTEND_URL: ${{ vars.AZURE_FRONTEND_URL }}
-        run: curl --fail --silent --show-error --retry 5 --retry-delay 10 "$AZURE_FRONTEND_URL"
+          URL_DESPLIEGUE: ${{ vars.AZURE_FRONTEND_URL }}
+          SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
+        run: bash .github/scripts/verificar-despliegue.sh frontend "$URL_DESPLIEGUE" "$SHA_ESPERADO"
 
   dast-preproduccion:
     name: Análisis dinámico (DAST)
@@ -240,7 +250,15 @@ jobs:
           run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
 
       - name: Configurar API de producción
-        run: node frontend/scripts/configurar-entorno.cjs production dist-ready
+        shell: bash
+        env:
+          SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
+        run: |
+          grep -Fq "<meta name=\"version-despliegue\" content=\"$SHA_ESPERADO\">" dist-ready/index.html || {
+            echo "::error::El frontend no corresponde al SHA aprobado. Genera un artefacto nuevo con el CI actualizado."
+            exit 1
+          }
+          node frontend/scripts/configurar-entorno.cjs production dist-ready
 
       - name: Sincronizar Storage de producción
         shell: bash
@@ -254,6 +272,8 @@ jobs:
           --delete-destination true
 
       - name: Verificar disponibilidad de producción
+        shell: bash
         env:
-          AZURE_FRONTEND_URL: ${{ vars.AZURE_FRONTEND_URL }}
-        run: curl --fail --silent --show-error --retry 5 --retry-delay 10 "$AZURE_FRONTEND_URL"
+          URL_DESPLIEGUE: ${{ vars.AZURE_FRONTEND_URL }}
+          SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
+        run: bash .github/scripts/verificar-despliegue.sh frontend "$URL_DESPLIEGUE" "$SHA_ESPERADO"

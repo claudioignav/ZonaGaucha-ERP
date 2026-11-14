@@ -4,6 +4,7 @@ jest.mock('../models', () => ({
 }), { virtual: true });
 jest.mock('../config/seguridad', () => ({ validarSeguridad: jest.fn() }), { virtual: true });
 jest.mock('dotenv', () => ({ config: jest.fn() }), { virtual: true });
+jest.mock('node:timers/promises', () => ({ setTimeout: jest.fn().mockResolvedValue() }));
 
 const variablesAnteriores = { PORT: process.env.PORT, APP_ENV: process.env.APP_ENV };
 const esperarInicio = () => new Promise((resolve) => setImmediate(resolve));
@@ -78,4 +79,44 @@ test('no acepta peticiones cuando falla la conexion SQL', async () => {
   expect(require('../app').listen).not.toHaveBeenCalled();
   expect(process.exitCode).toBe(1);
   expect(consola).toHaveBeenCalledWith('No se pudo iniciar el servidor:', 'Error');
+});
+
+test('reintenta cuando Azure SQL está reactivando la base', async () => {
+  process.env.APP_ENV = 'staging';
+  const consola = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  const { sequelize } = require('../models');
+  const { setTimeout } = require('node:timers/promises');
+  sequelize.authenticate.mockRejectedValueOnce({
+    name: 'SequelizeConnectionError',
+    original: { errors: [{ number: 40613 }] },
+  });
+
+  require('../index');
+  await esperarInicio();
+
+  expect(consola).toHaveBeenCalledWith(expect.any(String), 5000, '40613');
+  expect(setTimeout).toHaveBeenCalledWith(5000);
+  expect(sequelize.authenticate).toHaveBeenCalledTimes(2);
+  expect(require('../app').listen).toHaveBeenCalledTimes(1);
+});
+
+test('limita los reintentos SQL y registra solo los códigos del error', async () => {
+  process.env.APP_ENV = 'production';
+  jest.spyOn(console, 'warn').mockImplementation(() => {});
+  const consola = jest.spyOn(console, 'error').mockImplementation(() => {});
+  const { sequelize } = require('../models');
+  const { setTimeout } = require('node:timers/promises');
+  sequelize.authenticate.mockRejectedValue({
+    name: 'SequelizeConnectionError',
+    original: { code: 'ETIMEOUT', message: 'detalle de la conexión' },
+  });
+
+  require('../index');
+  await esperarInicio();
+
+  expect(setTimeout.mock.calls).toEqual([[5000], [10000], [15000]]);
+  expect(sequelize.authenticate).toHaveBeenCalledTimes(4);
+  expect(require('../app').listen).not.toHaveBeenCalled();
+  expect(process.exitCode).toBe(1);
+  expect(consola).toHaveBeenCalledWith('No se pudo iniciar el servidor:', 'SequelizeConnectionError', 'ETIMEOUT');
 });

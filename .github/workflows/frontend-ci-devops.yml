@@ -21,7 +21,7 @@ concurrency:
 jobs:
   pruebas:
     if: startsWith(github.ref, 'refs/heads/test/e')
-    name: Pruebas y cobertura del frontend (CI DevOps)
+    name: Pruebas y cobertura del frontend
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -78,7 +78,7 @@ jobs:
           retention-days: 7
 
   compilacion:
-    name: Compilación del frontend (CI DevOps)
+    name: Compilación del frontend
     needs: pruebas
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -104,6 +104,13 @@ jobs:
 
       - name: Compilar artefacto de producción
         run: npm run build:production
+
+      - name: Identificar versión del artefacto
+        shell: bash
+        run: |
+          archivo=dist/erp-frontend/browser/index.html
+          sed -i "s|</head>|<meta name=\"version-despliegue\" content=\"$GITHUB_SHA\"></head>|" "$archivo"
+          grep -Fq "<meta name=\"version-despliegue\" content=\"$GITHUB_SHA\">" "$archivo"
 
       - name: Publicar artefacto del CI DevOps
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
