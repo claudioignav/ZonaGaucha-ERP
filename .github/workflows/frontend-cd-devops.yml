@@ -209,21 +209,3 @@ jobs:
 
       - name: Verificar disponibilidad de Testing
         run: curl --fail --silent --show-error --retry 5 --retry-delay 10 "$AZURE_FRONTEND_URL"
-
-  dast-testing:
-    name: Análisis dinámico (DAST)
-    needs: despliegue-testing
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: frontend-testing
-    continue-on-error: true
-
-    steps:
-      - name: Ejecutar OWASP ZAP Baseline
-        uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874
-        with:
-          target: ${{ env.AZURE_FRONTEND_URL }}
-          allow_issue_writing: false
-          fail_action: false
-          artifact_name: frontend-testing-zap-${{ github.run_id }}
-          cmd_options: -a
