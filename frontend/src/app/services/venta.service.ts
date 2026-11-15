@@ -7,7 +7,7 @@ import { manejarErrorHttp } from './errores';
 export type VentaNueva = VentaFormulario & { valorBruto: number; valorNeto: number };
 
 export type FiltrosVenta = Partial<
-  Record<'numeroFactura' | 'fechaVenta' | 'plataforma' | 'tipoPago', string>
+  Record<'numeroFactura' | 'desde' | 'hasta' | 'plataforma' | 'tipoPago', string>
 >;
 
 @Injectable({ providedIn: 'root' })
