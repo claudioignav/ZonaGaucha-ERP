@@ -27,7 +27,7 @@ resource "azapi_resource" "backend_staging_database" {
 
       maxSizeBytes   = 34359738368
       minCapacity    = 0.5
-      autoPauseDelay = 60
+      autoPauseDelay = -1
 
       useFreeLimit                     = true
       freeLimitExhaustionBehavior      = "BillOverUsage"
