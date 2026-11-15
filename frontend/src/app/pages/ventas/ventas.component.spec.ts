@@ -96,6 +96,46 @@ it('vuelve a consultar al aplicar un filtro', () => {
   expect(fixture.componentInstance.ventas).toEqual([]);
 });
 
+it('envia el rango de fechas elegido como aaaa-mm-dd', () => {
+  fixture.componentInstance.rango = { desde: new Date(2026, 10, 1), hasta: new Date(2026, 10, 15) };
+  fixture.componentInstance.buscarVentas();
+
+  const peticion = http.expectOne((r) => r.url === RUTAS_API.ventas);
+
+  expect(peticion.request.params.get('desde')).toBe('2026-11-01');
+  expect(peticion.request.params.get('hasta')).toBe('2026-11-15');
+
+  peticion.flush([]);
+});
+
+it('sin rango no limita las fechas del listado', () => {
+  fixture.componentInstance.buscarVentas();
+
+  const peticion = http.expectOne((r) => r.url === RUTAS_API.ventas);
+
+  expect(peticion.request.params.get('desde')).toBe('');
+  expect(peticion.request.params.get('hasta')).toBe('');
+
+  peticion.flush([]);
+});
+
+it('no consulta si la fecha desde es posterior a la fecha hasta', () => {
+  fixture.componentInstance.rango = { desde: new Date(2026, 10, 20), hasta: new Date(2026, 10, 5) };
+  fixture.componentInstance.buscarVentas();
+
+  http.expectNone((r) => r.url === RUTAS_API.ventas);
+  expect(fixture.componentInstance.mensajeError).toBe('La fecha desde no puede ser posterior a la fecha hasta');
+});
+
+it('abre el calendario de rango al hacer clic en el campo de fecha', () => {
+  const campo = fixture.nativeElement.querySelector('mat-date-range-input').parentElement as HTMLElement;
+  campo.click();
+  fixture.detectChanges();
+
+  expect(document.querySelector('mat-calendar')).not.toBeNull();
+  expect(document.querySelector('.mat-calendar-previous-button')?.getAttribute('aria-label')).toBe('Mes anterior');
+});
+
 it('muestra el error de carga recibido del backend', async () => {
   fixture.componentInstance.buscarVentas();
   for (const peticion of http.match(() => true))

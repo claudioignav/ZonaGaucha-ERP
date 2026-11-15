@@ -5,6 +5,12 @@ import { Component, inject, OnInit, ChangeDetectorRef, ElementRef, ViewChild } f
 import { resumenVentas, Venta, opcionesVenta } from '../../models/venta';
 import { FiltrosVenta, VentaService } from '../../services/venta.service';
 
+// usa la fecha local para que el día elegido no cambie al pasarlo a utc
+const aTexto = (fecha: Date | null): string =>
+  fecha
+    ? `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
+    : '';
+
 @Component({
   selector: 'app-ventas',
   standalone: false,
@@ -44,7 +50,10 @@ export class VentasComponent implements OnInit {
 
   opciones = opcionesVenta;
 
-  filtros: FiltrosVenta = { numeroFactura: '', fechaVenta: '', plataforma: '', tipoPago: '' };
+  filtros: FiltrosVenta = { numeroFactura: '', plataforma: '', tipoPago: '' };
+
+  // el calendario entrega fechas, la api las recibe como aaaa-mm-dd
+  rango: { desde: Date | null; hasta: Date | null } = { desde: null, hasta: null };
 
   ngOnInit(): void {
     this.ventaService
@@ -75,8 +84,14 @@ export class VentasComponent implements OnInit {
   }
 
   buscarVentas(): void {
+    const { desde, hasta } = this.rango;
+    if (desde && hasta && desde > hasta) {
+      this.mensajeError = 'La fecha desde no puede ser posterior a la fecha hasta';
+      return;
+    }
+    this.mensajeError = '';
     this.ventaService
-      .listar(this.filtros)
+      .listar({ ...this.filtros, desde: aTexto(desde), hasta: aTexto(hasta) })
       .pipe(finalize(() => this.refrescar()))
       .subscribe({
         next: (ventas) => {

@@ -14,6 +14,10 @@ const filtrar = (query, campoFecha, campos) => {
       throw new ErrorHttp(400, 'Fecha de filtro no valida');
   }
 
+  // las fechas llegan como aaaa-mm-dd, así que compararlas como texto respeta el orden
+  if (query.desde && query.hasta && query.desde > query.hasta)
+    throw new ErrorHttp(400, 'La fecha desde no puede ser posterior a la fecha hasta');
+
   const where = filtroFechas(campoFecha, fecha || query.desde, fecha || query.hasta);
   for (const [campo, columna] of Object.entries(campos)) {
     const valor = query[campo];

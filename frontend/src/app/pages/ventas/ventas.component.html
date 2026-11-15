@@ -23,9 +23,16 @@
       <label class="etiqueta" for="filtro-factura">Número de Factura o Boleta</label>
       <input id="filtro-factura" type="text" class="campo" placeholder="Ej: 3911111" name="filtroFactura" [(ngModel)]="filtros.numeroFactura" />
     </div>
-    <div class="min-w-32 flex-1">
-      <label class="etiqueta" for="filtro-fecha">Fecha de Venta</label>
-      <input id="filtro-fecha" type="date" class="campo" name="filtroFecha" [(ngModel)]="filtros.fechaVenta" />
+    <div class="min-w-52 flex-[1.4]">
+      <label class="etiqueta" for="filtro-desde">Fecha de Venta</label>
+      <div class="campo flex cursor-pointer items-center gap-2" (click)="calendarioVentas.open()">
+        <mat-date-range-input class="rango-fechas" [rangePicker]="calendarioVentas">
+          <input matStartDate id="filtro-desde" name="filtroDesde" placeholder="Desde" aria-label="Fecha desde" [(ngModel)]="rango.desde" />
+          <input matEndDate name="filtroHasta" placeholder="Hasta" aria-label="Fecha hasta" [(ngModel)]="rango.hasta" />
+        </mat-date-range-input>
+        <img class="ml-auto size-3.5 shrink-0" src="assets/icons/calendar.svg" alt="" />
+      </div>
+      <mat-date-range-picker #calendarioVentas />
     </div>
     <div class="min-w-32 flex-1">
       <label class="etiqueta" for="filtro-plataforma">Plataforma</label>
