@@ -27,6 +27,12 @@ export class CompraService {
     return this.http.get<Compra[]>(RUTAS_API.compras, { params: filtros }).pipe(manejarErrorHttp());
   }
 
+  exportarPdf(filtros: FiltrosCompra = {}) {
+    return this.http
+      .get(RUTAS_API.compras + '/pdf', { params: filtros, responseType: 'blob' })
+      .pipe(manejarErrorHttp());
+  }
+
   resumen() {
     return this.http.get<ResumenCompras>(RUTAS_API.compras + '/resumen').pipe(manejarErrorHttp());
   }

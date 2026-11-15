@@ -1,4 +1,5 @@
 const { filtrar } = require('../utils/filtros');
+const { generarPdfCompras } = require('../utils/pdfCompras');
 const {
   sequelize,
   Compra,
@@ -89,9 +90,9 @@ const validarProductos = (productos) => {
   }
 };
 
-const listar = async (req, res) => {
+const buscarCompras = async (query) => {
   const compras = await Compra.findAll({
-    where: filtrar(req.query, 'fechaCompra', {
+    where: filtrar(query, 'fechaCompra', {
       numeroFactura: 'numeroFactura',
       proveedor: '$proveedor.razonSocial$',
       tipoPago: '$tipoPago.nombre$',
@@ -100,7 +101,29 @@ const listar = async (req, res) => {
     order: [['fechaCompra', 'DESC']],
   });
 
-  res.json(compras.map(formatearCompra));
+  return compras.map(formatearCompra);
+};
+
+const listar = async (req, res) => {
+  res.json(await buscarCompras(req.query));
+};
+
+// el pdf usa los mismos filtros que el listado para que coincida con la tabla de la pantalla
+const exportarPdf = async (req, res) => {
+  const compras = await buscarCompras(req.query);
+  const emitido = fechaHoy();
+  const pdf = await generarPdfCompras({
+    compras,
+    filtros: req.query,
+    usuario: req.user?.nombre,
+    emitido,
+  });
+
+  res.set({
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': `attachment; filename="historial-compras-${emitido.slice(0, 10)}.pdf"`,
+  });
+  res.send(pdf);
 };
 
 const resumen = async (req, res) => {
@@ -187,4 +210,4 @@ const crear = async (req, res) => {
   });
 };
 
-module.exports = { listar, resumen, crear, calcularImpuesto };
+module.exports = { listar, exportarPdf, resumen, crear, calcularImpuesto };
