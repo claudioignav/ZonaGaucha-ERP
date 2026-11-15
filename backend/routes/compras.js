@@ -14,6 +14,8 @@ router.get('/opciones', require('../controllers/opcionesController').compras);
 
 router.get('/resumen', verifyPermiso('ver-metricas'), compras.resumen);
 
+router.get('/pdf', compras.exportarPdf);
+
 router.get('/', compras.listar);
 
 router.post('/', require('../middleware/resolverCompra'), compras.crear);
