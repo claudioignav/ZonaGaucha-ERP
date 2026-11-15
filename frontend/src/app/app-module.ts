@@ -5,6 +5,8 @@ import { registerLocaleData } from '@angular/common';
 import localeEsCl from '@angular/common/locales/es-CL';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
+import { MatDatepickerIntl, MatDatepickerModule } from '@angular/material/datepicker';
+import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { AppRoutingModule } from './app-routing-module';
 import { App } from './app';
 
@@ -44,6 +46,24 @@ import { NombrePropioPipe } from './pipes/nombre-propio.pipe';
 
 registerLocaleData(localeEsCl);
 
+// textos del calendario en español, el lector de pantalla los usa en los botones
+const calendarioEnEspanol = () =>
+  Object.assign(new MatDatepickerIntl(), {
+    calendarLabel: 'Calendario',
+    openCalendarLabel: 'Abrir calendario',
+    closeCalendarLabel: 'Cerrar calendario',
+    prevMonthLabel: 'Mes anterior',
+    nextMonthLabel: 'Mes siguiente',
+    prevYearLabel: 'Año anterior',
+    nextYearLabel: 'Año siguiente',
+    prevMultiYearLabel: 'Años anteriores',
+    nextMultiYearLabel: 'Años siguientes',
+    switchToMonthViewLabel: 'Elegir fecha',
+    switchToMultiYearViewLabel: 'Elegir mes y año',
+    startDateLabel: 'Fecha desde',
+    endDateLabel: 'Fecha hasta',
+  });
+
 @NgModule({
   declarations: [
     RutValidatorDirective,
@@ -79,11 +99,14 @@ registerLocaleData(localeEsCl);
     TiposContenidoComponent,
     TiposPagoComponent,
   ],
-  imports: [BrowserModule, FormsModule, AppRoutingModule],
+  imports: [BrowserModule, FormsModule, MatDatepickerModule, AppRoutingModule],
   providers: [
     provideHttpClient(withInterceptors([authInterceptor])),
     provideBrowserGlobalErrorListeners(),
     { provide: LOCALE_ID, useValue: 'es-CL' },
+    provideNativeDateAdapter(),
+    { provide: MAT_DATE_LOCALE, useValue: 'es-CL' },
+    { provide: MatDatepickerIntl, useFactory: calendarioEnEspanol },
   ],
   bootstrap: [App],
 })

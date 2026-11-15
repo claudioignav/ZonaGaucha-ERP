@@ -25,3 +25,21 @@ test('sin valores mantiene el listado completo', () => {
     {},
   );
 });
+
+test('filtra por rango con los dias completos de desde y hasta', () => {
+  const filtro = filtrar({ desde: '2026-11-01', hasta: '2026-11-15' }, 'fechaVenta', {});
+
+  expect(filtro.fechaVenta[Op.gte]).toEqual(new Date('2026-11-01T00:00:00'));
+  expect(filtro.fechaVenta[Op.lte]).toEqual(new Date('2026-11-15T23:59:59'));
+});
+
+test('acepta un rango abierto con solo desde o solo hasta', () => {
+  expect(filtrar({ desde: '2026-11-01' }, 'fechaVenta', {}).fechaVenta[Op.lte]).toBeUndefined();
+  expect(filtrar({ hasta: '2026-11-15' }, 'fechaVenta', {}).fechaVenta[Op.gte]).toBeUndefined();
+});
+
+test('rechaza un rango con desde posterior a hasta', () => {
+  expect(() => filtrar({ desde: '2026-11-20', hasta: '2026-11-05' }, 'fechaVenta', {})).toThrow(
+    'posterior',
+  );
+});
