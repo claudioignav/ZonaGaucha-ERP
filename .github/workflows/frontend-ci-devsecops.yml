@@ -1,4 +1,4 @@
-name: Integración continua del frontend
+name: Integración continua del frontend DevSecOps
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
       - "infra/environments/*/frontend/**"
       - ".gitignore"
       - ".gitguardian.yaml"
-      - ".github/workflows/frontend-ci.yml"
-      - ".github/workflows/frontend-cd.yml"
+      - ".github/workflows/frontend-ci-devsecops.yml"
+      - ".github/workflows/frontend-cd-devsecops.yml"
       - ".github/workflows/frontend-ci-devops.yml"
   pull_request:
     paths:
@@ -18,8 +18,8 @@ on:
       - "infra/environments/*/frontend/**"
       - ".gitignore"
       - ".gitguardian.yaml"
-      - ".github/workflows/frontend-ci.yml"
-      - ".github/workflows/frontend-cd.yml"
+      - ".github/workflows/frontend-ci-devsecops.yml"
+      - ".github/workflows/frontend-cd-devsecops.yml"
       - ".github/workflows/frontend-ci-devops.yml"
   workflow_dispatch:
 

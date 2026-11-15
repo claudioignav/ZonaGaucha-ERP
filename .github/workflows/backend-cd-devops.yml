@@ -1,8 +1,8 @@
-name: backend-cd-devops
+name: Despliegue continuo del backend DevOps
 
 on:
   workflow_run:
-    workflows: [backend-ci-devops]
+    workflows: [Integración continua del backend DevOps]
     types: [completed]
     branches: ["test/e**"]
   workflow_dispatch:

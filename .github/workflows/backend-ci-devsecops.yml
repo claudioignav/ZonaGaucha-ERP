@@ -1,4 +1,4 @@
-name: Integración continua del backend
+name: Integración continua del backend DevSecOps
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
       - "infra/environments/*/backend/**"
       - ".gitignore"
       - ".gitguardian.yaml"
-      - ".github/workflows/backend-ci.yml"
-      - ".github/workflows/backend-cd.yml"
+      - ".github/workflows/backend-ci-devsecops.yml"
+      - ".github/workflows/backend-cd-devsecops.yml"
       - ".github/workflows/backend-ci-devops.yml"
   pull_request:
     paths:
@@ -18,8 +18,8 @@ on:
       - "infra/environments/*/backend/**"
       - ".gitignore"
       - ".gitguardian.yaml"
-      - ".github/workflows/backend-ci.yml"
-      - ".github/workflows/backend-cd.yml"
+      - ".github/workflows/backend-ci-devsecops.yml"
+      - ".github/workflows/backend-cd-devsecops.yml"
       - ".github/workflows/backend-ci-devops.yml"
   workflow_dispatch:
 
