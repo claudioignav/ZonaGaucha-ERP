@@ -130,6 +130,7 @@ jobs:
       actions: read
       contents: read
       id-token: write
+      issues: write
     env:
       ARM_USE_OIDC: "true"
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -191,6 +192,7 @@ jobs:
           terraform apply -input=false tfplan
 
       - name: Sincronizar Storage de preproducción
+        id: desplegar
         shell: bash
         env:
           AZURE_FRONTEND_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
@@ -207,6 +209,43 @@ jobs:
           URL_DESPLIEGUE: ${{ vars.AZURE_FRONTEND_URL }}
           SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
         run: bash .github/scripts/verificar-despliegue.sh frontend "$URL_DESPLIEGUE" "$SHA_ESPERADO"
+
+      - name: Guardar versión estable
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: frontend-version-estable-preproduccion
+          path: dist-ready
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Registrar incidente
+        id: incidente
+        if: failure() && steps.desplegar.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA_FALLIDO: ${{ needs.analisis-iac.outputs.head_sha }}
+        run: bash .github/scripts/incidente.sh abrir frontend "preproducción" "$SHA_FALLIDO"
+
+      - name: Volver a la versión previa
+        id: reversion
+        if: failure() && steps.desplegar.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL_DESPLIEGUE: ${{ vars.AZURE_FRONTEND_URL }}
+          CADENA_CONEXION: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
+        run: bash .github/scripts/revertir-frontend.sh frontend-cd-devsecops.yml frontend-version-estable-preproduccion "$URL_DESPLIEGUE"
+
+      - name: Cerrar incidente
+        if: failure() && steps.reversion.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMERO: ${{ steps.incidente.outputs.numero }}
+          DETECTADO: ${{ steps.incidente.outputs.detectado }}
+          SHA_PREVIO: ${{ steps.reversion.outputs.sha }}
+        run: bash .github/scripts/incidente.sh cerrar "$NUMERO" "$DETECTADO" "$SHA_PREVIO"
 
   dast-preproduccion:
     name: Análisis dinámico (DAST)
@@ -233,6 +272,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: frontend-production
+    permissions:
+      actions: read
+      contents: read
+      issues: write
 
     steps:
       - name: Descargar configuracion del commit aprobado
@@ -261,6 +304,7 @@ jobs:
           node frontend/scripts/configurar-entorno.cjs production dist-ready
 
       - name: Sincronizar Storage de producción
+        id: desplegar
         shell: bash
         env:
           AZURE_FRONTEND_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
@@ -277,3 +321,40 @@ jobs:
           URL_DESPLIEGUE: ${{ vars.AZURE_FRONTEND_URL }}
           SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
         run: bash .github/scripts/verificar-despliegue.sh frontend "$URL_DESPLIEGUE" "$SHA_ESPERADO"
+
+      - name: Guardar versión estable
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: frontend-version-estable-produccion
+          path: dist-ready
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Registrar incidente
+        id: incidente
+        if: failure() && steps.desplegar.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA_FALLIDO: ${{ needs.analisis-iac.outputs.head_sha }}
+        run: bash .github/scripts/incidente.sh abrir frontend "producción" "$SHA_FALLIDO"
+
+      - name: Volver a la versión previa
+        id: reversion
+        if: failure() && steps.desplegar.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL_DESPLIEGUE: ${{ vars.AZURE_FRONTEND_URL }}
+          CADENA_CONEXION: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
+        run: bash .github/scripts/revertir-frontend.sh frontend-cd-devsecops.yml frontend-version-estable-produccion "$URL_DESPLIEGUE"
+
+      - name: Cerrar incidente
+        if: failure() && steps.reversion.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMERO: ${{ steps.incidente.outputs.numero }}
+          DETECTADO: ${{ steps.incidente.outputs.detectado }}
+          SHA_PREVIO: ${{ steps.reversion.outputs.sha }}
+        run: bash .github/scripts/incidente.sh cerrar "$NUMERO" "$DETECTADO" "$SHA_PREVIO"

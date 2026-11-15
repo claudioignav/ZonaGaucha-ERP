@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: [Integración continua del frontend DevOps]
     types: [completed]
-    branches: ["test/e**-devops"]
+    branches: ["test/e**"]
   workflow_dispatch:
     inputs:
       ci_run_id:
@@ -133,6 +133,7 @@ jobs:
       actions: read
       contents: read
       id-token: write
+      issues: write
     env:
       ARM_USE_OIDC: "true"
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -206,6 +207,7 @@ jobs:
           terraform apply -input=false tfplan
 
       - name: Sincronizar Storage de Testing
+        id: desplegar
         shell: bash
         run: >-
           az storage blob sync
@@ -221,3 +223,40 @@ jobs:
           URL_DESPLIEGUE: ${{ env.AZURE_FRONTEND_URL }}
           SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
         run: bash .github/scripts/verificar-despliegue.sh frontend "$URL_DESPLIEGUE" "$SHA_ESPERADO"
+
+      - name: Guardar versión estable
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: frontend-version-estable-testing
+          path: dist-ready
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Registrar incidente
+        id: incidente
+        if: failure() && steps.desplegar.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA_FALLIDO: ${{ needs.analisis-iac.outputs.head_sha }}
+        run: bash .github/scripts/incidente.sh abrir frontend "testing" "$SHA_FALLIDO"
+
+      - name: Volver a la versión previa
+        id: reversion
+        if: failure() && steps.desplegar.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          URL_DESPLIEGUE: ${{ env.AZURE_FRONTEND_URL }}
+          CUENTA_STORAGE: ${{ env.AZURE_FRONTEND_STORAGE_ACCOUNT }}
+        run: bash .github/scripts/revertir-frontend.sh frontend-cd-devops.yml frontend-version-estable-testing "$URL_DESPLIEGUE"
+
+      - name: Cerrar incidente
+        if: failure() && steps.reversion.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMERO: ${{ steps.incidente.outputs.numero }}
+          DETECTADO: ${{ steps.incidente.outputs.detectado }}
+          SHA_PREVIO: ${{ steps.reversion.outputs.sha }}
+        run: bash .github/scripts/incidente.sh cerrar "$NUMERO" "$DETECTADO" "$SHA_PREVIO"
