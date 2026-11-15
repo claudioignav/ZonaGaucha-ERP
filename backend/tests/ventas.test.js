@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { Venta, DetalleVenta, DetalleLote, PlataformaTipoPago } = require('../models');
 const ventas = require('../controllers/ventaController');
 const { crearRegistro, simularTransaccion, ejecutar } = require('./helpers');
@@ -45,6 +46,22 @@ describe('ventas', () => {
       valorNeto: 23500,
       productos: [{ producto: 'Boina', cantidad: 2, precioUnitario: 10000, subtotal: 20000 }],
     });
+  });
+
+  test('el listado filtra las ventas por rango de fechas', async () => {
+    const buscar = jest.spyOn(Venta, 'findAll').mockResolvedValue([]);
+
+    await ejecutar(ventas.listar, { query: { desde: '2026-11-01', hasta: '2026-11-15' } });
+
+    const rango = buscar.mock.calls[0][0].where.fechaVenta;
+    expect(rango[Op.gte]).toEqual(new Date('2026-11-01T00:00:00'));
+    expect(rango[Op.lte]).toEqual(new Date('2026-11-15T23:59:59'));
+  });
+
+  test('el listado rechaza un rango con desde posterior a hasta', async () => {
+    await expect(
+      ejecutar(ventas.listar, { query: { desde: '2026-11-20', hasta: '2026-11-05' } }),
+    ).rejects.toMatchObject({ status: 400 });
   });
 
   test('el resumen suma neto y adicional', async () => {

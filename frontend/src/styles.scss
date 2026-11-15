@@ -1,4 +1,5 @@
 @use "tailwindcss";
+@use "@angular/material" as mat;
 
 // fuentes y colores del diseño de Figma
 @theme {
@@ -84,4 +85,34 @@
   .boton-icono {
     @apply inline-flex size-7 items-center justify-center rounded-md border align-middle border-slate-200 bg-white transition-colors hover:bg-slate-50;
   }
+}
+
+// tema de angular material para el calendario de rango, con el verde de la app
+html {
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$green-palette,
+        theme-type: light,
+      ),
+      typography: (
+        plain-family: (Geist, sans-serif),
+        brand-family: (Geist, sans-serif),
+      ),
+      density: 0,
+    )
+  );
+  @include mat.datepicker-overrides(
+    (
+      calendar-container-background-color: #ffffff,
+      calendar-container-elevation-shadow: 0 8px 24px rgb(15 23 42 / 12%),
+      calendar-container-shape: 12px,
+      calendar-date-selected-state-background-color: #2d6a4f,
+      calendar-date-selected-state-text-color: #ffffff,
+      calendar-date-in-range-state-background-color: #d8f3dc,
+      calendar-date-today-outline-color: #52b788,
+      calendar-date-today-selected-state-outline-color: #1e3f20,
+      toggle-active-state-icon-color: #2d6a4f,
+    )
+  );
 }
