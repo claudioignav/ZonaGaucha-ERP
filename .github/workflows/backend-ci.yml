@@ -3,6 +3,7 @@ name: Integración continua del backend
 on:
   push:
     paths:
+      - ".github/scripts/verificar-despliegue.sh"
       - "backend/**"
       - "infra/environments/*/backend/**"
       - ".gitignore"
@@ -12,6 +13,7 @@ on:
       - ".github/workflows/backend-ci-devops.yml"
   pull_request:
     paths:
+      - ".github/scripts/verificar-despliegue.sh"
       - "backend/**"
       - "infra/environments/*/backend/**"
       - ".gitignore"
@@ -201,6 +203,7 @@ jobs:
             ./ "$RUNNER_TEMP/backend-package/"
           npm ci --omit=dev --prefix "$RUNNER_TEMP/backend-package"
           cd "$RUNNER_TEMP/backend-package"
+          printf '%s\n' "$GITHUB_SHA" > version.txt
           zip -qr "$GITHUB_WORKSPACE/backend.zip" .
 
       - name: Publicar artefacto

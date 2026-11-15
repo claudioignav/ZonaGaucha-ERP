@@ -1,10 +1,14 @@
 const express = require('express');
+const { existsSync, readFileSync } = require('node:fs');
+const { join } = require('node:path');
 const { manejarErrores, rutaNoEncontrada } = require('./middleware/manejarErrores');
 const authenticateToken = require('./middleware/authenticateToken');
 const verifyAdmin = require('./middleware/verifyAdmin');
 const { medirSolicitudes } = require('./middleware/metricas');
 
 const app = express();
+const archivoVersion = join(__dirname, 'version.txt');
+app.locals.versionDespliegue = existsSync(archivoVersion) ? readFileSync(archivoVersion, 'utf8').trim() : null;
 
 app.disable('x-powered-by');
 
