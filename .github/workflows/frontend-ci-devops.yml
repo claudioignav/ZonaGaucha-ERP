@@ -3,7 +3,7 @@ name: Integración continua del frontend DevOps
 on:
   push:
     branches:
-      - "test/e**-devops"
+      - "test/e**"
     paths:
       - ".github/scripts/verificar-despliegue.sh"
       - "frontend/**"

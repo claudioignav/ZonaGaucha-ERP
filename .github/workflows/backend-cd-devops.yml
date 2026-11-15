@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: [Integración continua del backend DevOps]
     types: [completed]
-    branches: ["test/e**-devops"]
+    branches: ["test/e**"]
   workflow_dispatch:
     inputs:
       ci_run_id:
