@@ -52,23 +52,6 @@ jobs:
       - name: Verificar reporte de cobertura
         run: test -s coverage/lcov.info
 
-      - name: Analizar código con SonarCloud
-        continue-on-error: true
-        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: backend
-          args: >-
-            -Dsonar.organization=claudioignav
-            -Dsonar.projectKey=claudioignav_erp-backend
-            -Dsonar.sources=.
-            -Dsonar.tests=.
-            -Dsonar.test.inclusions=**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
-            -Dsonar.exclusions=node_modules/**,coverage/**,**/*.spec.js,**/*.test.js,**/tests/**,**/__tests__/**
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.qualitygate.wait=false
-
       - name: Conservar resultados de pruebas y cobertura
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
