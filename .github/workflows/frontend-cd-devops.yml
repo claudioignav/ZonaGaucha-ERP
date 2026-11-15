@@ -1,10 +1,10 @@
-name: frontend-cd-devops
+name: Despliegue continuo del frontend DevOps
 
 on:
   workflow_run:
-    workflows: [frontend-ci-devops]
+    workflows: [Integración continua del frontend DevOps]
     types: [completed]
-    branches: ["test/e**"]
+    branches: ["test/e**-devops"]
   workflow_dispatch:
     inputs:
       ci_run_id:

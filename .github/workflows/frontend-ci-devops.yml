@@ -1,9 +1,9 @@
-name: frontend-ci-devops
+name: Integración continua del frontend DevOps
 
 on:
   push:
     branches:
-      - "test/e**"
+      - "test/e**-devops"
     paths:
       - ".github/scripts/verificar-despliegue.sh"
       - "frontend/**"

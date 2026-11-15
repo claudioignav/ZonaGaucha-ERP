@@ -1,14 +1,14 @@
-name: Despliegue continuo del backend
+name: Despliegue continuo del frontend DevSecOps
 
 on:
   workflow_run:
-    workflows: [Integración continua del backend]
+    workflows: [Integración continua del frontend DevSecOps]
     types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
       ci_run_id:
-        description: ID de una ejecución exitosa del CI del backend en main
+        description: ID de una ejecución exitosa del CI del frontend en main
         required: true
         type: string
 
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: backend-cd-production
+  group: frontend-cd-production
   cancel-in-progress: false
 
 jobs:
@@ -55,7 +55,7 @@ jobs:
             exit 1
           fi
 
-          workflow_id=$(gh api "repos/$REPOSITORIO/actions/workflows/backend-ci.yml" --jq '.id')
+          workflow_id=$(gh api "repos/$REPOSITORIO/actions/workflows/frontend-ci-devsecops.yml" --jq '.id')
           ejecucion=$(gh api "repos/$REPOSITORIO/actions/runs/$CI_RUN_ID")
 
           if ! jq -e --arg repositorio "$REPOSITORIO" --argjson workflow_id "$workflow_id" '
@@ -68,7 +68,7 @@ jobs:
             (.event == "push" or .event == "workflow_dispatch") and
             (.head_sha | test("^[0-9a-f]{40}$"))
           ' <<< "$ejecucion" > /dev/null; then
-            echo "::error::Se requiere un CI del backend exitoso, terminado y ejecutado en main de este repositorio."
+            echo "::error::Se requiere un CI del frontend exitoso, terminado y ejecutado en main de este repositorio."
             exit 1
           fi
 
@@ -88,14 +88,14 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [[ -d infra/environments/staging/backend ]]; then
-            directorio=infra/environments/staging/backend
+          if [[ -d infra/environments/staging/frontend ]]; then
+            directorio=infra/environments/staging/frontend
             ruta_analisis=infra/environments
-          elif [[ -d infra/backend/staging ]]; then
-            directorio=infra/backend/staging
-            ruta_analisis=infra/backend
+          elif [[ -d infra/frontend/staging ]]; then
+            directorio=infra/frontend/staging
+            ruta_analisis=infra/frontend
           else
-            echo "::error::No se encontró la configuración Terraform de staging para backend."
+            echo "::error::No se encontró la configuración Terraform de staging para frontend."
             exit 1
           fi
 
@@ -105,7 +105,7 @@ jobs:
       - name: Descargar artefacto aprobado por CI
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          name: backend-dist
+          name: frontend-dist
           path: dist-ready
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ steps.validar-ci.outputs.ci_run_id }}
@@ -115,17 +115,17 @@ jobs:
         with:
           scan-type: config
           scan-ref: ${{ steps.rutas-terraform.outputs.ruta_analisis }}
-          skip-dirs: '**/frontend'
+          skip-dirs: '**/backend'
           severity: CRITICAL,HIGH
           exit-code: "1"
           format: table
 
   despliegue-preproduccion:
-    name: Despliegue del backend en preproducción
+    name: Despliegue del frontend en preproducción
     needs: analisis-iac
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: backend-staging
+    timeout-minutes: 15
+    environment: frontend-staging
     permissions:
       actions: read
       contents: read
@@ -147,45 +147,21 @@ jobs:
       - name: Descargar artefacto aprobado por CI
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          name: backend-dist
+          name: frontend-dist
           path: dist-ready
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
 
-      - name: Verificar configuración del despliegue
+      - name: Configurar API de preproducción
         shell: bash
         env:
           SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-          AZURE_BACKEND_APP_NAME: ${{ vars.AZURE_BACKEND_APP_NAME }}
-          AZURE_BACKEND_URL: ${{ vars.AZURE_BACKEND_URL }}
         run: |
-          set -euo pipefail
-          for nombre in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID AZURE_RESOURCE_GROUP AZURE_BACKEND_APP_NAME AZURE_BACKEND_URL; do
-            if [[ -z "${!nombre}" ]]; then
-              echo "::error::Falta configurar $nombre en el entorno."
-              exit 1
-            fi
-          done
-          if [[ "$AZURE_BACKEND_URL" != https://* ]]; then
-            echo "::error::La URL del backend debe usar HTTPS."
+          grep -Fq "<meta name=\"version-despliegue\" content=\"$SHA_ESPERADO\">" dist-ready/index.html || {
+            echo "::error::El frontend no corresponde al SHA aprobado. Genera un artefacto nuevo con el CI actualizado."
             exit 1
-          fi
-          test -s dist-ready/backend.zip
-          if [[ "$(unzip -p dist-ready/backend.zip version.txt)" != "$SHA_ESPERADO" ]]; then
-            echo "::error::El ZIP no corresponde al SHA aprobado. Genera un artefacto nuevo con el CI actualizado."
-            exit 1
-          fi
-
-      - name: Iniciar sesión en Azure con OIDC
-        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          }
+          node frontend/scripts/configurar-entorno.cjs staging dist-ready
 
       - name: Instalar Terraform
         uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -203,9 +179,8 @@ jobs:
         working-directory: ${{ needs.analisis-iac.outputs.directorio_terraform }}
         run: |
           resources=$(terraform state list)
-          grep -Fxq 'azurerm_service_plan.backend_staging' <<< "$resources"
-          grep -Fxq 'azurerm_linux_web_app.backend_staging' <<< "$resources"
-          grep -Fxq 'azapi_resource.backend_staging_database' <<< "$resources"
+          grep -Fxq 'azurerm_storage_account.frontend_staging' <<< "$resources"
+          grep -Fxq 'azurerm_storage_account_static_website.frontend_staging' <<< "$resources"
           terraform plan -input=false -out=tfplan
 
       - name: Aplicar infraestructura de preproducción
@@ -215,63 +190,52 @@ jobs:
           terraform show -json tfplan | jq -e 'all(.resource_changes[]?; (.change.actions | index("delete")) == null)' > /dev/null
           terraform apply -input=false tfplan
 
-      - name: Desplegar App Service de preproducción
+      - name: Sincronizar Storage de preproducción
         shell: bash
         env:
-          AZURE_CORE_OUTPUT: none
-          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-          AZURE_BACKEND_APP_NAME: ${{ vars.AZURE_BACKEND_APP_NAME }}
+          AZURE_FRONTEND_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
         run: >-
-          az webapp deploy
-          --resource-group "$AZURE_RESOURCE_GROUP"
-          --name "$AZURE_BACKEND_APP_NAME"
-          --src-path dist-ready/backend.zip
-          --type zip
-          --clean true
-          --restart true
-          --track-status false
-          --timeout 600000
-          --only-show-errors
+          az storage blob sync
+          --connection-string "$AZURE_FRONTEND_STORAGE_CONNECTION_STRING"
+          --container '$web'
+          --source dist-ready
+          --delete-destination true
 
       - name: Verificar disponibilidad de preproducción
         shell: bash
         env:
-          URL_DESPLIEGUE: ${{ vars.AZURE_BACKEND_URL }}
+          URL_DESPLIEGUE: ${{ vars.AZURE_FRONTEND_URL }}
           SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
-        run: bash .github/scripts/verificar-despliegue.sh backend "$URL_DESPLIEGUE" "$SHA_ESPERADO"
+        run: bash .github/scripts/verificar-despliegue.sh frontend "$URL_DESPLIEGUE" "$SHA_ESPERADO"
 
   dast-preproduccion:
-    name: Análisis dinámico del backend (DAST)
+    name: Análisis dinámico (DAST)
     needs: despliegue-preproduccion
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment: backend-staging
+    environment: frontend-staging
     continue-on-error: true
 
     steps:
       - name: Ejecutar OWASP ZAP Baseline
         uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874
         with:
-          target: ${{ vars.AZURE_BACKEND_URL }}
+          target: ${{ vars.AZURE_FRONTEND_URL }}
           allow_issue_writing: false
           fail_action: false
-          artifact_name: backend-zap-${{ github.run_id }}
+          artifact_name: frontend-zap-${{ github.run_id }}
           cmd_options: -a
 
   despliegue-produccion:
-    name: Despliegue del backend en producción
+    name: Despliegue del frontend en producción
     needs: [analisis-iac, despliegue-preproduccion, dast-preproduccion]
     if: ${{ always() && needs.analisis-iac.result == 'success' && needs.despliegue-preproduccion.result == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: backend-production
-    permissions:
-      actions: read
-      contents: read
-      id-token: write
+    timeout-minutes: 15
+    environment: frontend-production
 
     steps:
-      - name: Descargar configuración del commit aprobado
+      - name: Descargar configuracion del commit aprobado
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ needs.analisis-iac.outputs.head_sha }}
@@ -280,67 +244,36 @@ jobs:
       - name: Descargar artefacto aprobado por CI
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          name: backend-dist
+          name: frontend-dist
           path: dist-ready
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ needs.analisis-iac.outputs.ci_run_id }}
 
-      - name: Verificar configuración del despliegue
+      - name: Configurar API de producción
         shell: bash
         env:
           SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-          AZURE_BACKEND_APP_NAME: ${{ vars.AZURE_BACKEND_APP_NAME }}
-          AZURE_BACKEND_URL: ${{ vars.AZURE_BACKEND_URL }}
         run: |
-          set -euo pipefail
-          for nombre in AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID AZURE_RESOURCE_GROUP AZURE_BACKEND_APP_NAME AZURE_BACKEND_URL; do
-            if [[ -z "${!nombre}" ]]; then
-              echo "::error::Falta configurar $nombre en el entorno."
-              exit 1
-            fi
-          done
-          if [[ "$AZURE_BACKEND_URL" != https://* ]]; then
-            echo "::error::La URL del backend debe usar HTTPS."
+          grep -Fq "<meta name=\"version-despliegue\" content=\"$SHA_ESPERADO\">" dist-ready/index.html || {
+            echo "::error::El frontend no corresponde al SHA aprobado. Genera un artefacto nuevo con el CI actualizado."
             exit 1
-          fi
-          test -s dist-ready/backend.zip
-          if [[ "$(unzip -p dist-ready/backend.zip version.txt)" != "$SHA_ESPERADO" ]]; then
-            echo "::error::El ZIP no corresponde al SHA aprobado. Genera un artefacto nuevo con el CI actualizado."
-            exit 1
-          fi
+          }
+          node frontend/scripts/configurar-entorno.cjs production dist-ready
 
-      - name: Iniciar sesión en Azure con OIDC
-        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Desplegar App Service de producción
+      - name: Sincronizar Storage de producción
         shell: bash
         env:
-          AZURE_CORE_OUTPUT: none
-          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-          AZURE_BACKEND_APP_NAME: ${{ vars.AZURE_BACKEND_APP_NAME }}
+          AZURE_FRONTEND_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_FRONTEND_STORAGE_CONNECTION_STRING }}
         run: >-
-          az webapp deploy
-          --resource-group "$AZURE_RESOURCE_GROUP"
-          --name "$AZURE_BACKEND_APP_NAME"
-          --src-path dist-ready/backend.zip
-          --type zip
-          --clean true
-          --restart true
-          --track-status false
-          --timeout 600000
-          --only-show-errors
+          az storage blob sync
+          --connection-string "$AZURE_FRONTEND_STORAGE_CONNECTION_STRING"
+          --container '$web'
+          --source dist-ready
+          --delete-destination true
 
       - name: Verificar disponibilidad de producción
         shell: bash
         env:
-          URL_DESPLIEGUE: ${{ vars.AZURE_BACKEND_URL }}
+          URL_DESPLIEGUE: ${{ vars.AZURE_FRONTEND_URL }}
           SHA_ESPERADO: ${{ needs.analisis-iac.outputs.head_sha }}
-        run: bash .github/scripts/verificar-despliegue.sh backend "$URL_DESPLIEGUE" "$SHA_ESPERADO"
+        run: bash .github/scripts/verificar-despliegue.sh frontend "$URL_DESPLIEGUE" "$SHA_ESPERADO"
