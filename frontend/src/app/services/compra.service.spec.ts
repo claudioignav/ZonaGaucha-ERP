@@ -25,6 +25,18 @@ it('consulta listado con los filtros de la pantalla', () => {
   peticion.flush([]);
 });
 
+it('pide el pdf como archivo con los mismos filtros del listado', () => {
+  servicio.exportarPdf({ proveedor: 'Proveedor', tipoPago: 'Tarjeta' }).subscribe();
+
+  const peticion = http.expectOne((r) => r.url === RUTAS_API.compras + '/pdf');
+
+  expect(peticion.request.params.get('proveedor')).toBe('Proveedor');
+  expect(peticion.request.params.get('tipoPago')).toBe('Tarjeta');
+  expect(peticion.request.responseType).toBe('blob');
+
+  peticion.flush(new Blob());
+});
+
 it('consulta resumen y opciones del backend', () => {
   servicio.resumen().subscribe();
   http.expectOne(RUTAS_API.compras + '/resumen').flush({});

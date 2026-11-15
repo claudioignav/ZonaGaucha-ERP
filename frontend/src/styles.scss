@@ -61,6 +61,10 @@
     @apply inline-flex items-center justify-center gap-2 rounded-lg bg-verde-boton px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-white transition-colors hover:bg-[#245a42];
   }
 
+  .boton-borde {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border-[1.5px] border-verde-boton bg-white px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-verde-oscuro transition-colors hover:bg-verde-claro;
+  }
+
   .boton-gris {
     @apply inline-flex items-center justify-center rounded-lg bg-slate-200 px-5 py-2.5 text-sm font-semibold whitespace-nowrap text-slate-800 transition-colors hover:bg-slate-300;
   }

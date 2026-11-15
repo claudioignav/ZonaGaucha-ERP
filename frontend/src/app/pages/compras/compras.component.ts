@@ -46,6 +46,11 @@ export class ComprasComponent implements OnInit {
 
   filtros: FiltrosCompra = { numeroFactura: '', fechaCompra: '', proveedor: '', tipoPago: '' };
 
+  // filtros de la última búsqueda, el pdf usa estos para que coincida con la tabla
+  private filtrosAplicados: FiltrosCompra = { ...this.filtros };
+
+  exportando = false;
+
   // compra abierta en el cuadro de detalle, null cuando no hay ninguna abierta.
   detalle: Compra | null = null;
 
@@ -78,6 +83,7 @@ export class ComprasComponent implements OnInit {
   }
 
   cargarCompras(): void {
+    this.filtrosAplicados = { ...this.filtros };
     this.compraService
       .listar(this.filtros)
       .pipe(finalize(() => this.refrescar()))
@@ -90,6 +96,35 @@ export class ComprasComponent implements OnInit {
           this.mensajeError = error.message;
         },
       });
+  }
+
+  exportarPdf(): void {
+    if (this.exportando) return;
+    this.exportando = true;
+    this.mensajeError = '';
+    this.compraService
+      .exportarPdf(this.filtrosAplicados)
+      .pipe(
+        finalize(() => {
+          this.exportando = false;
+          this.refrescar();
+        }),
+      )
+      .subscribe({
+        next: (pdf) => this.descargar(pdf, `historial-compras-${new Date().toISOString().slice(0, 10)}.pdf`),
+        error: (error: Error) => {
+          this.mensajeError = error.message;
+        },
+      });
+  }
+
+  private descargar(archivo: Blob, nombre: string): void {
+    const url = URL.createObjectURL(archivo);
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = nombre;
+    enlace.click();
+    URL.revokeObjectURL(url);
   }
 
   unidades(compra: Compra): number {

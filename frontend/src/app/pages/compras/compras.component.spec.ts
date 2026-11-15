@@ -231,3 +231,43 @@ it('vuelve a la primera página al filtrar y muestra cero cuando no hay resultad
   expect(tabla.textContent.replace(/\s+/g, ' ')).toContain('Mostrando 0-0 de 0 registros');
   expect(siguiente().disabled).toBe(true);
 });
+
+it('exporta el pdf con los filtros aplicados y lo descarga', () => {
+  const crearUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:pdf');
+  const liberarUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+  const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+  fixture.componentInstance.filtros.proveedor = 'Proveedor de Prueba';
+  fixture.componentInstance.cargarCompras();
+  http.expectOne((r) => r.url === RUTAS_API.compras).flush(registros);
+  fixture.componentInstance.filtros.proveedor = 'Escrito sin aplicar';
+
+  const boton = (Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[]).find(
+    (b) => b.textContent?.trim() === 'Exportar a PDF',
+  )!;
+  boton.click();
+  fixture.componentInstance.exportarPdf();
+
+  const peticion = http.expectOne((r) => r.url === RUTAS_API.compras + '/pdf');
+
+  expect(peticion.request.params.get('proveedor')).toBe('Proveedor de Prueba');
+  expect(peticion.request.responseType).toBe('blob');
+  expect(fixture.componentInstance.exportando).toBe(true);
+
+  peticion.flush(new Blob(['%PDF-'], { type: 'application/pdf' }));
+
+  expect(crearUrl).toHaveBeenCalled();
+  expect(clic).toHaveBeenCalledTimes(1);
+  expect(liberarUrl).toHaveBeenCalledWith('blob:pdf');
+  expect(fixture.componentInstance.exportando).toBe(false);
+});
+
+it('muestra un error si no se puede generar el pdf', () => {
+  fixture.componentInstance.exportarPdf();
+  http
+    .expectOne((r) => r.url === RUTAS_API.compras + '/pdf')
+    .flush(new Blob(), { status: 500, statusText: 'Error' });
+
+  expect(fixture.componentInstance.mensajeError).toBe('No se pudo completar la solicitud. Intenta nuevamente.');
+  expect(fixture.componentInstance.exportando).toBe(false);
+});
