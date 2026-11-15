@@ -52,6 +52,10 @@
         <img class="size-3.5" src="assets/icons/search.svg" alt="" />
         Aplicar Filtros
       </button>
+      <button type="button" class="boton-borde" (click)="exportarPdf()" [attr.aria-busy]="exportando">
+        <img class="size-3.5" src="assets/icons/download.svg" alt="" />
+        {{ exportando ? 'Generando PDF...' : 'Exportar a PDF' }}
+      </button>
       <a routerLink="/compras/nueva" class="boton-verde">+ Agregar Compra</a>
     </div>
   </section>
