@@ -3,6 +3,7 @@ const permisosUsuario = [
   'registrar-venta',
   'ver-inventario',
   'gestionar-catalogos',
+  'modificar-compra',
 ];
 
 const permisosPorRol = new Map([
