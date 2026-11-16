@@ -104,7 +104,7 @@
               <div class="flex items-center justify-center gap-1.5">
                 <button type="button" class="boton-icono" title="Ver detalle" (click)="abrirDetalle(compra)"><img class="size-3.5" src="assets/icons/eye.svg" alt="Ver detalle" /></button>
                 @if (puedeModificar) {
-                  <app-botones-acciones />
+                  <app-botones-acciones (editar)="abrirEdicion(compra)" />
                 }
               </div>
             </td>
@@ -169,5 +169,60 @@
         <button type="button" class="boton-oscuro" (click)="cerrarDetalle()">Cerrar</button>
       </div>
     </section>
+  </div>
+}
+
+@if (edicion) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-editar-compra">
+    <form class="tarjeta w-full max-w-xl p-6" (ngSubmit)="guardarEdicion()">
+      <h2 id="titulo-editar-compra" class="border-b border-slate-200 pb-2 font-semibold">Modificar compra {{ edicion.numeroFactura }}</h2>
+      <p class="mt-1 text-xs text-slate-600">Los productos y el lote no cambian, solo los datos de la factura.</p>
+
+      <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label class="etiqueta" for="editar-factura">Número de Factura</label>
+          <input id="editar-factura" type="text" class="campo" name="numeroFactura" maxlength="20" required [(ngModel)]="edicion.numeroFactura" />
+        </div>
+        <div>
+          <label class="etiqueta" for="editar-fecha">Fecha de Compra</label>
+          <input id="editar-fecha" type="date" class="campo" name="fechaCompra" required [(ngModel)]="edicion.fechaCompra" />
+        </div>
+        <div>
+          <label class="etiqueta" for="editar-proveedor">Proveedor</label>
+          <select id="editar-proveedor" class="campo" name="proveedor" required [(ngModel)]="edicion.proveedor">
+            @for (opcion of opciones.proveedores; track opcion) {
+              <option [value]="opcion">{{ opcion }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="etiqueta" for="editar-pago">Tipo de Pago</label>
+          <select id="editar-pago" class="campo" name="tipoPago" required [(ngModel)]="edicion.tipoPago">
+            @for (opcion of opciones.tiposPago; track opcion) {
+              <option [value]="opcion">{{ opcion }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="etiqueta" for="editar-impuesto">Impuesto (Porcentaje o Total)</label>
+          <input id="editar-impuesto" type="text" class="campo" placeholder="0% o $0" name="impuesto" [(ngModel)]="edicion.impuesto" />
+          @if (!impuestoEdicionValido) {
+            <p class="mt-1 text-xs text-red-700">Escribe un porcentaje como 19% o un monto como 190.</p>
+          }
+        </div>
+      </div>
+
+      <dl class="ml-auto mt-4 grid max-w-xs grid-cols-2 gap-2 text-sm">
+        <dt class="text-slate-600">Compra bruta</dt>
+        <dd class="text-right font-semibold">{{ edicion.compraBruta | pesos }}</dd>
+        <dt class="text-slate-600">Compra neta</dt>
+        <dd class="text-right font-semibold text-verde-boton">{{ netoEdicion | pesos }}</dd>
+      </dl>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button" class="boton-borde" (click)="cerrarEdicion()">Cancelar</button>
+        <button type="submit" class="boton-verde" [disabled]="guardando || !impuestoEdicionValido">{{ guardando ? 'Guardando...' : 'Guardar Cambios' }}</button>
+      </div>
+    </form>
   </div>
 }
