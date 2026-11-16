@@ -14,7 +14,6 @@ export function calcularDigitoVerificador(cuerpo: string): string {
     multiplo = multiplo === 7 ? 2 : multiplo + 1;
   }
   const resto = 11 - (suma % 11);
-  if (resto === 11) return '0';
   if (resto === 10) return 'K';
   return String(resto);
 }
