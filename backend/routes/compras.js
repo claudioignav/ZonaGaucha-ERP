@@ -20,4 +20,6 @@ router.get('/', compras.listar);
 
 router.post('/', require('../middleware/resolverCompra'), compras.crear);
 
+router.put('/:id', require('../middleware/resolverCompra'), compras.modificar);
+
 module.exports = router;

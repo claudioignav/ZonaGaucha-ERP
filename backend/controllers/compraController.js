@@ -10,7 +10,7 @@ const {
   TipoContenido,
   Producto,
 } = require('../models');
-const { ErrorHttp, exigirCampos } = require('../utils/errores');
+const { ErrorHttp, exigirCampos, buscarOFallar } = require('../utils/errores');
 const { filtroFechas, sumar, fechaHoy } = require('../utils/consultas');
 const {
   aCentavos,
@@ -210,4 +210,54 @@ const crear = async (req, res) => {
   });
 };
 
-module.exports = { listar, exportarPdf, resumen, crear, calcularImpuesto };
+// solo se corrigen los datos de la factura, los productos y el lote quedan como se registraron.
+const validarCambiosCompra = (datos) => {
+  const numeroFactura = String(datos.numeroFactura).trim();
+  if (numeroFactura === '' || numeroFactura.length > 20)
+    throw new ErrorHttp(400, 'El numero de factura no es valido');
+
+  const fecha = String(datos.fechaCompra).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || Number.isNaN(Date.parse(fecha)))
+    throw new ErrorHttp(400, 'La fecha de compra no es valida');
+
+  if (fecha > fechaHoy().slice(0, 10))
+    throw new ErrorHttp(400, 'La fecha de compra no puede ser posterior a hoy');
+
+  if (!['monto', 'porcentaje', undefined].includes(datos.tipoImpuesto))
+    throw new ErrorHttp(400, 'El tipo de impuesto no es valido');
+
+  const impuesto = datos.impuesto ?? 0;
+  if (!esImporteValido(impuesto)) throw new ErrorHttp(400, 'El impuesto no es valido');
+
+  return { numeroFactura, fecha, impuesto };
+};
+
+const modificar = async (req, res) => {
+  exigirCampos(req.body, ['numeroFactura', 'idProveedor', 'idTipoPago', 'fechaCompra']);
+
+  const { numeroFactura, fecha, impuesto } = validarCambiosCompra(req.body);
+  const compra = await buscarOFallar(Compra, req.params.id);
+
+  // el impuesto se vuelve a calcular sobre la compra bruta, que no cambia al modificar
+  const bruta = Number(compra.compraBruta);
+  const nuevoImpuesto = calcularImpuesto(bruta, impuesto, req.body.tipoImpuesto);
+  const netaCentavos = aCentavos(bruta) + aCentavos(nuevoImpuesto);
+
+  await compra.update({
+    numeroFactura,
+    idProveedor: req.body.idProveedor,
+    idTipoPago: req.body.idTipoPago,
+    fechaCompra: fecha,
+    impuesto: nuevoImpuesto,
+    compraNeta: deCentavos(netaCentavos),
+  });
+
+  res.json({
+    id: compra.idCompra,
+    compraBruta: bruta,
+    impuesto: nuevoImpuesto,
+    compraNeta: deCentavos(netaCentavos),
+  });
+};
+
+module.exports = { listar, exportarPdf, resumen, crear, modificar, calcularImpuesto };
