@@ -16,7 +16,7 @@
     "express": "^5.2.1",
     "express-jwt": "5.3.3",
     "jsonwebtoken": "^9.0.3",
-    "moment": "2.29.1",
+    "moment": "^2.31.0",
     "pdfkit": "^0.18.0",
     "sequelize": "^6.37.8",
     "tedious": "^19.2.1"
