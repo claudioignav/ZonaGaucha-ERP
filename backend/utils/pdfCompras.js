@@ -1,3 +1,4 @@
+const moment = require('moment');
 const path = require('path');
 const PDFDocument = require('pdfkit');
 
@@ -27,7 +28,8 @@ const ALTO_FILA = 20;
 const pesos = (valor) => '$' + Math.round(Number(valor) || 0).toLocaleString('es-CL');
 
 // las fechas llegan como aaaa-mm-dd y en el documento se muestran como dd-mm-aaaa
-const fecha = (valor) => String(valor ?? '').slice(0, 10).split('-').reverse().join('-');
+const fecha = (valor) =>
+  valor ? moment(String(valor).slice(0, 10), 'YYYY-MM-DD').format('DD-MM-YYYY') : '';
 
 const unidades = (compra) =>
   compra.productos.reduce((suma, linea) => suma + Number(linea.cantidad || 0), 0);
