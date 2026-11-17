@@ -174,7 +174,8 @@ describe('busqueda de ventas por cliente', () => {
 
     const res = await ejecutar(ventas.buscarPorCliente, { query: { cliente: 'Prueba' } });
 
-    expect(consultar.mock.calls[0][0]).toContain('nombreCliente');
+    expect(consultar.mock.calls[0][0]).not.toContain('Prueba');
+    expect(consultar.mock.calls[0][1].replacements).toEqual({ cliente: '%Prueba%' });
     expect(res.json).toHaveBeenCalledWith([{ idVenta: 1, nombreCliente: 'Cliente de Prueba' }]);
   });
 

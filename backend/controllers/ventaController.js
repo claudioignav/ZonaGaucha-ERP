@@ -121,10 +121,8 @@ const buscarPorCliente = async (req, res) => {
   exigirCampos(req.query, ['cliente']);
 
   const ventas = await sequelize.query(
-    "SELECT idVenta, numeroDocumento, nombreCliente, fechaVenta, valorNeto FROM venta WHERE nombreCliente LIKE '%" +
-      req.query.cliente +
-      "%' ORDER BY fechaVenta DESC",
-    { type: QueryTypes.SELECT },
+    'SELECT idVenta, numeroDocumento, nombreCliente, fechaVenta, valorNeto FROM venta WHERE nombreCliente LIKE :cliente ORDER BY fechaVenta DESC',
+    { replacements: { cliente: `%${String(req.query.cliente).trim()}%` }, type: QueryTypes.SELECT },
   );
 
   res.json(ventas);
