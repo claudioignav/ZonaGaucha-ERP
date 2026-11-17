@@ -4,6 +4,15 @@ import { tienePermiso } from '../../models/permisos';
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Compra, resumenCompras, opcionesCompra } from '../../models/compra';
 import { CompraService, FiltrosCompra } from '../../services/compra.service';
+import { impuestoDe, interpretarImpuesto, netoDe } from '../../models/importes';
+
+type CompraEnEdicion = Pick<
+  Compra,
+  'id' | 'numeroFactura' | 'proveedor' | 'tipoPago' | 'compraBruta'
+> & {
+  fechaCompra: string;
+  impuesto: number | string;
+};
 
 @Component({
   selector: 'app-compras',
@@ -53,6 +62,11 @@ export class ComprasComponent implements OnInit {
 
   // compra abierta en el cuadro de detalle, null cuando no hay ninguna abierta.
   detalle: Compra | null = null;
+
+  // copia de la compra que se está modificando, la tabla no cambia hasta guardar.
+  edicion: CompraEnEdicion | null = null;
+
+  guardando = false;
 
   ngOnInit(): void {
     this.compraService
@@ -137,5 +151,65 @@ export class ComprasComponent implements OnInit {
 
   cerrarDetalle(): void {
     this.detalle = null;
+  }
+
+  abrirEdicion(compra: Compra): void {
+    this.mensajeError = '';
+    this.edicion = {
+      id: compra.id,
+      numeroFactura: compra.numeroFactura,
+      proveedor: compra.proveedor,
+      tipoPago: compra.tipoPago,
+      compraBruta: compra.compraBruta,
+      fechaCompra: String(compra.fechaCompra).slice(0, 10),
+      impuesto: compra.impuesto,
+    };
+  }
+
+  cerrarEdicion(): void {
+    this.edicion = null;
+  }
+
+  get impuestoEdicionValido(): boolean {
+    return this.edicion !== null && interpretarImpuesto(this.edicion.impuesto).valido;
+  }
+
+  // vista previa del neto con el impuesto que se está escribiendo
+  get netoEdicion(): number {
+    if (!this.edicion) return 0;
+    const { compraBruta, impuesto } = this.edicion;
+    return netoDe(compraBruta, impuestoDe(compraBruta, impuesto));
+  }
+
+  guardarEdicion(): void {
+    if (!this.edicion || this.guardando || !this.impuestoEdicionValido) return;
+    const { id, numeroFactura, proveedor, fechaCompra, tipoPago } = this.edicion;
+    const { porcentaje, valor } = interpretarImpuesto(this.edicion.impuesto);
+
+    this.guardando = true;
+    this.compraService
+      .modificar(id, {
+        numeroFactura,
+        proveedor,
+        fechaCompra,
+        tipoPago,
+        impuesto: valor,
+        tipoImpuesto: porcentaje ? 'porcentaje' : 'monto',
+      })
+      .pipe(
+        finalize(() => {
+          this.guardando = false;
+          this.refrescar();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.edicion = null;
+          this.cargarCompras();
+        },
+        error: (error: Error) => {
+          this.mensajeError = error.message;
+        },
+      });
   }
 }

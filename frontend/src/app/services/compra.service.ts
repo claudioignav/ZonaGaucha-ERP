@@ -15,6 +15,15 @@ export type CompraNueva = Omit<CompraFormulario, 'impuesto'> & {
   tipoImpuesto: 'porcentaje' | 'monto';
 };
 
+// al modificar solo se corrigen los datos de la factura, los productos no cambian.
+export type CompraModificada = Pick<
+  Compra,
+  'numeroFactura' | 'proveedor' | 'fechaCompra' | 'tipoPago'
+> & {
+  impuesto: number;
+  tipoImpuesto: 'porcentaje' | 'monto';
+};
+
 export type FiltrosCompra = Partial<
   Record<'numeroFactura' | 'fechaCompra' | 'proveedor' | 'tipoPago', string>
 >;
@@ -44,6 +53,15 @@ export class CompraService {
   crear(compra: CompraNueva) {
     return this.http
       .post<{ id: number; impuesto: number; compraNeta: number }>(RUTAS_API.compras, compra)
+      .pipe(manejarErrorHttp());
+  }
+
+  modificar(id: number, cambios: CompraModificada) {
+    return this.http
+      .put<{ id: number; impuesto: number; compraNeta: number }>(
+        `${RUTAS_API.compras}/${id}`,
+        cambios,
+      )
       .pipe(manejarErrorHttp());
   }
 }
