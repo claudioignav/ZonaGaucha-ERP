@@ -31,7 +31,12 @@ const configurarBase = (variables) => {
       logging: false,
       define: { underscored: true, timestamps: false },
       dialectOptions: {
-        options: { encrypt: true, trustServerCertificate: false, useUTC: true },
+        options: {
+          encrypt: true,
+          trustServerCertificate: false,
+          useUTC: true,
+          connectTimeout: 1,
+        },
       },
     },
   };
