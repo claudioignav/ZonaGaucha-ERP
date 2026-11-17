@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const { Usuario, Rol } = require('../models');
 const { ErrorHttp, buscarOFallar, exigirCampos } = require('../utils/errores');
@@ -71,7 +72,7 @@ const actualizar = async (req, res) => {
 
 const restablecerContrasena = async (req, res) => {
   const usuario = await buscarOFallar(Usuario, req.params.id);
-  const temporal = Math.random().toString(36).slice(2, 10);
+  const temporal = crypto.randomBytes(9).toString('base64url');
   await usuario.update({ contrasenaHash: await bcrypt.hash(temporal, VUELTAS_BCRYPT) });
 
   res.json({ id: usuario.idUsuario, contrasenaTemporal: temporal });
