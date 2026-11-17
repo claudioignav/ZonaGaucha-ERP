@@ -189,3 +189,24 @@ describe('edición y estado de cuentas', () => {
     expect(usuario.update).not.toHaveBeenCalled();
   });
 });
+
+describe('restablecer contraseña', () => {
+  test('entrega una contraseña temporal y guarda solo su hash', async () => {
+    const usuario = usuarioBd();
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(usuario);
+
+    const res = await ejecutar(usuarios.restablecerContrasena, { params: { id: 2 } });
+
+    const { contrasenaTemporal } = res.json.mock.calls[0][0];
+    expect(contrasenaTemporal.length).toBeGreaterThanOrEqual(8);
+    expect(await bcrypt.compare(contrasenaTemporal, usuario.contrasenaHash)).toBe(true);
+  });
+
+  test('responde 404 si la cuenta no existe', async () => {
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(null);
+
+    await expect(
+      ejecutar(usuarios.restablecerContrasena, { params: { id: 99 } }),
+    ).rejects.toMatchObject({ status: 404 });
+  });
+});

@@ -13,4 +13,6 @@ router.patch('/:id/eliminar', usuarioController.eliminar);
 
 router.patch('/:id/restaurar', usuarioController.restaurar);
 
+router.patch('/:id/restablecer', usuarioController.restablecerContrasena);
+
 module.exports = router;

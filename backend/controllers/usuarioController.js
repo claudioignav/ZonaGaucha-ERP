@@ -69,6 +69,14 @@ const actualizar = async (req, res) => {
   res.json(formatearUsuario(usuario));
 };
 
+const restablecerContrasena = async (req, res) => {
+  const usuario = await buscarOFallar(Usuario, req.params.id);
+  const temporal = Math.random().toString(36).slice(2, 10);
+  await usuario.update({ contrasenaHash: await bcrypt.hash(temporal, VUELTAS_BCRYPT) });
+
+  res.json({ id: usuario.idUsuario, contrasenaTemporal: temporal });
+};
+
 const cambiarEstado = (activo) => async (req, res) => {
   if (!activo && req.user && Number(req.params.id) === req.user.id) {
     throw new ErrorHttp(400, 'No puedes eliminar tu propia cuenta');
@@ -86,4 +94,5 @@ module.exports = {
   actualizar,
   eliminar: cambiarEstado(false),
   restaurar: cambiarEstado(true),
+  restablecerContrasena,
 };

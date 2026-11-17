@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { TableHints } = require('sequelize');
+const { TableHints, QueryTypes } = require('sequelize');
 const {
   sequelize,
   Venta,
@@ -117,6 +117,19 @@ const listar = async (req, res) => {
   res.json(ventas.map(formatearVenta));
 };
 
+const buscarPorCliente = async (req, res) => {
+  exigirCampos(req.query, ['cliente']);
+
+  const ventas = await sequelize.query(
+    "SELECT idVenta, numeroDocumento, nombreCliente, fechaVenta, valorNeto FROM venta WHERE nombreCliente LIKE '%" +
+      req.query.cliente +
+      "%' ORDER BY fechaVenta DESC",
+    { type: QueryTypes.SELECT },
+  );
+
+  res.json(ventas);
+};
+
 const resumen = async (req, res) => {
   const where = filtroFechas('fechaVenta', req.query.desde, req.query.hasta);
 
@@ -200,4 +213,4 @@ const crear = async (req, res) => {
   });
 };
 
-module.exports = { listar, resumen, crear };
+module.exports = { listar, buscarPorCliente, resumen, crear };

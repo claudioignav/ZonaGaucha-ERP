@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Venta, DetalleVenta, DetalleLote, PlataformaTipoPago } = require('../models');
+const { sequelize, Venta, DetalleVenta, DetalleLote, PlataformaTipoPago } = require('../models');
 const ventas = require('../controllers/ventaController');
 const { crearRegistro, simularTransaccion, ejecutar } = require('./helpers');
 
@@ -163,5 +163,27 @@ describe('ventas', () => {
 
     await expect(ejecutar(ventas.crear, { body: ventaValida(cambios) })).rejects.toThrow(mensaje);
     expect(crearVenta).not.toHaveBeenCalled();
+  });
+});
+
+describe('busqueda de ventas por cliente', () => {
+  test('busca las ventas que contienen el nombre del cliente', async () => {
+    const consultar = jest
+      .spyOn(sequelize, 'query')
+      .mockResolvedValue([{ idVenta: 1, nombreCliente: 'Cliente de Prueba' }]);
+
+    const res = await ejecutar(ventas.buscarPorCliente, { query: { cliente: 'Prueba' } });
+
+    expect(consultar.mock.calls[0][0]).toContain('nombreCliente');
+    expect(res.json).toHaveBeenCalledWith([{ idVenta: 1, nombreCliente: 'Cliente de Prueba' }]);
+  });
+
+  test('exige el nombre del cliente', async () => {
+    const consultar = jest.spyOn(sequelize, 'query');
+
+    await expect(ejecutar(ventas.buscarPorCliente, { query: {} })).rejects.toMatchObject({
+      status: 400,
+    });
+    expect(consultar).not.toHaveBeenCalled();
   });
 });
