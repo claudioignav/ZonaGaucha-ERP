@@ -10,7 +10,7 @@ export type Permiso =
   | 'gestionar-cuentas';
 
 const permisosUsuario: Permiso[] = [
-  'registrar-compra', 'registrar-venta', 'ver-inventario', 'gestionar-catalogos',
+  'registrar-compra', 'registrar-venta', 'ver-inventario', 'gestionar-catalogos', 'modificar-compra',
 ];
 
 const permisosPorRol = new Map<string, Set<Permiso>>([
