@@ -4,9 +4,6 @@ const { Usuario, Rol } = require('../models');
 const { exigirCampos } = require('../utils/errores');
 const { rolValido } = require('../utils/permisos');
 
-const JWT_SECRET_POR_DEFECTO = 'GmM6jnCXkjPSSvi3B_8Z1EiVZ5h5x6CezqjlUO0Be8ISdbPlxdMLItuotote6XAE';
-const JWT_SECRET = process.env.JWT_SECRET || JWT_SECRET_POR_DEFECTO;
-
 const login = async (req, res) => {
   exigirCampos(req.body, ['correo', 'contrasena']);
 
@@ -32,7 +29,7 @@ const login = async (req, res) => {
     apellidos: registro.apellidos,
     rol: registro.rol.nombre,
   };
-  const token = jwt.sign({ id: usuario.id }, JWT_SECRET, {
+  const token = jwt.sign({ id: usuario.id }, process.env.JWT_SECRET, {
     algorithm: 'HS256',
     expiresIn: process.env.JWT_EXPIRA || '2h',
   });
