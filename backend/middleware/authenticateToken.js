@@ -1,9 +1,9 @@
-const expressJwt = require('express-jwt');
+const { expressjwt } = require('express-jwt');
 const { Usuario, Rol } = require('../models');
 const { rolValido } = require('../utils/permisos');
 
-const verificarJwt = expressJwt({
-  secret: (req, payload, listo) => listo(null, process.env.JWT_SECRET),
+const verificarJwt = expressjwt({
+  secret: () => process.env.JWT_SECRET,
   algorithms: ['HS256'],
   requestProperty: 'datosToken',
 });
