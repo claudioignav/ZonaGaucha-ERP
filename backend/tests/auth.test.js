@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Usuario } = require('../models');
 const { login, perfil } = require('../controllers/authController');
-const { ejecutar } = require('./helpers');
+const { ejecutar, crearRegistro } = require('./helpers');
 
 const claveDePrueba = randomUUID();
 
@@ -13,14 +13,21 @@ beforeAll(async () => {
   hash = await bcrypt.hash(claveDePrueba, 4);
 });
 
-const guardado = (activo = true) => ({
-  idUsuario: 7,
-  nombre: 'Ana',
-  apellidos: 'Rojas',
-  activo,
-  contrasenaHash: hash,
-  rol: { nombre: 'Administrador' },
-});
+const guardado = (activo = true, extra = {}) =>
+  crearRegistro({
+    idUsuario: 7,
+    nombre: 'Ana',
+    apellidos: 'Rojas',
+    activo,
+    contrasenaHash: hash,
+    intentosFallidos: 0,
+    bloqueadoHasta: null,
+    rol: { nombre: 'Administrador' },
+    ...extra,
+  });
+
+const enMinutos = (minutos) => new Date(Date.now() + minutos * 60000);
+const claveMala = { correo: 'ana@zonagaucha.cl', contrasena: claveDePrueba + '-incorrecta' };
 
 const intentar = (body = { correo: ' Ana@ZonaGaucha.cl ', contrasena: claveDePrueba }) =>
   ejecutar(login, { body });
@@ -78,4 +85,57 @@ test.each([null, { nombre: 'Operador' }])('no emite token para un perfil descono
   const respuesta = await intentar();
   expect(respuesta.status).toHaveBeenCalledWith(403);
   expect(respuesta.json.mock.calls[0][0]).not.toHaveProperty('token');
+});
+
+test('cuenta un intento fallido sin suspender antes del quinto', async () => {
+  const registro = guardado(true, { intentosFallidos: 3 });
+  jest.spyOn(Usuario, 'findOne').mockResolvedValue(registro);
+
+  expect((await intentar(claveMala)).status).toHaveBeenCalledWith(401);
+  expect(registro.update).toHaveBeenCalledWith({ intentosFallidos: 4 });
+});
+
+test('suspende la cuenta al quinto intento fallido consecutivo', async () => {
+  const registro = guardado(true, { intentosFallidos: 4 });
+  jest.spyOn(Usuario, 'findOne').mockResolvedValue(registro);
+
+  const respuesta = await intentar(claveMala);
+
+  expect(respuesta.status).toHaveBeenCalledWith(423);
+  expect(respuesta.json.mock.calls[0][0].error).toContain('15 minutos');
+  expect(registro.intentosFallidos).toBe(0);
+  expect(registro.bloqueadoHasta.getTime()).toBeGreaterThan(enMinutos(14).getTime());
+});
+
+test('una cuenta suspendida no entra aunque la clave sea correcta', async () => {
+  const registro = guardado(true, { bloqueadoHasta: enMinutos(10) });
+  jest.spyOn(Usuario, 'findOne').mockResolvedValue(registro);
+
+  const respuesta = await intentar();
+
+  expect(respuesta.status).toHaveBeenCalledWith(423);
+  expect(respuesta.json.mock.calls[0][0]).not.toHaveProperty('token');
+  expect(registro.update).not.toHaveBeenCalled();
+});
+
+test('al vencer la suspension entra y reinicia los intentos', async () => {
+  const registro = guardado(true, { intentosFallidos: 2, bloqueadoHasta: enMinutos(-1) });
+  jest.spyOn(Usuario, 'findOne').mockResolvedValue(registro);
+
+  const respuesta = await intentar();
+
+  expect(respuesta.json.mock.calls[0][0]).toHaveProperty('token');
+  expect(registro.update).toHaveBeenCalledWith({ intentosFallidos: 0, bloqueadoHasta: null });
+});
+
+test('el token dura 30 dias por defecto', async () => {
+  const anterior = process.env.JWT_EXPIRA;
+  delete process.env.JWT_EXPIRA;
+  jest.spyOn(Usuario, 'findOne').mockResolvedValue(guardado());
+
+  const { token } = (await intentar()).json.mock.calls[0][0];
+  const datos = jwt.decode(token);
+
+  expect(datos.exp - datos.iat).toBe(30 * 24 * 60 * 60);
+  if (anterior !== undefined) process.env.JWT_EXPIRA = anterior;
 });

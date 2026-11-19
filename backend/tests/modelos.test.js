@@ -11,6 +11,8 @@ describe('modelos', () => {
 
   test('los atributos en camelCase se guardan en snake_case', () => {
     expect(modelos.Usuario.rawAttributes.contrasenaHash.field).toBe('contrasena_hash');
+    expect(modelos.Usuario.rawAttributes.intentosFallidos.field).toBe('intentos_fallidos');
+    expect(modelos.Usuario.rawAttributes.bloqueadoHasta.field).toBe('bloqueado_hasta');
     expect(modelos.Compra.rawAttributes.compraNeta.field).toBe('compra_neta');
   });
 

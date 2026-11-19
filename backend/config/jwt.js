@@ -5,7 +5,7 @@ const validarJWT = (variables) => {
     throw new Error('JWT_SECRET necesita al menos 32 caracteres');
 
   jwt.sign({ comprobacion: true }, variables.JWT_SECRET, {
-    expiresIn: variables.JWT_EXPIRA || '2h',
+    expiresIn: variables.JWT_EXPIRA || '30d',
   });
 };
 

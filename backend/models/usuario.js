@@ -40,6 +40,15 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: true,
       },
+      intentosFallidos: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      },
+      bloqueadoHasta: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       fechaCreacion: {
         type: DataTypes.DATE,
         allowNull: false,
