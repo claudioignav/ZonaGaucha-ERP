@@ -94,6 +94,41 @@ it('muestra el error de carga recibido del backend', async () => {
   expect(fixture.componentInstance.mensajeError).toBe('No se pudo cargar');
 });
 
+it('limpia el aviso de error cuando vuelve a buscar compras correctamente', async () => {
+  fixture.componentInstance.cargarCompras();
+  http.expectOne((r) => r.url === RUTAS_API.compras).flush(
+    { error: 'Error interno del servidor' }, { status: 500, statusText: 'Error' },
+  );
+  await fixture.whenStable();
+  expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+
+  fixture.componentInstance.cargarCompras();
+  http.expectOne((r) => r.url === RUTAS_API.compras).flush(registros);
+  await fixture.whenStable();
+
+  expect(fixture.componentInstance.mensajeError).toBe('');
+  expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+});
+
+it('conserva para el pdf los filtros de la última búsqueda exitosa', async () => {
+  fixture.componentInstance.filtros.proveedor = 'Proveedor de Prueba';
+  fixture.componentInstance.cargarCompras();
+  http.expectOne((r) => r.url === RUTAS_API.compras).flush(registros);
+  await fixture.whenStable();
+
+  fixture.componentInstance.filtros.proveedor = 'Otro proveedor';
+  fixture.componentInstance.cargarCompras();
+  http.expectOne((r) => r.url === RUTAS_API.compras).flush(
+    { error: 'No se pudo cargar' }, { status: 500, statusText: 'Error' },
+  );
+  await fixture.whenStable();
+
+  fixture.componentInstance.exportarPdf();
+  const peticion = http.expectOne((r) => r.url === RUTAS_API.compras + '/pdf');
+  expect(peticion.request.params.get('proveedor')).toBe('Proveedor de Prueba');
+  peticion.flush(null, { status: 500, statusText: 'Error' });
+});
+
 it('muestra la fecha y los montos entregados por la API con sus formatos', () => {
   fixture.detectChanges();
 

@@ -83,12 +83,14 @@ export class ComprasComponent implements OnInit {
   }
 
   cargarCompras(): void {
-    this.filtrosAplicados = { ...this.filtros };
+    const filtros = { ...this.filtros };
+    this.mensajeError = '';
     this.compraService
-      .listar(this.filtros)
+      .listar(filtros)
       .pipe(finalize(() => this.refrescar()))
       .subscribe({
         next: (compras) => {
+          this.filtrosAplicados = filtros;
           this.compras = compras;
           this.paginaActual = 1;
         },
