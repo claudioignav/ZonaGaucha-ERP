@@ -104,7 +104,7 @@
             <td class="acciones">
               <div class="flex items-center justify-center gap-1.5">
                 <button type="button" class="boton-icono" title="Ver detalle" (click)="abrirDetalle(venta)"><img class="size-3.5" src="assets/icons/eye.svg" alt="Ver detalle" /></button>
-                @if (puedeModificar) {
+                @if (puedeModificarVenta(venta)) {
                   <app-botones-acciones />
                 }
               </div>
