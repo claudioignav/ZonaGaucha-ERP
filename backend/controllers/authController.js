@@ -31,7 +31,7 @@ const login = async (req, res) => {
   };
   const token = jwt.sign({ id: usuario.id }, process.env.JWT_SECRET, {
     algorithm: 'HS256',
-    expiresIn: process.env.JWT_EXPIRA || '2h',
+    expiresIn: process.env.JWT_EXPIRA || '30d',
   });
 
   res.json({ usuario, token });

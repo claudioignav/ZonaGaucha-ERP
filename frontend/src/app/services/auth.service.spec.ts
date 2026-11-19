@@ -9,7 +9,14 @@ const claveDePrueba = crypto.getRandomValues(new Uint32Array(4)).join('-');
 let servicio: AuthService;
 let http: HttpTestingController;
 
+// arma un jwt de prueba con el vencimiento indicado en segundos
+const jwt = (exp?: number) =>
+  ['e30', btoa(JSON.stringify(exp === undefined ? {} : { exp })).replace(/=+$/, ''), 'firma'].join('.');
+const enSegundos = (segundos: number) => Math.floor(Date.now() / 1000) + segundos;
+const nuevoServicio = () => TestBed.runInInjectionContext(() => new AuthService());
+
 beforeEach(() => {
+  localStorage.clear();
   TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
   servicio = TestBed.inject(AuthService);
   http = TestBed.inject(HttpTestingController);
@@ -61,6 +68,43 @@ it('muestra error de conexion cuando falta respuesta del backend', () => {
   http.expectOne(RUTAS_API.login).error(new ProgressEvent('error'));
 
   expect(mensaje).toContain('Intenta nuevamente');
+});
+
+it('recupera la sesion al recargar mientras el token esta vigente', () => {
+  const token = jwt(enSegundos(3600));
+  servicio.iniciarSesion({ correo: 'ana@correo.cl', contrasena: claveDePrueba }).subscribe();
+  http.expectOne(RUTAS_API.login).flush({ usuario: { id: 7, nombre: 'Ana', rol: 'Administrador' }, token });
+
+  const recargado = nuevoServicio();
+
+  expect(recargado.sesion).toEqual({ id: 7, nombre: 'Ana', rol: 'Administrador', token });
+  expect(recargado.estaAutenticado()).toBe(true);
+});
+
+it('cerrar sesion borra la sesion guardada', () => {
+  localStorage.setItem('zg-sesion', JSON.stringify({ id: 7, nombre: 'Ana', rol: 'Usuario', token: jwt() }));
+  const recargado = nuevoServicio();
+  expect(recargado.estaAutenticado()).toBe(true);
+
+  recargado.cerrarSesion();
+
+  expect(localStorage.getItem('zg-sesion')).toBeNull();
+  expect(nuevoServicio().sesion).toBeNull();
+});
+
+it('descarta una sesion guardada vencida, danada o con rol desconocido', () => {
+  const guardadas = [
+    JSON.stringify({ id: 7, nombre: 'Ana', rol: 'Usuario', token: jwt(enSegundos(-60)) }),
+    JSON.stringify({ id: 7, nombre: 'Ana', rol: 'Usuario', token: 'sin-formato' }),
+    JSON.stringify({ id: 7, nombre: 'Ana', rol: 'Operador', token: jwt(enSegundos(3600)) }),
+    '{no es json',
+  ];
+  for (const guardada of guardadas) {
+    localStorage.setItem('zg-sesion', guardada);
+
+    expect(nuevoServicio().sesion).toBeNull();
+    expect(localStorage.getItem('zg-sesion')).toBeNull();
+  }
 });
 
 it('una respuesta con rol desconocido no conserva una sesion anterior', () => {
