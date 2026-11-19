@@ -93,3 +93,43 @@ it('cierra el menu movil al tocar el fondo sin cambiar las secciones', async () 
   expect(fixture.componentInstance.modulosAbierto).toBe(true);
   expect(fixture.componentInstance.catalogosAbierto).toBe(true);
 });
+
+it('muestra los canales de venta con enlace y abre cada uno en otra pestaña', async () => {
+  const auth = { sesion: { id: 1, nombre: 'Zona', apellidos: 'Gaucha', rol: 'Administrador' }, cerrarSesion: vi.fn() };
+
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: auth }],
+  });
+
+  const fixture = TestBed.createComponent(SidebarComponent);
+  fixture.componentInstance.canalesVenta = [
+    { nombre: 'WhatsApp', url: 'https://wa.me/56900000000', icono: 'assets/icons/whatsapp.svg' },
+    { nombre: 'Instagram', url: 'https://www.instagram.com/zonagaucha', icono: 'assets/icons/instagram.svg' },
+  ];
+
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  const enlaces: HTMLAnchorElement[] = Array.from(fixture.nativeElement.querySelectorAll('a[target="_blank"]'));
+
+  expect(enlaces.map((enlace) => enlace.getAttribute('aria-label'))).toEqual(['WhatsApp', 'Instagram']);
+  expect(enlaces.every((enlace) => enlace.rel === 'noopener noreferrer')).toBe(true);
+});
+
+it('oculta los canales de venta cuando no hay enlaces', async () => {
+  const auth = { sesion: { id: 1, nombre: 'Zona', apellidos: 'Gaucha', rol: 'Administrador' }, cerrarSesion: vi.fn() };
+
+  TestBed.configureTestingModule({
+    imports: [AppModule],
+    providers: [{ provide: AuthService, useValue: auth }],
+  });
+
+  const fixture = TestBed.createComponent(SidebarComponent);
+  fixture.componentInstance.canalesVenta = [];
+
+  fixture.detectChanges();
+  await fixture.whenStable();
+
+  expect(fixture.nativeElement.querySelectorAll('a[target="_blank"]').length).toBe(0);
+});

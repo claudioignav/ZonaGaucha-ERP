@@ -72,6 +72,18 @@
     }
   </nav>
 
+  @if (canalesVenta.length) {
+    <div class="mt-3 border-t border-white/10 pt-3">
+      <div class="flex items-center justify-around px-2">
+        @for (canal of canalesVenta; track canal.nombre) {
+          <a class="flex size-8 items-center justify-center rounded-md opacity-80 hover:bg-white/10 hover:opacity-100" target="_blank" rel="noopener noreferrer" [href]="canal.url" [title]="canal.nombre" [attr.aria-label]="canal.nombre" >
+            <img class="size-5" [src]="canal.icono" alt="" />
+          </a>
+        }
+      </div>
+    </div>
+  }
+
   <div class="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
     <div class="flex size-9 shrink-0 items-center justify-center rounded-full bg-verde-boton text-sm font-semibold text-white">
       {{ nombreCompleto | iniciales }}

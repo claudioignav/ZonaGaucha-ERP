@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { enlacesCatalogos, enlacesModulos, enlacesPrincipales } from '../../models/menu';
+import { canalesVenta, enlacesCatalogos, enlacesModulos, enlacesPrincipales } from '../../models/menu';
 import { AuthService } from '../../services/auth.service';
 import { rutaInicio, tienePermiso } from '../../models/permisos';
 
@@ -23,6 +23,8 @@ export class SidebarComponent {
   enlacesModulos = enlacesModulos;
 
   enlacesCatalogos = enlacesCatalogos;
+
+  canalesVenta = canalesVenta.filter((canal) => canal.url);
 
   menuMovilAbierto = false;
 

@@ -35,3 +35,17 @@ export const usuarioActual: UsuarioSesion = {
   nombre: 'Usuario Prueba',
   rol: 'Administrador',
 };
+
+export interface CanalVenta {
+  nombre: string;
+  url: string;
+  icono: string;
+}
+
+// glifos de whatsapp e instagram de Simple Icons (CC0)
+export const canalesVenta: CanalVenta[] = [
+  { nombre: 'WhatsApp', url: 'https://api.whatsapp.com/message/LVFYQM6GPQ4RI1', icono: 'assets/icons/whatsapp.svg' },
+  { nombre: 'Instagram', url: 'https://www.instagram.com/zonagaucha__chile', icono: 'assets/icons/instagram.svg' },
+  { nombre: 'Mercado Libre', url: 'https://www.mercadolibre.cl/pagina/comercializadorazonagaucha', icono: 'assets/icons/mercado-libre.svg' },
+  { nombre: 'Sitio web', url: 'https://zonagauchachile.com/collections/all', icono: 'assets/icons/logo.svg' },
+];
