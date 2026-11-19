@@ -14,6 +14,8 @@ router.get('/opciones', require('../controllers/opcionesController').ventas);
 
 router.get('/resumen', verifyPermiso('ver-metricas'), ventas.resumen);
 
+router.post('/sincronizar', verifyPermiso('modificar-venta'), ventas.sincronizar);
+
 router.get('/', ventas.listar);
 
 router.post('/', require('../middleware/resolverVenta'), ventas.crear);
