@@ -106,7 +106,7 @@ describe('pdf del historial de compras', () => {
       /^attachment; filename="historial-compras-\d{4}-\d{2}-\d{2}\.pdf"$/,
     );
     expect(respuesta.body.subarray(0, 5).toString()).toBe('%PDF-');
-    expect(Object.keys(buscar.mock.calls[0][0].where)).toContain('$proveedor.razonSocial$');
+    expect(Object.keys(buscar.mock.calls[0][0].where)).toContain('$proveedor.razon_social$');
   });
 
   test('rechaza una fecha de filtro no válida', async () => {

@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Venta, DetalleVenta, DetalleLote, PlataformaTipoPago } = require('../models');
+const { sequelize, Venta, DetalleVenta, DetalleLote, PlataformaTipoPago } = require('../models');
 const ventas = require('../controllers/ventaController');
 const { crearRegistro, simularTransaccion, ejecutar } = require('./helpers');
 
@@ -17,6 +17,24 @@ const ventaValida = (cambios = {}) => ({
 });
 
 describe('ventas', () => {
+  test('genera los filtros de venta con las columnas físicas de SQL Server', async () => {
+    const consultar = jest.spyOn(sequelize, 'query').mockResolvedValue([]);
+
+    await ejecutar(ventas.listar, {
+      query: {
+        numeroFactura: 'B-55', plataforma: 'Shopify', tipoPago: 'Débito',
+        desde: '2026-11-01', hasta: '2026-11-15',
+      },
+    });
+
+    const sql = consultar.mock.calls[0][0];
+    expect(sql).toContain("[Venta].[numero_documento] LIKE N'%B-55%'");
+    expect(sql).toContain("[plataforma].[nombre] LIKE N'%Shopify%'");
+    expect(sql).toContain("[tipoPago].[nombre] LIKE N'%Débito%'");
+    expect(sql).toContain('[Venta].[fecha_venta] >=');
+    expect(sql).toContain('[Venta].[fecha_venta] <=');
+  });
+
   test('lista las ventas con el lote y los productos', async () => {
     jest.spyOn(Venta, 'findAll').mockResolvedValue([
       {

@@ -1,4 +1,4 @@
-const { Compra, Lote, DetalleLote } = require('../models');
+const { sequelize, Compra, Lote, DetalleLote } = require('../models');
 const compras = require('../controllers/compraController');
 const { simularTransaccion, ejecutar } = require('./helpers');
 
@@ -16,6 +16,25 @@ const compraValida = (cambios = {}) => ({
 });
 
 describe('compras', () => {
+  test('genera los filtros con las columnas físicas de SQL Server', async () => {
+    const consultar = jest.spyOn(sequelize, 'query').mockResolvedValue([]);
+
+    await ejecutar(compras.listar, {
+      query: {
+        proveedor: 'Textil', numeroFactura: 'F-100', tipoPago: 'Efectivo',
+        desde: '2026-11-01', hasta: '2026-11-15',
+      },
+    });
+
+    const sql = consultar.mock.calls[0][0];
+    expect(sql).toContain("[proveedor].[razon_social] LIKE N'%Textil%'");
+    expect(sql).not.toContain('[proveedor].[razonSocial] LIKE');
+    expect(sql).toContain("[Compra].[numero_factura] LIKE N'%F-100%'");
+    expect(sql).toContain("[tipoPago].[nombre] LIKE N'%Efectivo%'");
+    expect(sql).toContain('[Compra].[fecha_compra] >=');
+    expect(sql).toContain('[Compra].[fecha_compra] <=');
+  });
+
   test('calcula el impuesto como monto o como porcentaje', () => {
     expect(compras.calcularImpuesto(100000, 19000, 'monto')).toBe(19000);
     expect(compras.calcularImpuesto(100000, 19, 'porcentaje')).toBe(19000);

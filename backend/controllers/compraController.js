@@ -94,7 +94,7 @@ const buscarCompras = async (query) => {
   const compras = await Compra.findAll({
     where: filtrar(query, 'fechaCompra', {
       numeroFactura: 'numeroFactura',
-      proveedor: '$proveedor.razonSocial$',
+      proveedor: '$proveedor.razon_social$',
       tipoPago: '$tipoPago.nombre$',
     }),
     include: incluirTodo,
