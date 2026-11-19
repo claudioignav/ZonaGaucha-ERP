@@ -12,6 +12,7 @@ const {
   Producto,
 } = require('../models');
 const { ErrorHttp, exigirCampos } = require('../utils/errores');
+const { sincronizarVentas } = require('../utils/integraciones/sincronizarVentas');
 const { filtrar } = require('../utils/filtros');
 const { filtroFechas, sumar, fechaHoy } = require('../utils/consultas');
 const {
@@ -200,4 +201,14 @@ const crear = async (req, res) => {
   });
 };
 
-module.exports = { listar, resumen, crear };
+// importa las ventas de shopify y mercado libre sin informar resultados ni errores
+const sincronizar = async (req, res) => {
+  try {
+    await sincronizarVentas(process.env, req.user.id);
+  } catch {
+    // la sincronizacion nunca debe interrumpir al usuario
+  }
+  res.status(204).end();
+};
+
+module.exports = { listar, resumen, crear, sincronizar };

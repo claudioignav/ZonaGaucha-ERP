@@ -17,6 +17,10 @@ module.exports = (sequelize) => {
         allowNull: false,
         unique: true,
       },
+      idExterno: {
+        type: DataTypes.STRING(40),
+        allowNull: true,
+      },
       nombreCliente: {
         type: DataTypes.STRING(120),
         allowNull: false,

@@ -31,6 +31,7 @@ const Lote = require('./lote')(sequelize);
 const DetalleLote = require('./detalleLote')(sequelize);
 const Venta = require('./venta')(sequelize);
 const DetalleVenta = require('./detalleVenta')(sequelize);
+const Integracion = require('./integracion')(sequelize);
 
 Rol.hasMany(Usuario, { foreignKey: 'idRol' });
 
@@ -98,4 +99,5 @@ module.exports = {
   DetalleLote,
   Venta,
   DetalleVenta,
+  Integracion,
 };
