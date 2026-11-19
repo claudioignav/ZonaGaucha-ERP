@@ -189,3 +189,54 @@ describe('edición y estado de cuentas', () => {
     expect(usuario.update).not.toHaveBeenCalled();
   });
 });
+
+describe('administradores activos', () => {
+  const administrador = () => usuarioBd({ rol: { nombre: 'Administrador' } });
+
+  test('no se puede eliminar al ultimo administrador activo', async () => {
+    const usuario = administrador();
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(usuario);
+    const contar = jest.spyOn(Usuario, 'count').mockResolvedValue(0);
+
+    await expect(ejecutar(usuarios.eliminar, { params: { id: '2' } })).rejects.toMatchObject({
+      status: 400,
+      message: 'Debe quedar al menos un administrador activo',
+    });
+    expect(contar.mock.calls[0][0].include[0].where).toEqual({ nombre: 'Administrador' });
+    expect(usuario.update).not.toHaveBeenCalled();
+  });
+
+  test('se puede eliminar un administrador si queda otro activo', async () => {
+    const usuario = administrador();
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(usuario);
+    jest.spyOn(Usuario, 'count').mockResolvedValue(1);
+
+    const respuesta = await ejecutar(usuarios.eliminar, { params: { id: '2' } });
+
+    expect(respuesta.json.mock.calls[0][0].estado).toBe('Eliminado');
+  });
+
+  test('no se puede quitar el rol al ultimo administrador activo', async () => {
+    const usuario = administrador();
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(usuario);
+    jest.spyOn(Rol, 'findOne').mockResolvedValue({ idRol: 2 });
+    jest.spyOn(Usuario, 'count').mockResolvedValue(0);
+
+    await expect(
+      ejecutar(usuarios.actualizar, { params: { id: '2' }, body: { rol: 'Usuario' } }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(usuario.update).not.toHaveBeenCalled();
+  });
+
+  test('restaurar o editar sin quitar el rol no revisa a los demas administradores', async () => {
+    const usuario = administrador();
+    jest.spyOn(Usuario, 'findByPk').mockResolvedValue(usuario);
+    jest.spyOn(Rol, 'findOne').mockResolvedValue({ idRol: 1 });
+    const contar = jest.spyOn(Usuario, 'count');
+
+    await ejecutar(usuarios.restaurar, { params: { id: '2' } });
+    await ejecutar(usuarios.actualizar, { params: { id: '2' }, body: { rol: 'Administrador' } });
+
+    expect(contar).not.toHaveBeenCalled();
+  });
+});

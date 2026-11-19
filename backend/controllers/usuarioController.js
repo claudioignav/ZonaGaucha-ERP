@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const { Op } = require('sequelize');
 const { Usuario, Rol } = require('../models');
 const { ErrorHttp, buscarOFallar, exigirCampos } = require('../utils/errores');
 const { rolValido } = require('../utils/permisos');
@@ -22,6 +23,16 @@ const buscarIdRol = async (nombreRol) => {
   if (!rol) throw new ErrorHttp(400, `El rol ${nombreRol} no existe`);
 
   return rol.idRol;
+};
+
+// el sistema siempre debe conservar al menos un administrador activo
+const exigirOtroAdministrador = async (usuario) => {
+  if (usuario.rol?.nombre !== 'Administrador' || !usuario.activo) return;
+  const otros = await Usuario.count({
+    where: { activo: true, idUsuario: { [Op.ne]: usuario.idUsuario } },
+    include: [{ model: Rol, as: 'rol', where: { nombre: 'Administrador' } }],
+  });
+  if (otros === 0) throw new ErrorHttp(400, 'Debe quedar al menos un administrador activo');
 };
 
 const listar = async (req, res) => {
@@ -60,7 +71,10 @@ const actualizar = async (req, res) => {
   const cambios = { nombre, apellidos, telefono };
   if (correo) cambios.correo = correo.trim().toLowerCase();
 
-  if (rol) cambios.idRol = await buscarIdRol(rol);
+  if (rol) {
+    cambios.idRol = await buscarIdRol(rol);
+    if (rol !== 'Administrador') await exigirOtroAdministrador(usuario);
+  }
 
   if (contrasena) cambios.contrasenaHash = await bcrypt.hash(contrasena, VUELTAS_BCRYPT);
 
@@ -75,6 +89,7 @@ const cambiarEstado = (activo) => async (req, res) => {
   }
 
   const usuario = await buscarOFallar(Usuario, req.params.id, { include: incluirRol });
+  if (!activo) await exigirOtroAdministrador(usuario);
 
   await usuario.update({ activo });
   res.json(formatearUsuario(usuario));
