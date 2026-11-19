@@ -176,6 +176,42 @@ it('el administrador conserva metricas y acciones de modificacion', () => {
   expect(fixture.nativeElement.querySelector('app-botones-acciones')).not.toBeNull();
 });
 
+it.each(['Shopify', 'SHOPIFY', ' shopify ', 'Mercado Libre', 'MercadoLibre', ' MERCADO  LIBRE '])(
+  'oculta editar y eliminar para las ventas de %s y conserva su detalle', async (plataforma) => {
+    fixture.componentInstance.buscarVentas();
+    http.expectOne((r) => r.url === RUTAS_API.ventas).flush([{ ...registros[0], plataforma }]);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('button[title="Editar"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('button[title="Eliminar"]')).toBeNull();
+    fixture.nativeElement.querySelector('button[title="Ver detalle"]').click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('dialog').open).toBe(true);
+    expect(fixture.componentInstance.detalle?.plataforma).toBe(plataforma);
+  },
+);
+
+it('mantiene las acciones de otras plataformas junto a ventas externas de solo lectura', async () => {
+  fixture.componentInstance.buscarVentas();
+  http.expectOne((r) => r.url === RUTAS_API.ventas).flush(
+    ['Shopify', 'Mercado Libre', 'WhatsApp', 'Instagram', 'Facebook', 'Web'].map((plataforma, i) => ({
+      ...registros[0], id: i + 1, plataforma,
+    })),
+  );
+  await fixture.whenStable();
+
+  const filas = Array.from(
+    fixture.nativeElement.querySelectorAll('app-tabla-contenido tbody tr'),
+  ) as HTMLTableRowElement[];
+  expect(filas).toHaveLength(6);
+  filas.forEach((fila, i) => {
+    expect(fila.querySelector('button[title="Ver detalle"]')).not.toBeNull();
+    expect(fila.querySelectorAll('button[title="Editar"], button[title="Eliminar"]'))
+      .toHaveLength(i < 2 ? 0 : 2);
+  });
+});
+
 it('muestra una fila por venta y abre su detalle con precio por linea', () => {
   fixture.componentInstance.buscarVentas();
   http.expectOne((r) => r.url === RUTAS_API.ventas).flush([

@@ -27,6 +27,12 @@ export class VentasComponent implements OnInit {
   get puedeModificar(): boolean {
     return tienePermiso(this.authService.sesion?.rol, 'modificar-venta');
   }
+
+  puedeModificarVenta(venta: Venta): boolean {
+    const plataforma = venta.plataforma.toLowerCase().replace(/\s+/g, '');
+    return this.puedeModificar && !['shopify', 'mercadolibre'].includes(plataforma);
+  }
+
   private readonly detector = inject(ChangeDetectorRef);
 
   refrescar(): void {
