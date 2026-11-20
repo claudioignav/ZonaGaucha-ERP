@@ -11,7 +11,7 @@ El entorno de preproducción está disponible para probar las funciones del sist
 | Acceso | Administrador | Usuario |
 | --- | --- | --- |
 | URL | [Abrir el sistema en staging](https://zgerpfrontstg.z15.web.core.windows.net) | [Abrir el sistema en staging](https://zgerpfrontstg.z15.web.core.windows.net) |
-| Correo | `zonagauchaprueba@gmail.com` | `usuarioprueba@gmail.com` |
+| Correo | `administradorprueba@gmail.com` | `usuarioprueba@gmail.com` |
 | Contraseña | `proyectodetitulo2026` | `proyectodetitulo2026` |
 
 ## Arquitectura DevSecOps
@@ -144,52 +144,52 @@ El pipeline DevSecOps forma parte del sistema y se mantiene junto con el código
 
 ## Requerimientos funcionales
 
-Los siguientes requerimientos describen las funciones del sistema.
+Los siguientes 24 requerimientos describen las funciones del sistema.
 
-| Identificador | Requerimiento | Verificación |
+| Identificador | Nombre | Requerimiento |
 | --- | --- | --- |
-| RF‑01 | Iniciar sesión mediante correo y contraseña y otorgar acceso a los módulos según el rol de administrador o usuario. | En el sistema, pantalla de inicio de sesión |
-| RF‑02 | Registrar, editar, eliminar y restaurar cuentas de usuario, con nombre, apellidos, correo, teléfono, contraseña y rol. | En el sistema, **Administrar Cuentas** |
-| RF‑03 | Sincronizar a solicitud las ventas de las plataformas externas mediante sus APIs, asignándoles un lote con stock disponible y evitando registros duplicados. | [sincronizarVentas.js](backend/utils/integraciones/sincronizarVentas.js), mediante `POST /ventas/sincronizar` |
-| RF‑04 | Almacenar en la base de datos todas las ventas registradas manualmente o importadas desde las APIs. | En el sistema, **Ventas** |
-| RF‑05 | Registrar ventas manualmente mediante un formulario. | En el sistema, **Ventas**, botón **+ Agregar Venta** |
-| RF‑06 | Consultar el historial de ventas con número de factura o boleta, cliente, fecha, tipo de pago, plataforma, productos con su cantidad, valor neto y valor adicional. | En el sistema, **Ventas** |
-| RF‑07 | Exigir en el formulario de registro que cada venta se asocie a un lote y a la lista de productos vendidos. | En el sistema, formulario de **Nueva Venta** |
-| RF‑08 | Exportar a PDF el historial de compras según los filtros aplicados. | En el sistema, **Compras**, botón **Exportar a PDF** |
-| RF‑09 | Registrar compras de productos y accesorios mediante un formulario. | En el sistema, **Compras**, botón **+ Agregar Compra** |
-| RF‑10 | Asociar cada compra a un número de lote y un proveedor. | En el sistema, formulario de **Nueva Compra** |
-| RF‑11 | Consultar el historial de compras con número de factura, proveedor, fecha, tipo de pago, productos con su cantidad, compra bruta, impuesto y compra neta. | En el sistema, **Compras** |
-| RF‑12 | Mantener el stock disponible de cada producto según el lote en que fue ingresado. | En el sistema, **Inventario** |
-| RF‑13 | Aumentar el stock al registrar una compra y descontarlo al registrar una venta. | En el sistema, **Inventario**, después de registrar una compra o venta |
-| RF‑14 | Consultar el inventario por lote, con número de lote, factura asociada, proveedor, tipo de contenido, fecha de creación y disponibilidad. | En el sistema, **Inventario** |
-| RF‑15 | Crear, consultar, editar y eliminar productos asociados a una categoría. | En el sistema, **Catálogos › Productos** |
-| RF‑16 | Crear, consultar, editar y eliminar proveedores con razón social, RUT, teléfono y correo. | En el sistema, **Catálogos › Proveedores** |
-| RF‑17 | Crear, consultar, editar y eliminar tipos de pago. | En el sistema, **Catálogos › Tipos de Pago** |
-| RF‑18 | Crear, consultar, editar y eliminar plataformas y sus tipos de pago aceptados. | En el sistema, **Catálogos › Plataformas** |
-| RF‑19 | Crear, consultar, editar y eliminar tipos de contenido. | En el sistema, **Catálogos › Tipos de Contenido** |
-| RF‑20 | Crear, consultar, editar y eliminar categorías de productos. | En el sistema, **Catálogos › Categoría de Producto** |
-| RF‑21 | Mostrar al administrador el total vendido, total comprado y utilidades acumuladas, con su variación porcentual respecto del mes anterior. | En el sistema, **Dashboard** |
-| RF‑22 | Mostrar un gráfico de líneas con la cantidad de ventas de cada mes del año en curso. | En el sistema, **Dashboard** |
-| RF‑23 | Mostrar un gráfico circular con el porcentaje de ventas de cada plataforma durante el año en curso. | En el sistema, **Dashboard** |
-| RF‑24 | Mostrar la cantidad de productos, cuentas activas, proveedores registrados y categorías de productos. | En el sistema, **Dashboard** |
+| RF‑01 | Inicio de sesión según rol | El sistema debe permitir el inicio de sesión mediante correo y contraseña, otorgando acceso al sistema según el rol de administrador o usuario |
+| RF‑02 | Gestión de cuentas de usuario | El sistema debe permitir al administrador registrar, editar, eliminar y restaurar cuentas de usuario, asignando nombre, apellidos, correo, teléfono, contraseña y rol |
+| RF‑03 | Sincronización de ventas externas | El sistema debe sincronizar las ventas de Mercado Libre y del sitio web oficial mediante sus APIs |
+| RF‑04 | Carga automática de ventas | El sistema debe cargar en tiempo real los registros de ventas provenientes de la base de datos |
+| RF‑05 | Registro manual de ventas | El sistema debe permitir el ingreso manual de ventas mediante llenado de formulario. |
+| RF‑06 | Visualización del historial de ventas | El sistema debe mostrar el registro de ventas en formato de tabla, detallando el número de factura o boleta, nombre del cliente, fecha de venta, tipo de pago, plataforma, productos vendidos con su cantidad, valor neto y valor adicional |
+| RF‑07 | Asociación de venta a lote | El sistema debe exigir en el formulario de registro que cada venta se asocie a un lote específico y a la lista de productos del lote |
+| RF‑08 | Exportación del historial de compras | El sistema debe permitir exportar en formato PDF el historial de compras según los filtros aplicados |
+| RF‑09 | Registro manual de compras | El sistema debe permitir el ingreso manual de compras de productos o accesorios mediante el llenado de formulario |
+| RF‑10 | Trazabilidad de compra | El sistema debe exigir el ingreso del número de lote y proveedor asociado en cada compra |
+| RF‑11 | Visualización del historial de compras | El sistema debe mostrar el registro de compras en formato de tabla, detallando el número de factura, proveedor, fecha de compra, tipo de pago, productos ingresados con su cantidad, compra bruta, impuesto y compra neta |
+| RF‑12 | Cálculo automatizado de stock | El sistema debe calcular dinámicamente el stock disponible de cada producto en base a las compras y ventas registradas |
+| RF‑13 | Actualización automatizada del inventario | El sistema debe aumentar el stock de productos disponible asociado a un lote al registrar una compra y descontarlo al registrar una venta |
+| RF‑14 | Visualización del inventario actual | El sistema debe presentar el estado actual del inventario agrupado por lote, mostrando el número de lote, factura asociada, proveedor, tipo de contenido, fecha de creación y disponibilidad de productos |
+| RF‑15 | Gestión de productos | El sistema debe permitir crear, visualizar, editar y eliminar productos, asociándolos a una categoría predefinida |
+| RF‑16 | Gestión de proveedores | El sistema debe permitir crear, visualizar, editar y eliminar proveedores, registrando su razón social, RUT, teléfono y correo electrónico |
+| RF‑17 | Gestión de tipos de pago | El sistema debe permitir crear, visualizar, editar y eliminar tipos de pago, registrando el nombre del tipo de pago |
+| RF‑18 | Gestión de plataformas | El sistema debe permitir crear, visualizar, editar y eliminar plataformas, registrando el nombre de la plataforma y sus tipos de pago |
+| RF‑19 | Gestión de tipos de contenido | El sistema debe permitir crear, visualizar, editar y eliminar tipos de contenido, registrando el nombre del tipo de contenido |
+| RF‑20 | Gestión de categorías de producto | El sistema debe permitir crear, visualizar, editar y eliminar categorías de producto, registrando el nombre de la categoría |
+| RF‑21 | Visualización de métricas clave | El sistema debe mostrar al administrador el total vendido, el total comprado y las utilidades acumuladas, junto con su variación porcentual respecto del mes anterior |
+| RF‑22 | Gráfico de ventas por mes | El sistema debe mostrar un gráfico de líneas con el registro histórico anual, registrando el número de ventas por mes desde enero a la fecha |
+| RF‑23 | Gráfico de ventas por plataforma | El sistema debe generar y mostrar un gráfico circular con la participación de canales de venta, registrando el porcentaje de ventas por plataforma |
+| RF‑24 | Visualización de estadísticas empresariales | El sistema debe mostrar la cantidad de productos, cuentas activas, proveedores registrados y categorías de producto en el apartado de dashboard |
 
 ## Requerimientos no funcionales
 
-| Identificador | Requerimiento | Verificación |
-| --- | --- | --- |
-| RNF‑01 | Suspender una cuenta durante 15 minutos después de cinco intentos fallidos consecutivos de inicio de sesión. | [authController.js](backend/controllers/authController.js) |
-| RNF‑02 | Transmitir la información entre el navegador y el servidor mediante HTTPS, con TLS 1.2 como versión mínima. | [App Service](infra/environments/production/backend/app-service.tf) y [Storage](infra/environments/production/frontend/storage.tf) |
-| RNF‑03 | Funcionar en las versiones recientes de Google Chrome, Safari y Microsoft Edge. | Prueba del sistema en cada navegador |
-| RNF‑04 | Mantener la sesión activa durante 30 días antes de solicitar un nuevo inicio de sesión. | [authController.js](backend/controllers/authController.js) y [auth.service.ts](frontend/src/app/services/auth.service.ts) |
-| RNF‑05 | Permitir desplegar el frontend y el backend de forma independiente. | [CD del frontend](.github/workflows/frontend-cd-devsecops.yml) y [CD del backend](.github/workflows/backend-cd-devsecops.yml) |
-| RNF‑06 | Detectar secretos, contraseñas y tokens expuestos mediante análisis automatizados en CI. | GitGuardian en el [CI del frontend](.github/workflows/frontend-ci-devsecops.yml) y el [CI del backend](.github/workflows/backend-ci-devsecops.yml) |
-| RNF‑07 | Ejecutar análisis estático del código fuente en CI. | SonarCloud en el [CI del frontend](.github/workflows/frontend-ci-devsecops.yml) y el [CI del backend](.github/workflows/backend-ci-devsecops.yml) |
-| RNF‑08 | Analizar las dependencias para detectar vulnerabilidades conocidas en CI. | Snyk en el [CI del frontend](.github/workflows/frontend-ci-devsecops.yml) y el [CI del backend](.github/workflows/backend-ci-devsecops.yml) |
-| RNF‑09 | Analizar la configuración de infraestructura como código antes del despliegue. | Trivy en el [CD del frontend](.github/workflows/frontend-cd-devsecops.yml) y el [CD del backend](.github/workflows/backend-cd-devsecops.yml) |
-| RNF‑10 | Ejecutar pruebas dinámicas de seguridad sobre el entorno de preproducción. | OWASP ZAP en el [CD del frontend](.github/workflows/frontend-cd-devsecops.yml) y el [CD del backend](.github/workflows/backend-cd-devsecops.yml) |
-| RNF‑11 | Recolectar y exportar métricas de rendimiento y salud hacia un panel centralizado. | [metricas.js](backend/middleware/metricas.js) y el panel de Grafana |
+Los siguientes 11 requerimientos describen las condiciones del sistema y los controles de los pipelines.
 
-Estas tablas describen los requisitos del proyecto. La configuración de los controles implementados se explica en la documentación de cada componente y del pipeline.
+| Identificador | Nombre | Requerimiento |
+| --- | --- | --- |
+| RNF‑01 | Prevención de acceso indebido | El sistema debe suspender una cuenta de usuario durante 15 minutos tras 5 intentos fallidos consecutivos de inicio de sesión |
+| RNF‑02 | Comunicación cifrada | El sistema debe transmitir toda la información entre el navegador y el servidor mediante HTTPS |
+| RNF‑03 | Compatibilidad de navegadores | El sistema debe funcionar sin errores en las versiones más recientes de los navegadores Google Chrome, Safari y Microsoft Edge |
+| RNF‑04 | Persistencia de sesión | El sistema debe mantener activa la sesión del usuario durante 30 días antes de exigir un nuevo inicio de sesión |
+| RNF‑05 | Protección de rutas del sistema | El sistema debe rechazar toda solicitud a los módulos que no incluya una sesión válida, exceptuando el inicio de sesión |
+| RNF‑06 | Detección de secretos | El pipeline de CI debe analizar el código fuente para detectar la exposición accidental de contraseñas, tokens y secretos |
+| RNF‑07 | Análisis estático de código | El pipeline de CI debe ejecutar de forma obligatoria pruebas estáticas para la revisión del código fuente |
+| RNF‑08 | Análisis de composición de software | El pipeline de CI debe incluir escaneos de composición de software para verificar de manera automática que ninguna librería o dependencia de terceros contenga vulnerabilidades conocidas |
+| RNF‑09 | Análisis de seguridad de la infraestructura | El pipeline de CD debe analizar la configuración de infraestructura como código en busca de configuraciones vulnerables antes del despliegue |
+| RNF‑10 | Pruebas dinámicas de seguridad | El pipeline de CD debe ejecutar pruebas dinámicas que simulen ataques sobre el entorno de preproducción |
+| RNF‑11 | Monitoreo del sistema | El sistema debe exportar métricas de rendimiento y disponibilidad hacia un panel de visualización centralizado |
 
 ## Organización del repositorio
 
