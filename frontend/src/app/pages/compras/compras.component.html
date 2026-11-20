@@ -5,7 +5,7 @@
   <header>
     <p class="migas"><a routerLink="/inicio" class="hover:underline">Inicio</a> &gt; Compras</p>
     <h1 class="titulo-pagina mt-3">Módulo de Compras</h1>
-    <p class="subtitulo-pagina">Gestión de órdenes de entrada y proveedores</p>
+    <p class="subtitulo-pagina">Seguimiento de entrada de productos</p>
   </header>
 
   @if (puedeVerMetricas) {
@@ -117,7 +117,7 @@
 
 @if (detalle) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-detalle-compra">
-    <section class="tarjeta w-full max-w-3xl p-6">
+    <section class="tarjeta max-h-full w-full max-w-3xl overflow-y-auto p-6">
       <h2 id="titulo-detalle-compra" class="border-b border-slate-200 pb-2 font-semibold">Detalle de la compra {{ detalle.numeroFactura }}</h2>
       <p class="mt-1 text-xs text-slate-600">{{ detalle.proveedor }} · Lote #{{ detalle.numeroLote }} · {{ detalle.fechaCompra | fecha: 'tabla' }}</p>
 
