@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { DashboardComponent } from './dashboard.component';
+import { DashboardComponent, colorPlataforma, etiquetaPorcentaje } from './dashboard.component';
 import { PesosPipe } from '../../pipes/pesos.pipe';
 import { RUTAS_API } from '../../services/api';
 
@@ -112,6 +112,27 @@ describe('DashboardComponent', () => {
     const fondo = component.fondoDona;
 
     expect(fondo).toBe('conic-gradient(#1e3f20 0% 60%, #52b788 60% 100%)');
+  });
+
+  it('asigna un color distinto a cada plataforma aunque haya mas de cuatro', () => {
+    const colores = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(colorPlataforma);
+
+    expect(colores.slice(0, 4)).toEqual(['#1e3f20', '#2e7d32', '#52b788', '#a3e635']);
+    expect(new Set(colores).size).toBe(colores.length);
+  });
+
+  it('cierra la dona en 100 aunque los porcentajes redondeados no sumen 100', () => {
+    component.ventasPlataforma = [
+      { plataforma: 'Tienda de Prueba', porcentaje: 66, color: '#1e3f20' },
+      { plataforma: 'Venta Presencial', porcentaje: 33, color: '#52b788' },
+    ];
+
+    expect(component.fondoDona).toBe('conic-gradient(#1e3f20 0% 66%, #52b788 66% 100%)');
+  });
+
+  it('muestra menor a 1 cuando una plataforma con ventas redondea a 0', () => {
+    expect(etiquetaPorcentaje(0)).toBe('<1');
+    expect(etiquetaPorcentaje(23)).toBe('23');
   });
 
   it('muestra la respuesta recibida por http', () => {

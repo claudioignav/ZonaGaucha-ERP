@@ -71,7 +71,7 @@
             <li class="flex items-center gap-2">
               <span class="size-3 rounded-[3px]" [style.background]="item.color"></span>
               <span class="flex-1">{{ item.plataforma }}</span>
-              <strong>{{ item.porcentaje }}%</strong>
+              <strong>{{ etiquetaPorcentaje(item.porcentaje) }}%</strong>
             </li>
           }
         </ul>
