@@ -136,7 +136,7 @@
 
 @if (detalle) {
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-productos-lote">
-    <section class="tarjeta w-full max-w-2xl p-6">
+    <section class="tarjeta max-h-full w-full max-w-2xl overflow-y-auto p-6">
       <h2 id="titulo-productos-lote" class="border-b border-slate-200 pb-2 font-semibold">Productos del lote #{{ detalle.numero }}</h2>
       <p class="mt-1 text-xs text-slate-600">{{ detalle.proveedor }} · {{ detalle.tipoContenido }} · {{ detalle.fechaCreacion }}</p>
 

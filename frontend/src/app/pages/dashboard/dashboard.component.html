@@ -5,7 +5,7 @@
   <header>
     <p class="migas">Dashboard</p>
     <h1 class="titulo-pagina mt-3 text-3xl">Dashboard</h1>
-    <p class="subtitulo-pagina">Panel de control y métricas generales</p>
+    <p class="subtitulo-pagina">Resumen financiero del desempeño comercial de la organización</p>
   </header>
 
   <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -71,7 +71,7 @@
             <li class="flex items-center gap-2">
               <span class="size-3 rounded-[3px]" [style.background]="item.color"></span>
               <span class="flex-1">{{ item.plataforma }}</span>
-              <strong>{{ item.porcentaje }}%</strong>
+              <strong>{{ etiquetaPorcentaje(item.porcentaje) }}%</strong>
             </li>
           }
         </ul>

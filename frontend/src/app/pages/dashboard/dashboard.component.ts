@@ -10,6 +10,26 @@ import { DashboardService, ResumenDashboard } from '../../services/dashboard.ser
 
 // mismos colores que el prototipo para los canales de venta, en el orden en que llegan
 const COLORES_PLATAFORMA = ['#1e3f20', '#2e7d32', '#52b788', '#a3e635'];
+
+// variaciones de la misma paleta verde para las plataformas que superan los colores del prototipo
+const VARIACIONES_VERDE = ['#0f766e', '#86efac', '#4d7c0f', '#99f6e4'];
+
+export const colorPlataforma = (indice: number): string => {
+  const colores = [...COLORES_PLATAFORMA, ...VARIACIONES_VERDE];
+  if (indice < colores.length) return colores[indice];
+
+  // si hay aun mas plataformas se generan verdes con distinto tono y claridad
+  const extra = indice - colores.length;
+  const tono = 90 + ((extra * 29) % 80);
+  const luz = [28, 45, 62][extra % 3];
+
+  return `hsl(${tono} 45% ${luz}%)`;
+};
+
+// una plataforma con ventas que redondea a 0 se muestra como menor a 1
+export const etiquetaPorcentaje = (porcentaje: number): string =>
+  porcentaje === 0 ? '<1' : String(porcentaje);
+
 const SUFIJOS_VARIACION: Record<string, string> = {
   'Total Vendido': 'este mes',
   Utilidades: 'de utilidad este mes',
@@ -116,7 +136,7 @@ export class DashboardComponent implements OnInit {
     this.ventasMensuales = datos.ventasPorMes;
     this.ventasPlataforma = datos.ventasPorPlataforma.map((item, i) => ({
       ...item,
-      color: COLORES_PLATAFORMA[i % COLORES_PLATAFORMA.length],
+      color: colorPlataforma(i),
     }));
   }
 
@@ -161,6 +181,8 @@ export class DashboardComponent implements OnInit {
     return 200 - (cantidad / this.ventasMaximas) * 180;
   }
 
+  etiquetaPorcentaje = etiquetaPorcentaje;
+
   get puntosLinea(): string {
     return this.ventasMensuales
       .map((venta, i) => this.puntoX(i) + ',' + this.puntoY(venta.cantidad))
@@ -169,10 +191,12 @@ export class DashboardComponent implements OnInit {
 
   get fondoDona(): string {
     let acumulado = 0;
-    const tramos = this.ventasPlataforma.map((item) => {
+    const ultimo = this.ventasPlataforma.length - 1;
+    // los porcentajes vienen redondeados, el ultimo tramo cierra la dona en 100
+    const tramos = this.ventasPlataforma.map((item, i) => {
       const inicio = acumulado;
 
-      acumulado += item.porcentaje;
+      acumulado = i === ultimo ? 100 : acumulado + item.porcentaje;
 
       return item.color + ' ' + inicio + '% ' + acumulado + '%';
     });
