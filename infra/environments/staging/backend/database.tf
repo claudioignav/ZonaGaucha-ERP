@@ -1,11 +1,10 @@
-# Consultamos el servidor existente. No lo importamos ni cambiamos sus permisos.
+# servidor sql existente, solo se consulta
 data "azurerm_mssql_server" "existing" {
   name                = var.existing_sql_server_name
   resource_group_name = data.azurerm_resource_group.main.name
 }
 
-# AzureRM 5.7.0 no expone useFreeLimit; AzAPI lo envía desde la primera creación.
-# Así no creamos primero una base de pago para modificarla después.
+# azapi crea la base con la oferta gratuita, azurerm 5.7.0 no tiene useFreeLimit
 resource "azapi_resource" "backend_staging_database" {
   type      = "Microsoft.Sql/servers/databases@2025-01-01"
   name      = var.backend_staging_database_name
@@ -21,7 +20,6 @@ resource "azapi_resource" "backend_staging_database" {
     }
 
     properties = {
-      # Se crea vacía: no copia ni restaura información de producción.
       createMode = "Default"
       collation  = "SQL_Latin1_General_CP1_CI_AS"
 

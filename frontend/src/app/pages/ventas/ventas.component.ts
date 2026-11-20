@@ -5,7 +5,7 @@ import { Component, inject, OnInit, ChangeDetectorRef, ElementRef, ViewChild } f
 import { resumenVentas, Venta, opcionesVenta } from '../../models/venta';
 import { FiltrosVenta, VentaService } from '../../services/venta.service';
 
-// usa la fecha local para que el día elegido no cambie al pasarlo a utc
+// usa la fecha local para que el dia elegido no cambie al pasarlo a utc
 const aTexto = (fecha: Date | null): string =>
   fecha
     ? `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
@@ -114,7 +114,7 @@ export class VentasComponent implements OnInit {
     return venta.productos.reduce((suma, linea) => suma + Number(linea.cantidad), 0);
   }
 
-  // venta abierta en el cuadro de detalle, null cuando no hay ninguna abierta.
+  // venta abierta en el cuadro de detalle, null cuando no hay ninguna abierta
   detalle: Venta | null = null;
 
   private dialogoDetalle?: HTMLDialogElement;

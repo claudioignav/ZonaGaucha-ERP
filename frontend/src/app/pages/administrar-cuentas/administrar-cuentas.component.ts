@@ -23,7 +23,7 @@ export class AdministrarCuentasComponent implements OnInit {
 
   mostrarContrasena = false;
 
-  // copia que se edita en la ventana, separada del formulario de registro.
+  // copia que se edita en la ventana, separada del formulario de registro
   edicion: UsuarioEdicion | null = null;
   editandoId: number | null = null;
 

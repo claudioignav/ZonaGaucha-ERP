@@ -69,6 +69,7 @@ const prepararLineas = async (productos) => {
   return lineas.every((l) => l.idProducto) ? lineas : null;
 };
 
+// guarda la venta solo si no existe y algun lote tiene stock
 const guardarVenta = async (venta, idPlataforma, idUsuario) => {
   if (!lineasValidas(venta.productos)) return;
   if (await Venta.findOne({ where: { idPlataforma, idExterno: venta.idExterno } })) return;
@@ -145,6 +146,7 @@ const sincronizarFuente = async ({ plataforma, modulo, configurada }, env, idUsu
   }
 };
 
+// recorre las plataformas configuradas e importa sus ventas nuevas
 const sincronizarVentas = async (env, idUsuario) => {
   for (const fuente of FUENTES) await sincronizarFuente(fuente, env, idUsuario);
 };

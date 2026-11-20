@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const { ErrorHttp } = require('./errores');
 const { filtroFechas } = require('./consultas');
 
+// arma el where de los historiales con los filtros que llegan en la url
 const filtrar = (query, campoFecha, campos) => {
   const fecha = query[campoFecha];
   for (const valor of [fecha, query.desde, query.hasta]) {
@@ -14,7 +15,7 @@ const filtrar = (query, campoFecha, campos) => {
       throw new ErrorHttp(400, 'Fecha de filtro no valida');
   }
 
-  // las fechas llegan como aaaa-mm-dd, así que compararlas como texto respeta el orden
+  // las fechas llegan como aaaa-mm-dd, asi que compararlas como texto respeta el orden
   if (query.desde && query.hasta && query.desde > query.hasta)
     throw new ErrorHttp(400, 'La fecha desde no puede ser posterior a la fecha hasta');
 

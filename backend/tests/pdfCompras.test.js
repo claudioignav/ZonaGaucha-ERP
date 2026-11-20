@@ -15,7 +15,7 @@ const compra = (i) => ({
   compraNeta: 119000,
 });
 
-// cuenta las páginas mirando los objetos /Type /Page del documento
+// cuenta las paginas mirando los objetos /Type /Page del documento
 const paginas = (pdf) => pdf.toString('latin1').match(/\/Type \/Page\b/g).length;
 
 const registroBd = {

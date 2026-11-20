@@ -1,5 +1,6 @@
 const bases = { staging: 'sqldb-zonagaucha-stg', production: 'sqldb-zonagaucha' };
 
+// valida que la base configurada sea la del entorno antes de conectar
 const configurarBase = (variables) => {
   const entorno = variables.APP_ENV;
   if (!['staging', 'production'].includes(entorno))

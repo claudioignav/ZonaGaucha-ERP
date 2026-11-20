@@ -6,6 +6,7 @@ const router = Router();
 
 const hash = (valor) => createHash('sha256').update(valor).digest();
 
+// las metricas solo se entregan con el token configurado
 router.get('/', async (req, res) => {
   const token = process.env.METRICS_TOKEN;
   if (!token) return res.sendStatus(404);

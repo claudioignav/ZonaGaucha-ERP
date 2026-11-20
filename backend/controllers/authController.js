@@ -23,6 +23,7 @@ const registrarFallo = async (registro) => {
   return true;
 };
 
+// valida correo y contraseña, controla la suspension por intentos y entrega el jwt
 const login = async (req, res) => {
   exigirCampos(req.body, ['correo', 'contrasena']);
 

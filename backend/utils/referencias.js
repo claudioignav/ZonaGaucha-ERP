@@ -1,6 +1,7 @@
 const { Producto } = require('../models');
 const { ErrorHttp } = require('./errores');
 
+// busca cada referencia por su nombre y agrega su id al body
 const resolverReferencias = async (body, referencias) => {
   for (const [campo, modelo, columna, id] of referencias) {
     if (body[campo] !== undefined) {

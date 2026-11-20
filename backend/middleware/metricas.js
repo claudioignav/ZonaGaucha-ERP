@@ -17,6 +17,7 @@ const duracion = new Histogram({
   registers: [registro],
 });
 
+// registra la cantidad y duracion de cada solicitud para grafana
 const medirSolicitudes = (req, res, next) => {
   const inicio = process.hrtime.bigint();
 

@@ -1,6 +1,7 @@
 const { CategoriaProducto, TipoPago } = require('../models');
 const { ErrorHttp } = require('../utils/errores');
 
+// cambia la categoria y los tipos de pago por sus ids antes de guardar
 const resolverCatalogo = async (req, res, next) => {
   if (!['POST', 'PUT'].includes(req.method)) return next();
 

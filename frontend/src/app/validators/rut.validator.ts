@@ -19,15 +19,15 @@ export function calcularDigitoVerificador(cuerpo: string): string {
   return String(resto);
 }
 
-// deja el rut como se guarda en la bd: 12345678-5 (sin puntos, con guion y K mayuscula).
-// se puede escribir con o sin puntos/guion y si no viene el digito verificador se calcula.
+// deja el rut como se guarda en la bd: 12345678-5 (sin puntos, con guion y K mayuscula)
+// se puede escribir con o sin puntos/guion y si no viene el digito verificador se calcula
 // devuelve null si el rut no sirve
 export function normalizarRut(rut: string): string | null {
   const limpio = limpiarRut(rut);
   let cuerpo = limpio;
   let dv: string | undefined;
 
-  // trae dv si tiene guion, termina en K o tiene 9 caracteres.
+  // trae dv si tiene guion, termina en K o tiene 9 caracteres
   // con 8 numeros sin guion es ambiguo: si cuadra como 7 + dv se toma asi, si no se asume que falta el dv
   const cuadraComoSieteMasDv = limpio.length === 8 && calcularDigitoVerificador(limpio.slice(0, 7)) === limpio[7];
   if (rut.includes('-') || limpio.endsWith('K') || limpio.length === 9 || cuadraComoSieteMasDv) {

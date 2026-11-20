@@ -60,7 +60,7 @@ export class NuevaVentaComponent implements OnInit {
     return subtotalLinea(detalle);
   }
 
-  // el precio de catálogo solo es el valor inicial de la línea, el usuario puede cambiarlo sin tocar el catálogo.
+  // el precio de catalogo solo es el valor inicial de la linea, el usuario puede cambiarlo sin tocar el catalogo
   seleccionarProducto(detalle: DetalleProducto): void {
     const precio = this.opciones.preciosProductos?.find((item) => item.nombre === detalle.producto);
 

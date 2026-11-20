@@ -1,5 +1,6 @@
 const { UniqueConstraintError, ForeignKeyConstraintError, ValidationError } = require('sequelize');
 
+// traduce los errores de sequelize a respuestas http con un mensaje para el usuario
 const manejarErrores = (err, req, res, next) => {
   if (err.status) {
     return res.status(err.status).json({ error: err.message });

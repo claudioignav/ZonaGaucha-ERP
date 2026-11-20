@@ -1,5 +1,6 @@
 const { buscarOFallar, exigirCampos } = require('../utils/errores');
 
+// crud generico que comparten los seis catalogos
 const crearControladorCatalogo = (config) => {
   const { modelo, campoId, campos, include = [] } = config;
   const requeridos = config.requeridos || campos;

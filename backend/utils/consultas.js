@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 
+// rango que incluye el dia completo de desde y de hasta
 const filtroFechas = (campo, desde, hasta) => {
   if (!desde && !hasta) return {};
 
@@ -13,6 +14,7 @@ const filtroFechas = (campo, desde, hasta) => {
 
 const sumar = async (modelo, campo, where = {}) => Number(await modelo.sum(campo, { where })) || 0;
 
+// fecha y hora actual de chile en formato aaaa-mm-ddThh:mm
 const fechaHoy = () => {
   const partes = new Intl.DateTimeFormat('sv-SE', {
     timeZone: 'America/Santiago',

@@ -23,6 +23,7 @@ const obtenerToken = async (env) => {
 // el enlace a la pagina siguiente viene en la cabecera link
 const siguientePagina = (enlace) => /<([^>]+)>;\s*rel="next"/.exec(enlace || '')?.[1];
 
+// pedidos pagados desde la fecha indicada, hasta 4 paginas de 250
 const traerPedidos = async (env, desde) => {
   const token = await obtenerToken(env);
   const consulta = new URLSearchParams({
@@ -43,6 +44,7 @@ const traerPedidos = async (env, desde) => {
 
 const TIPOS_PAGO = { manual: 'Transferencia', cash_on_delivery: 'Efectivo' };
 
+// convierte un pedido de shopify al formato de venta del erp
 const aVenta = (pedido) => {
   const cliente = [pedido.customer?.first_name, pedido.customer?.last_name].filter(Boolean).join(' ');
   return {

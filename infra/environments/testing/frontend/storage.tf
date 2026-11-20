@@ -1,4 +1,4 @@
-# El acceso público permite servir el sitio estático de Angular.
+# el acceso publico permite servir el sitio estatico de Angular
 #trivy:ignore:azure-storage-default-action-deny
 resource "azurerm_storage_account" "frontend_testing" {
   name                = "zgerpfronttest"

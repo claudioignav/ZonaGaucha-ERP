@@ -58,7 +58,7 @@ resource "azurerm_linux_web_app" "backend_testing" {
     }
   }
 
-  # APP_ENV selecciona la base permitida por el backend. La etiqueta Azure identifica Testing.
+  # testing usa la base de preproduccion, por eso APP_ENV es staging
   app_settings = {
     NODE_ENV = "production"
     APP_ENV  = "staging"
@@ -70,7 +70,7 @@ resource "azurerm_linux_web_app" "backend_testing" {
   tags = local.tags
 
   lifecycle {
-    # Las credenciales de ejecución se configuran directamente en App Service.
+    # las credenciales de ejecucion se configuran directamente en App Service
     ignore_changes = [app_settings]
   }
 }

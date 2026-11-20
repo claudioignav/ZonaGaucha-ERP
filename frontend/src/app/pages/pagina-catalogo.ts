@@ -21,7 +21,7 @@ export abstract class PaginaCatalogo<K extends TipoCatalogo> implements OnInit {
 
   registros: MapaCatalogos[K][] = [];
   nuevo: DatosCatalogo<K> = this.registroVacio();
-  // copia que se edita en la ventana, separada del formulario de alta.
+  // copia que se edita en la ventana, separada del formulario de alta
   edicion: DatosCatalogo<K> | null = null;
   editandoId: number | null = null;
   mensajeError = '';
@@ -29,7 +29,7 @@ export abstract class PaginaCatalogo<K extends TipoCatalogo> implements OnInit {
 
   protected abstract registroVacio(): DatosCatalogo<K>;
 
-  // las páginas amplían estas reglas cuando un campo necesita validación o formato propio.
+  // las paginas amplian estas reglas cuando un campo necesita validacion o formato propio
   protected validar(datos: DatosCatalogo<K>): boolean {
     return this.obligatorios.every((campo) => {
       const valor = datos[campo] as unknown;

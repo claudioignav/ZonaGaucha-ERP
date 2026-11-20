@@ -46,12 +46,12 @@ export class ComprasComponent implements OnInit {
 
   filtros: FiltrosCompra = { numeroFactura: '', fechaCompra: '', proveedor: '', tipoPago: '' };
 
-  // filtros de la última búsqueda, el pdf usa estos para que coincida con la tabla
+  // filtros de la ultima busqueda, el pdf usa estos para que coincida con la tabla
   private filtrosAplicados: FiltrosCompra = { ...this.filtros };
 
   exportando = false;
 
-  // compra abierta en el cuadro de detalle, null cuando no hay ninguna abierta.
+  // compra abierta en el cuadro de detalle, null cuando no hay ninguna abierta
   detalle: Compra | null = null;
 
   ngOnInit(): void {

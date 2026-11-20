@@ -27,6 +27,7 @@ export class CompraService {
     return this.http.get<Compra[]>(RUTAS_API.compras, { params: filtros }).pipe(manejarErrorHttp());
   }
 
+  // descarga el pdf con los mismos filtros de la tabla
   exportarPdf(filtros: FiltrosCompra = {}) {
     return this.http
       .get(RUTAS_API.compras + '/pdf', { params: filtros, responseType: 'blob' })

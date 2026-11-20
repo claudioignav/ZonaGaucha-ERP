@@ -5,6 +5,7 @@ const permisosUsuario = [
   'gestionar-catalogos',
 ];
 
+// el administrador tiene los permisos del usuario y ademas los de gestion
 const permisosPorRol = new Map([
   ['Usuario', new Set(permisosUsuario)],
   ['Administrador', new Set([

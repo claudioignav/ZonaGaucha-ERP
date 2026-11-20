@@ -26,7 +26,7 @@ export class InventarioComponent implements OnInit {
 
   resumen = { ...resumenInventario };
 
-  // valores escritos en el formulario, la tabla no cambia hasta aplicarlos.
+  // valores escritos en el formulario, la tabla no cambia hasta aplicarlos
   filtroLote = '';
 
   filtroProveedor = '';
