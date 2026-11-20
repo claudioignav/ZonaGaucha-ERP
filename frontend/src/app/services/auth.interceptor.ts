@@ -5,6 +5,7 @@ import { catchError, throwError } from 'rxjs';
 import { API_URL, RUTAS_API } from './api';
 import { AuthService } from './auth.service';
 
+// agrega el token a las llamadas de la api y cierra la sesion si responde 401
 export const authInterceptor: HttpInterceptorFn = (peticion, siguiente) => {
   const auth = inject(AuthService);
   const router = inject(Router);

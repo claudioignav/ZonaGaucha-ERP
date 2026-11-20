@@ -49,6 +49,7 @@ const formatearLote = (lote) => {
   };
 };
 
+// lotes con su compra, proveedor y productos disponibles
 const listarLotes = async (req, res) => {
   const lotes = await Lote.findAll({
     include: [
@@ -72,6 +73,7 @@ const listarLotes = async (req, res) => {
   res.json(lotes.map(formatearLote));
 };
 
+// porcentaje vendido segun las unidades ingresadas y las disponibles
 const resumen = async (req, res) => {
   const ingresadas = await sumar(DetalleLote, 'cantidadIngresada');
   const disponibles = await sumar(DetalleLote, 'cantidadDisponible');

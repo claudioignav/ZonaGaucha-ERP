@@ -1,4 +1,4 @@
-// los importes se operan en centavos enteros para que el total no dependa del redondeo del punto flotante.
+// los importes se operan en centavos enteros para que el total no dependa del redondeo del punto flotante
 
 export interface LineaImporte {
   cantidad: number | string;
@@ -8,11 +8,11 @@ export interface LineaImporte {
 export const aCentavos = (valor: number | string | null | undefined): number =>
   Math.round((Number(valor) || 0) * 100);
 
-// cantidad por precio unitario, el resultado queda en pesos con hasta dos decimales.
+// cantidad por precio unitario, el resultado queda en pesos con hasta dos decimales
 export const subtotalLinea = (linea: LineaImporte): number =>
   Math.round(aCentavos(linea.precioUnitario) * (Number(linea.cantidad) || 0)) / 100;
 
-// el total es la suma de los subtotales, no la suma de cantidades y precios.
+// el total es la suma de los subtotales, no la suma de cantidades y precios
 export const totalLineas = (lineas: LineaImporte[]): number =>
   lineas.reduce((suma, linea) => suma + aCentavos(subtotalLinea(linea)), 0) / 100;
 
@@ -22,7 +22,7 @@ export interface ImpuestoInterpretado {
   valor: number;
 }
 
-// admite "19%", "19,5%", "190" o "$190", cualquier otro texto no es un impuesto valido.
+// admite "19%", "19,5%", "190" o "$190", cualquier otro texto no es un impuesto valido
 const FORMATO_IMPUESTO = /^\s*\$?\s*\d+([.,]\d+)?\s*%?\s*$/;
 
 export const interpretarImpuesto = (texto: number | string | null | undefined): ImpuestoInterpretado => {
@@ -38,7 +38,7 @@ export const interpretarImpuesto = (texto: number | string | null | undefined): 
   };
 };
 
-// el impuesto puede escribirse como porcentaje sobre la bruta o como monto.
+// el impuesto puede escribirse como porcentaje sobre la bruta o como monto
 export const impuestoDe = (bruta: number, impuesto: number | string | null | undefined): number => {
   const { porcentaje, valor } = interpretarImpuesto(impuesto);
 

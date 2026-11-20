@@ -1,4 +1,4 @@
-# El sitio estático necesita acceso público; esta excepción ya existía en el repo.
+# el sitio estatico necesita acceso publico
 #trivy:ignore:azure-storage-default-action-deny
 resource "azurerm_storage_account" "frontend_staging" {
   name                = var.frontend_staging_storage_account_name
@@ -24,6 +24,7 @@ resource "azurerm_storage_account" "frontend_staging" {
   })
 }
 
+# sitio estatico que sirve el build de angular
 resource "azurerm_storage_account_static_website" "frontend_staging" {
   storage_account_id = azurerm_storage_account.frontend_staging.id
   index_document     = "index.html"

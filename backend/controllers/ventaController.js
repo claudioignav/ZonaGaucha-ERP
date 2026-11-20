@@ -89,6 +89,7 @@ const validarProductos = (productos) => {
   }
 };
 
+// descuenta el stock bloqueando la fila del lote para evitar ventas simultaneas
 const descontarStock = async (idLote, productos, transaction) => {
   for (const item of productos) {
     const detalle = await DetalleLote.findOne({
@@ -104,6 +105,7 @@ const descontarStock = async (idLote, productos, transaction) => {
   }
 };
 
+// historial de ventas con los filtros de la url
 const listar = async (req, res) => {
   const ventas = await Venta.findAll({
     where: filtrar(req.query, 'fechaVenta', {
@@ -128,6 +130,7 @@ const resumen = async (req, res) => {
   });
 };
 
+// registra la venta y descuenta el stock en una misma transaccion
 const crear = async (req, res) => {
   if (!req.body.numeroDocumento)
     req.body.numeroDocumento = crypto.randomUUID().replaceAll('-', '').slice(0, 20);
@@ -145,7 +148,7 @@ const crear = async (req, res) => {
 
   validarProductos(productos);
 
-  // el bruto sale de las líneas (cantidad por precio), el neto es bruto más adicional.
+  // el bruto sale de las lineas (cantidad por precio), el neto es bruto mas adicional
   const brutoCentavos = sumarCentavos(
     productos.map((p) => subtotalCentavos(p.cantidad, p.precioUnitario)),
   );

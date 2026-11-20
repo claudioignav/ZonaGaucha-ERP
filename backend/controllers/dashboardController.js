@@ -36,7 +36,7 @@ const armarVentasPorPlataforma = (filas) => {
   }));
 };
 
-// variación porcentual del mes actual frente al anterior, sin base positiva no hay comparación.
+// variacion porcentual del mes actual frente al anterior, sin base positiva no hay comparacion
 const calcularVariacion = (serie, indiceMes) => {
   const anterior = serie[indiceMes - 1];
   if (indiceMes < 1 || !(anterior > 0)) return null;
@@ -55,6 +55,7 @@ const sumaPorMes = (modelo, campoFecha, campoMonto, where) =>
     raw: true,
   });
 
+// totales, graficos y variaciones del año en curso
 const resumen = async (req, res) => {
   const hoy = new Date();
   const anio = hoy.getFullYear();

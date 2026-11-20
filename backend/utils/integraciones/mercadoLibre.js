@@ -20,6 +20,7 @@ const obtenerToken = async (env) => {
   return datos.access_token;
 };
 
+// pagos aprobados de mercado libre consultados en mercado pago
 const traerPedidos = async (env, desde) => {
   const token = await obtenerToken(env);
   const consulta = new URLSearchParams({
@@ -46,6 +47,7 @@ const TIPOS_PAGO = {
   ticket: 'Efectivo',
 };
 
+// convierte un pago al formato de venta del erp
 const aVenta = (pago) => ({
   idExterno: String(pago.order.id),
   numeroDocumento: String(pago.order.id),

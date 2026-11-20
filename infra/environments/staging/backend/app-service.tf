@@ -1,3 +1,4 @@
+# plan linux b1 del backend de preproduccion
 resource "azurerm_service_plan" "backend_staging" {
   name                = var.backend_staging_plan_name
   resource_group_name = data.azurerm_resource_group.main.name
@@ -12,6 +13,7 @@ resource "azurerm_service_plan" "backend_staging" {
   })
 }
 
+# backend en app service, solo https y tls 1.2
 resource "azurerm_linux_web_app" "backend_staging" {
   name                = var.backend_staging_app_name
   resource_group_name = data.azurerm_resource_group.main.name
@@ -45,8 +47,7 @@ resource "azurerm_linux_web_app" "backend_staging" {
     }
   }
 
-  # NODE_ENV queda en producción para probar el comportamiento del despliegue real.
-  # APP_ENV distingue preproducción; no selecciona una base de datos por sí solo.
+  # usa NODE_ENV=production para que preproduccion se comporte igual que produccion
   app_settings = {
     NODE_ENV = "production"
     APP_ENV  = "staging"

@@ -64,7 +64,7 @@ const formatearCompra = (compra) => ({
   compraNeta: Number(compra.compraNeta),
 });
 
-// el porcentaje se aplica sobre la compra bruta en centavos, el monto se toma tal como viene.
+// el porcentaje se aplica sobre la compra bruta en centavos, el monto se toma tal como viene
 const calcularImpuesto = (compraBruta, impuesto, tipoImpuesto) => {
   const valor = Number(impuesto) || 0;
   if (tipoImpuesto === 'porcentaje') return deCentavos((aCentavos(compraBruta) * valor) / 100);
@@ -90,6 +90,7 @@ const validarProductos = (productos) => {
   }
 };
 
+// consulta las compras con sus filtros, la usan el listado y el pdf
 const buscarCompras = async (query) => {
   const compras = await Compra.findAll({
     where: filtrar(query, 'fechaCompra', {
@@ -137,6 +138,7 @@ const resumen = async (req, res) => {
   });
 };
 
+// registra la compra con su lote y los productos ingresados en una transaccion
 const crear = async (req, res) => {
   exigirCampos(req.body, [
     'numeroFactura',
@@ -151,7 +153,7 @@ const crear = async (req, res) => {
 
   validarProductos(productos);
 
-  // la compra bruta sale de las líneas, si el cliente envía un total, tiene que coincidir.
+  // la compra bruta sale de las lineas, si el cliente envia un total, tiene que coincidir
   const brutaCentavos = sumarCentavos(
     productos.map((p) => subtotalCentavos(p.cantidad, p.precioUnitario)),
   );

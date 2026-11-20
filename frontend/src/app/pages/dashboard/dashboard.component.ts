@@ -8,14 +8,14 @@ import {
 } from '../../models/dashboard';
 import { DashboardService, ResumenDashboard } from '../../services/dashboard.service';
 
-// mismos colores que el prototipo para los canales de venta, en el orden en que llegan.
+// mismos colores que el prototipo para los canales de venta, en el orden en que llegan
 const COLORES_PLATAFORMA = ['#1e3f20', '#2e7d32', '#52b788', '#a3e635'];
 const SUFIJOS_VARIACION: Record<string, string> = {
   'Total Vendido': 'este mes',
   Utilidades: 'de utilidad este mes',
   'Total Comprado': 'en insumos este mes',
 };
-// la línea mensual va de x=48 a x=580 dentro del viewBox de 620 px
+// la linea mensual va de x=48 a x=580 dentro del viewBox de 620 px
 const ORIGEN_EJE_X = 48;
 const ANCHO_EJE_X = 532;
 // las mini tendencias usan un viewBox de 96 x 40

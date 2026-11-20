@@ -5,8 +5,6 @@ backend_production_location  = "brazilsouth"
 backend_production_plan_name = "service-zg"
 backend_production_app_name  = "zgerpbacktapp"
 
-# Confirma la versión con el código del backend y los runtimes de Azure.
 backend_node_version = "22-lts"
 
-# Reemplaza estos orígenes si las URLs de tus Storage son distintas.
 frontend_production_origins = ["https://zgerpfrontapp.z15.web.core.windows.net"]

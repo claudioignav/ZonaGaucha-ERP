@@ -35,6 +35,7 @@ const exigirOtroAdministrador = async (usuario) => {
   if (otros === 0) throw new ErrorHttp(400, 'Debe quedar al menos un administrador activo');
 };
 
+// lista las cuentas sin el hash de la contraseña
 const listar = async (req, res) => {
   const usuarios = await Usuario.findAll({
     attributes: { exclude: ['contrasenaHash'] },
@@ -83,6 +84,7 @@ const actualizar = async (req, res) => {
   res.json(formatearUsuario(usuario));
 };
 
+// eliminar y restaurar solo cambian el estado, la cuenta no se borra
 const cambiarEstado = (activo) => async (req, res) => {
   if (!activo && req.user && Number(req.params.id) === req.user.id) {
     throw new ErrorHttp(400, 'No puedes eliminar tu propia cuenta');

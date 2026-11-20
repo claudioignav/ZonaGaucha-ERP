@@ -23,6 +23,7 @@ export type TipoCatalogo = keyof MapaCatalogos;
 export type DatosCatalogo<K extends TipoCatalogo> = Omit<MapaCatalogos[K], 'id'>;
 
 @Injectable({ providedIn: 'root' })
+// un solo servicio para los seis catalogos, solo cambia la url
 export class CatalogoService {
   private readonly http = inject(HttpClient);
 

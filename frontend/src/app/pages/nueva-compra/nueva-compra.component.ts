@@ -48,7 +48,7 @@ export class NuevaCompraComponent implements OnInit {
       });
   }
 
-  // la compra bruta sale de las líneas, el precio de cada línea se escribe a mano.
+  // la compra bruta sale de las lineas, el precio de cada linea se escribe a mano
   get compraBruta(): number {
     return totalLineas(this.compra.productos);
   }

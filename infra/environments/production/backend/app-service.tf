@@ -1,4 +1,4 @@
-# Producción usa un plan propio, separado del de preproducción.
+# produccion usa un plan propio, separado del de preproduccion
 resource "azurerm_service_plan" "backend_production" {
   name                = var.backend_production_plan_name
   resource_group_name = data.azurerm_resource_group.main.name
@@ -17,6 +17,7 @@ resource "azurerm_service_plan" "backend_production" {
   }
 }
 
+# backend en app service, solo https y tls 1.2
 resource "azurerm_linux_web_app" "backend_production" {
   name                = var.backend_production_app_name
   resource_group_name = data.azurerm_resource_group.main.name
@@ -50,7 +51,6 @@ resource "azurerm_linux_web_app" "backend_production" {
     }
   }
 
-  # No añadimos claves de SQL ni conectamos una base de datos sin configurarla.
   app_settings = {
     NODE_ENV = "production"
     APP_ENV  = "production"

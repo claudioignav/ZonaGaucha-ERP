@@ -19,7 +19,7 @@ export class ProductosComponent extends PaginaCatalogo<'productos'> {
 
   categorias: string[] = [];
 
-  // el precio es opcional, cuando existe debe ser un monto con hasta dos decimales.
+  // el precio es opcional, cuando existe debe ser un monto con hasta dos decimales
   protected override validar(datos: Omit<Producto, 'id'>): boolean {
     const precio = datos.precioVenta ?? null;
     const precioValido = precio === null || /^\d+(\.\d{1,2})?$/.test(String(precio));

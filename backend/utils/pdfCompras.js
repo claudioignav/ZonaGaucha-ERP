@@ -109,7 +109,7 @@ const dibujarResumen = (doc, ancho, totales, y) => {
   });
 };
 
-// recorta el texto con puntos suspensivos para que cada fila quede en una sola línea
+// recorta el texto con puntos suspensivos para que cada fila quede en una sola linea
 const ajustar = (doc, texto, ancho) => {
   if (doc.widthOfString(texto) <= ancho) return texto;
 
@@ -148,7 +148,7 @@ const dibujarPies = (doc, ancho) => {
 
   for (let i = 0; i < rango.count; i++) {
     doc.switchToPage(i);
-    // el pie va dentro del margen inferior, sin esto pdfkit agrega una página en blanco
+    // el pie va dentro del margen inferior, sin esto pdfkit agrega una pagina en blanco
     doc.page.margins.bottom = 0;
     const y = doc.page.height - 38;
     doc.moveTo(MARGEN, y - 6).lineTo(MARGEN + ancho, y - 6).lineWidth(0.6).stroke(COLOR.borde);
@@ -165,6 +165,7 @@ const dibujarPies = (doc, ancho) => {
   }
 };
 
+// arma el pdf del historial con el encabezado de la empresa y los filtros aplicados
 const generarPdfCompras = ({ compras, filtros = {}, usuario, emitido }) =>
   new Promise((resolve, reject) => {
     const doc = new PDFDocument({

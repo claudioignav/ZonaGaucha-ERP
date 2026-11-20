@@ -1,4 +1,4 @@
-# Estas pruebas usan un proveedor simulado: no se conectan a Azure ni crean recursos.
+# estas pruebas usan un proveedor simulado: no se conectan a Azure ni crean recursos
 mock_provider "azurerm" {}
 mock_provider "azapi" {}
 

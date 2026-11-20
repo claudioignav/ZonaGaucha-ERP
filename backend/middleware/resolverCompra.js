@@ -1,6 +1,7 @@
 const { Proveedor, TipoPago, TipoContenido, Producto } = require('../models');
 const { resolverReferencias, resolverProductos } = require('../utils/referencias');
 
+// cambia los nombres que envia el formulario por los ids de la base
 const resolverCompra = async (req, res, next) => {
   const referencias = [
     ['proveedor', Proveedor, 'razonSocial', 'idProveedor'],

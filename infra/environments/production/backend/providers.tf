@@ -4,12 +4,12 @@ provider "azurerm" {
   features {}
 }
 
-# AzAPI permite pedir la oferta gratuita de SQL desde la creación.
+# azapi permite pedir la oferta gratuita de sql desde la creacion
 provider "azapi" {
   subscription_id = var.azure_subscription_id
 }
 
-# Usamos el grupo existente; no lo creamos ni administramos desde aquí.
+# grupo de recursos existente, no se administra desde terraform
 data "azurerm_resource_group" "main" {
   name = var.resource_group_name
 }

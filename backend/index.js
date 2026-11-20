@@ -29,6 +29,7 @@ const codigosConexion = (error) => {
   return [...codigos];
 };
 
+// reintenta la conexion cuando azure sql esta despertando o no responde
 const conectarAlArrancar = async () => {
   const pausas = [5000, 10000, 15000];
   for (const pausa of pausas) {

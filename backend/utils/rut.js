@@ -3,6 +3,7 @@ const limpiarRut = (rut) =>
     .replace(/[.\-\s]/g, '')
     .toUpperCase();
 
+// digito verificador con el algoritmo modulo 11
 const calcularDv = (cuerpo) => {
   let suma = 0;
   let multiplo = 2;
@@ -19,6 +20,7 @@ const calcularDv = (cuerpo) => {
   return String(resto);
 };
 
+// deja el rut como 12345678-5 o devuelve null si no es valido
 const normalizarRut = (rut) => {
   const texto = String(rut);
   const limpio = limpiarRut(texto);

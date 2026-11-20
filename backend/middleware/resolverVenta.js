@@ -1,6 +1,7 @@
 const { Lote, Plataforma, TipoPago, Producto } = require('../models');
 const { resolverReferencias, resolverProductos } = require('../utils/referencias');
 
+// cambia los nombres que envia el formulario por los ids de la base
 const resolverVenta = async (req, res, next) => {
   const referencias = [
     ['lote', Lote, 'numeroLote', 'idLote'],

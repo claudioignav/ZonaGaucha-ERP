@@ -12,6 +12,7 @@ const buscarOFallar = async (modelo, id, opciones = {}) => {
   return registro;
 };
 
+// responde 400 con la lista de campos obligatorios que faltan
 const exigirCampos = (datos, campos) => {
   const faltantes = campos.filter(
     (campo) => datos[campo] === undefined || datos[campo] === null || datos[campo] === '',

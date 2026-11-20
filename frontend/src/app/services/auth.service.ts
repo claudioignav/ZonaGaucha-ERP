@@ -47,6 +47,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   sesion: SesionUsuario | null = sesionGuardada();
 
+  // guarda la sesion en localStorage para mantenerla al recargar
   iniciarSesion(credenciales: Credenciales): Observable<SesionUsuario> {
     this.cerrarSesion();
     return this.http

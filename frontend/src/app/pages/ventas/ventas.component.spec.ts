@@ -29,7 +29,7 @@ const mostrarDialogoOriginal = HTMLDialogElement.prototype.showModal;
 const cerrarDialogoOriginal = HTMLDialogElement.prototype.close;
 
 beforeEach(async () => {
-  // jsdom no implementa los metodos nativos del dialogo.
+  // jsdom no implementa los metodos nativos del dialogo
   HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
     this.open = true;
   });

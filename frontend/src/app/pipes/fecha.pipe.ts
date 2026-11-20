@@ -2,8 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-// la fecha llega en formato estandar "2026-08-16T14:30" (como la arma fechaDeHoy y como la manda el back)
-// y se muestra como en los mockups:
+// la fecha llega como "2026-08-16T14:30" y se muestra como en los mockups:
 //  - 'actual' (tarjeta fecha actual): "Ago 16, 2026 14:30"
 //  - 'tabla' (ventas y compras):      "16-08-2026 14:30"
 @Pipe({ name: 'fecha', standalone: false })

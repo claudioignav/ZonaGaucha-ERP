@@ -4,6 +4,7 @@ declare global {
   }
 }
 
+// la url de la api viene de public/config.js para cambiarla sin recompilar
 export function obtenerApiUrl(): string {
   return (window.ZONAGAUCHA_CONFIG?.apiUrl || '/api').replace(/\/$/, '');
 }

@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { Usuario, Rol } = require('../models');
 const { rolValido } = require('../utils/permisos');
 
+// verifica el jwt y que la cuenta siga activa antes de dejar pasar la solicitud
 const authenticateToken = async (req, res, next) => {
   const coincidencia = /^Bearer (\S+)$/.exec(req.headers.authorization || '');
   if (!coincidencia) return res.status(401).json({ error: 'Token no proporcionado' });

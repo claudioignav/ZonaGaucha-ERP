@@ -1,5 +1,6 @@
 const { Proveedor, TipoPago, TipoContenido, Producto, Plataforma, Lote } = require('../models');
 
+// nombres ordenados para llenar los selectores de los formularios
 const nombres = async (modelo, campo = 'nombre') =>
   (await modelo.findAll({ order: [[campo, 'ASC']] })).map((registro) => registro[campo]);
 
@@ -11,7 +12,7 @@ const compras = async (req, res) =>
     productos: await nombres(Producto),
   });
 
-// el precio de catálogo solo sirve de valor inicial en el formulario, la venta guarda el precio que se usó.
+// el precio de catalogo solo sirve de valor inicial en el formulario, la venta guarda el precio que se uso
 const preciosProductos = async () =>
   (await Producto.findAll({ order: [['nombre', 'ASC']] })).map((producto) => ({
     nombre: producto.nombre,
